@@ -4,8 +4,6 @@ from buildbot.steps.transfer import FileDownload
 from buildbot.steps.shell import ShellCommand
 from buildbot.process.buildstep import LogLineObserver
 
-from isotoma.buildbot.factories import CiFactory
-
 def sibpath(path):
     return os.path.join(os.path.dirname(__file__), path)
 
@@ -79,47 +77,10 @@ class TravisRunner(ShellCommand):
         return int(self.step_status.getStatistic('commands', 0)) == 0
 
 
-class TravisFactory(CiFactory):
-
-    def __init__(self, repository, vcs_type=None, branch=None, username=None, password=None):
-        CiFactory.__init__(self, repository, vcs_type=vcs_type, branch=branch, username=username, password=password)
-
-        self.addStep(FileDownload(
-            mastersrc=sibpath("travis-runner.py"),
-            slavedest="travis-runner",
-            mode=0755,
-            ))
-
-        self.addStep(ShellCommand(
-            name="apt-get-update",
-            description="apt-get-update",
-            flunkOnFailure=True,
-            haltOnFailure=True,
-            command="sudo apt-get update",
-            ))
-
-        self.addStep(ShellCommand(
-            name="apt-get-deps",
-            description="apt-get-deps",
-            flunkOnFailure=True,
-            haltOnFailure=True,
-            command="sudo apt-get install -y -q python-yaml",
-            ))
-
-        for step in ("before-install", "install", "after-install", "before-script", "script", "after-script"):
-            self.addStep(TravisRunner(
-                step = step,
-                ))
 
 
 
 
-class TravisSpawnerFactory(CiFactory):
 
-    def __init__(self, scheduler, repository, vcs_type=None, branch=None, username=None, password=None):
-        CiFactory.__init__(self, repository, vcs_type=vcs_type, branch=branch, username=username, password=password)
 
-        self.addStep(TravisTrigger(
-            scheduler=scheduler,
-            ))
 
