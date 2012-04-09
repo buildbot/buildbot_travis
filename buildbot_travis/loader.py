@@ -1,5 +1,5 @@
 import urlparse
-from buildbot.config import BuilderConfig
+from buildbot.config import BuilderConfig as BuilderConfig_
 from buildbot.schedulers.triggerable import Triggerable
 from buildbot.schedulers.basic  import Scheduler
 from buildbot.changes import svnpoller, gitpoller
@@ -9,6 +9,18 @@ from .factories import TravisFactory, TravisSpawnerFactory
 from .mergereq import mergeRequests
 
 from yaml import safe_load
+
+# I have to support oldere Buildbot. Woe is me.
+class BuilderConfig(BuilderConfig_):
+    def __init__(self, mergeRequests=None, **kwargs):
+        BuilderConfig_.__init__(self, **kwargs)
+        self.mergeRequests = mergeRequests
+    def getConfigDict(self):
+        rv = BuilderConfig_.getConfigDict(self)
+        if self.mergeRequests:
+            rv['mergeRequests'] = self.mergeRequests
+        return rv
+
 
 class Loader(object):
 
