@@ -1,6 +1,6 @@
 from twisted.internet import defer
 from buildbot.process import buildstep
-from buildbot.status.results import SUCCESS, FAILURE
+from buildbot.provess.buildstep import SUCCESS, FAILURE
 
 from .base import ConfigurableStep
 
