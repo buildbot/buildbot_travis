@@ -1,4 +1,4 @@
 
 from .runner import TravisRunner
-from .spawner import TravisSpawner
+from .spawner import TravisTrigger
 

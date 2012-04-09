@@ -1,4 +1,4 @@
-
+import re
 from yaml import safe_load
 
 TRAVIS_HOOKS = ("before_install", "install", "after_install", "before_script", "script", "after_script")
@@ -48,6 +48,8 @@ class TravisYml(object):
 
     def parse_envs(self):
         env = self.config.get("env", None)
+        if env is None:
+            return
         elif isinstance(env, basestring):
             self.environments = [self.parse_env(env)]
         elif isinstance(env, list):
@@ -72,18 +74,18 @@ class TravisYml(object):
         if "only" in branches:
             if not isinstance(branches['only'], list):
                 raise TravisYmlInvalid('branches.only should be a list')
-            self.branches_whitelist = branches['only']
+            self.branch_whitelist = branches['only']
             return
 
         if "except" in branches:
             if not isinstance(branches['except'], list):
                 raise TravisYmlInvalid('branches.except should be a list')
-            self.branches_blacklist = branches['except']
+            self.branch_blacklist = branches['except']
             return
 
         raise TravisYmlInvalid("'branches' parameter contains neither 'only' nor 'except'")
 
-    def _match_branch(self, branch, list):
+    def _match_branch(self, branch, lst):
         for b in lst:
             if b.startswith("/") and b.endswith("/"):
                 if re.search(b[1:-1], branch):
