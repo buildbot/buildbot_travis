@@ -1,6 +1,9 @@
 import urlparse
 from buildbot.config import BuilderConfig
 from buildbot.schedulers.triggerable import Triggerable
+from buildbot.schedulers.basic  import Scheduler
+from buildbot.changes import svnpoller, gitpoller
+from buildbot.schedulers.filter import ChangeFilter
 
 from .factories import TravisFactory, TravisSpawnerFactory
 from .mergereq import mergeRequests
@@ -23,6 +26,9 @@ class Loader(object):
             self.define_travis_builder(**p)
 
     def define_travis_builder(self, name, repository, vcs_type=None, username=None, password=None):
+        if not repository.endswith("/"):
+            repository = repository + "/"
+
         if not vcs_type:
             if repository.startswith("https://svn."):
                 vcs_type = "svn"
@@ -66,7 +72,7 @@ class Loader(object):
                 ),
             ))
 
-        c['schedulers'].apppend(Scheduler(
+        self.config['schedulers'].apppend(Scheduler(
             name = "%s-spawner" % name,
             builderNames = ["%s-spawner" % name],
             change_filter = ChangeFilter(project=name)
@@ -79,19 +85,19 @@ class Loader(object):
             os.makedirs(pollerdir)
 
         if vcs_type == "git":
-            c['change_source'].append(gitpoller.GitPoller(
-                repourl=repository,
-                workdir=pollerdir,
-                project=name,
+            self.config['change_source'].append(gitpoller.GitPoller(
+                repourl = repository,
+                workdir = pollerdir,
+                project = name,
                 ))
 
         elif vcs_type == "svn":
-            c['change_source'].append(svnpoller.SVNPoller(
-                svnurl=repository,
-                cachepath=os.path.join(pollerdir, "pollerstate"),
-                project=name,
-                split_file=svnpoller.split_file_branches,
-                svnuser=config.SVN_USERNAME,
-                svnpasswd=config.SVN_PASSWORD,
+            self.config['change_source'].append(svnpoller.SVNPoller(
+                svnurl = repository,
+                cachepath = os.path.join(pollerdir, "pollerstate"),
+                project = name,
+                split_file = svnpoller.split_file_branches,
+                svnuser = username,
+                svnpasswd = password,
                 ))
 
