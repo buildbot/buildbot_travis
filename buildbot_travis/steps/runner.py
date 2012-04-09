@@ -26,6 +26,8 @@ class TravisRunner(ConfigurableStep):
     def start(self):
         config = yield self.getStepConfig()
 
+        i = 0
+
         for i, command in enumerate(getattr(config, self.step)):
             self.setProgress("commands", i+1)
 
