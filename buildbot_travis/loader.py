@@ -5,6 +5,8 @@ from buildbot.schedulers.triggerable import Triggerable
 from .factories import TravisFactory, TravisSpawnerFactory
 from .mergereq import mergeRequests
 
+from yaml import safe_load
+
 class Loader(object):
 
     def __init__(self, config, vardir):
@@ -15,6 +17,10 @@ class Loader(object):
 
     def add_password(self, scheme, netloc, username, password):
         self.passwords[(scheme, netloc)] = (username, password)
+
+    def load(self, path):
+        for p in safe_load(path).get("projects", []):
+            self.define_travis_builder(**p)
 
     def define_travis_builder(self, name, repository, vcs_type=None, username=None, password=None):
         if not vcs_type:
