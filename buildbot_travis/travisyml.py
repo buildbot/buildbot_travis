@@ -14,6 +14,7 @@ class TravisYml(object):
     """
 
     def __init__(self):
+        self.language = None
         self.environments = [{}]
         for hook in TRAVIS_HOOKS:
             setattr(self, hook, [])
@@ -22,9 +23,16 @@ class TravisYml(object):
 
     def parse(self, config_input):
         self.config = safe_load(config_input)
+        self.parse_language()
         self.parse_envs()
         self.parse_hooks()
         self.parse_branches()
+
+    def parse_language(self):
+        try:
+            self.language = self.config['language']
+        except:
+            raise TravisYmlInvalid("'language' parameter is missing")
 
     def parse_env(self, env):
         props = {}
