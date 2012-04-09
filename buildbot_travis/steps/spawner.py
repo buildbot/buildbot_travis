@@ -4,7 +4,8 @@ from buildbot.process.properties import Properties
 from twisted.spread import pb
 from twisted.internet import defer
 import StringIO
-import yaml
+
+from buildbot_travis.travisyml import TravisYml
 
 # This is duplicated for older buildbots...
 def makeStatusRemoteCommand(step, remote_command, args):
@@ -90,55 +91,17 @@ class TravisTrigger(LoggingBuildStep):
         
         d.addCallback(self._really_start).addErrback(self.failed)
     
-    def _match_branch(self, branch, list):
-        for b in lst:
-            if b.startswith("/") and b.endswith("/"):
-                if re.search(b[1:-1], branch):
-                    return True
-            else:
-                if b == branch:
-                    return True
-        return False
-    
-    def _check_branches(self, branch, branches):
-        if not branch:
-            return True
-        if not isinstance(branches, dict):
-            return True
-        
-        if "only" in branches:
-            if self._match_branch(branch, branches["only"]):
-                return True
-            return False
-        elif "except" in branches:
-            if self._match_branch(branch, branches["except"]):
-                return False
-            return True
-        
-        return True
-    
-    def _env_to_dict(self, env):
-        props = {}
-        if not env.strip():
-            return props
-        
-        vars = env.split(" ")
-        for v in vars:
-            k, v = v.split("=")
-            props[k] = v
-        
-        return props
-    
     def _really_start(self, res):
-        config = yaml.load(self.fw.data)
+        config = TravisYml()
+        config.parse(self.fw.data)
         
         ss = self.build.getSourceStamp()
         got = self.build.getProperty('got_revision')
         if got:
             ss = ss.getAbsoluteSourceStamp(got)
-        
-        branches = config.get("branches", None)
-        if not self._check_branches(ss.branch, branches):
+
+        # Stop the build early if .travis.yml says we should ignore branch
+        if ss.branch and not config.can_build_branch(ss.branch):
             return self.finished(SUCCESS)           
         
         # Find the scheduler we are going to use to queue actual builds
@@ -146,18 +109,10 @@ class TravisTrigger(LoggingBuildStep):
         all_schedulers = dict([(sch.name, sch) for sch in all_schedulers])
         sch = all_schedulers[self.scheduler]
         
-        # The environment field might be a string not a list!
-        # It might even be an empty list.. Make sure it is valid
-        environments = config.get("env", [])
-        if not isinstance(environments, list):
-            environments = [environments]
-        if not len(environments):
-            environments.append('')
-        
-        for env in environments:
+        for env in config.environments:
             props_to_set = Properties()
             props_to_set.updateFromProperties(self.build.getProperties())
-            props_to_set.update(self._env_to_dict(env), ".travis.yml")
+            props_to_set.update(env, ".travis.yml")
             
             if hasattr(ss, "getSourceStampSetId"):
                 master = self.build.builder.botmaster.parent # seriously?!
