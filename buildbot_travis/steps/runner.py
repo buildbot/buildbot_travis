@@ -49,6 +49,8 @@ class TravisRunner(ConfigurableStep):
         env = {}
         for k, v in self.build.getProperties().properties.items():
             env[str(k)] = str(v[0])
+        if not 'env' in cmd.args or not cmd.args['env']:
+            cmd.args['env'] = {}
         cmd.args['env'].update(env)
 
     def describe(self, done=False):
