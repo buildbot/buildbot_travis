@@ -1,51 +1,91 @@
+import urlparse
 from buildbot.config import BuilderConfig
 from buildbot.schedulers.triggerable import Triggerable
 
-from buildbot_travis.factories import TravisFactory, TravisSpawnerFactory
-
+from .factories import TravisFactory, TravisSpawnerFactory
+from .mergereq import mergeRequests
 
 class Loader(object):
 
-    def __init__(self, config):
+    def __init__(self, config, vardir):
         self.config = config
+        self.vardir = vardir
+        self.passwords = {}
+        self.properties = {}
 
-    def define_travis_builder(self):
-        f = TravisFactory(
-            repository=repository,
-            username=username,
-            password=password,
-            )
+    def add_password(self, scheme, netloc, username, password):
+        self.passwords[(scheme, netloc)] = (username, password)
 
-        builder = BuilderConfig(
+    def define_travis_builder(self, name, repository, vcs_type=None, username=None, password=None):
+        if not vcs_type:
+            if repository.startswith("https://svn."):
+                vcs_type = "svn"
+            elif repository.startswith("git://github.com/"):
+                vcs_type = "git"
+
+        if not username and not password:
+            p = urlparse.urlparse(repository)
+            k = (p.scheme, p.netloc)
+            if k in self.passwords:
+                username, password = self.passwords[k]
+
+        # Define the builder for the main job
+        self.config['builders'].append(BuilderConfig(
             name = name,
             slavenames = integration_slaves.any(),
-            factory = f,
-            properties = {
-                "base-image": "lucid_base_image",
-                "classification": "ci",
-                },
-             )
+            properties = self.properties,
+            mergeRequests = mergeRequests,
+            factory = TravisFactory(
+                repository = repository,
+                vcs_type = vcs_type,
+                username = username,
+                password = password,
+                ),
+             ))
 
-        c['builders'].append(builder)
+        self.config['schedulers'].append(Triggerable(name, [name]))
 
-        c['schedulers'].append(Triggerable(name, [name]))
 
-        f = TravisSpawnerFactory(
-            repository = repository,
-            scheduler = name,
-            username = username,
-            password = password,
-            )
-
-        builder = BuilderConfig(
+        # Define the builder for a spawer
+        self.config['builders'].append(BuilderConfig(
             name = "%s-spawner" % name,
             slavenames = integration_slaves.any(),
-            factory = f,
             category = "spawner",
-            )
+            factory = TravisSpawnerFactory(
+                repository = repository,
+                scheduler = name,
+                vcs_type = vcs_type,
+                username = username,
+                password = password,
+                ),
+            ))
 
-        c['builders'].append(builder)
+        c['schedulers'].apppend(Scheduler(
+            name = "%s-spawner" % name,
+            builderNames = ["%s-spawner" % name],
+            change_filter = ChangeFilter(project=name)
+            ))
 
-        from isotoma.buildbot.utils import get_scheduler
-        c['schedulers'].append(get_scheduler(builder, ''))
+        # Set up polling for the projects repository
+        # Each poller will get its own directory to store state in
+        pollerdir = os.path.join(self.vardir, "pollers", name)
+        if not os.path.exists(pollerdir):
+            os.makedirs(pollerdir)
+
+        if vcs_type == "git":
+            c['change_source'].append(gitpoller.GitPoller(
+                repourl=repository,
+                workdir=pollerdir,
+                project=name,
+                ))
+
+        elif vcs_type == "svn":
+            c['change_source'].append(svnpoller.SVNPoller(
+                svnurl=repository,
+                cachepath=os.path.join(pollerdir, "pollerstate"),
+                project=name,
+                split_file=svnpoller.split_file_branches,
+                svnuser=config.SVN_USERNAME,
+                svnpasswd=config.SVN_PASSWORD,
+                ))
 
