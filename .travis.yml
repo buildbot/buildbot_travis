@@ -3,7 +3,9 @@ language: python
 python:
   - "2.6"
 
-install: python setup.py develop
+install:
+  - python setup.py develop
+  - pip install mock
 
-script: trial buildbot_travs/tests
+script: trial buildbot_travis/tests
 
