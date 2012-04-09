@@ -59,7 +59,7 @@ class TravisYml(object):
 
     def parse_hooks(self):
         for hook in TRAVIS_HOOKS:
-            commands = config.get(hook, [])
+            commands = self.config.get(hook, [])
             if isinstance(commands, basestring):
                 commands = [commands]
             if not isinstance(commands, list):

@@ -9,12 +9,12 @@ class TravisRunner(ConfigurableStep):
     haltOnFailure = True
     flunkOnFailure = True
 
-    progressMetrics = buildstep.ConfigurableStep.progressMetrics + ('commands',)
+    progressMetrics = ConfigurableStep.progressMetrics + ('commands',)
 
     def __init__(self, step, **kwargs):
         kwargs.setdefault('name', step)
         #kwargs.setdefault('description', step)
-        buildstep.ConfigurableStep.__init__(self, **kwargs)
+        ConfigurableStep.__init__(self, **kwargs)
 
         self.addFactoryArguments(
             step = step,
@@ -50,7 +50,7 @@ class TravisRunner(ConfigurableStep):
         cmd.args['env'].update(env)
 
     def describe(self, done=False):
-        description = buildstep.ConfigurableStep.describe(self, done)
+        description = ConfigurableStep.describe(self, done)
         if done:
             description.append('%d commands' % self.step_status.getStatistic('commands', 0))
         return description

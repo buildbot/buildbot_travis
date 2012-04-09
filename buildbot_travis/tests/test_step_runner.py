@@ -19,7 +19,7 @@ class TestTravisRunner(steps.BuildStepMixin, unittest.TestCase):
         self.setupStep(TravisRunner("install"))
         self.expectCommands(
             ExpectShell(workdir="build", command=["cat", ".travis.yml"])
-          + ExpectShell.log('stdio', stdout='install:\n- one\n- two\n')
+          + ExpectShell.log('.travis.yml', stdout='language: python\ninstall:\n- one\n- two\n')
           + 0,
             ExpectShell(workdir="build", command="one")
           + ExpectShell.log('0.log', stdout='one')
