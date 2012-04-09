@@ -2,18 +2,19 @@ from twisted.internet import defer
 from buildbot.process import buildstep
 from buildbot.status.results import SUCCESS, FAILURE
 
+from .base import ConfigurableStep
 
-class TravisRunner(buildstep.LoggingBuildStep):
+class TravisRunner(ConfigurableStep):
 
     haltOnFailure = True
     flunkOnFailure = True
 
-    progressMetrics = buildstep.LoggingBuildStep.progressMetrics + ('commands',)
+    progressMetrics = buildstep.ConfigurableStep.progressMetrics + ('commands',)
 
     def __init__(self, step, **kwargs):
         kwargs.setdefault('name', step)
         #kwargs.setdefault('description', step)
-        buildstep.LoggingBuildStep.__init__(self, **kwargs)
+        buildstep.ConfigurableStep.__init__(self, **kwargs)
 
         self.addFactoryArguments(
             step = step,
@@ -23,18 +24,9 @@ class TravisRunner(buildstep.LoggingBuildStep):
 
     @defer.inlineCallbacks
     def start(self):
-        # Get components
-        stdioLog = self.addLog("stdio")
-        cmd = buildstep.RemoteShellCommand(workdir="build",
-        command=["get", "components"],
-        collectStdout=True)
-        cmd.useLog(stdioLog, False)
-        yield self.runCommand(cmd)
-        if cmd.rc != 0:
-            raise buildstep.BuildStepFailed()
-        components = cmd.stdout.splitlines()
+        config = yield self.getStepConfig()
 
-        for i, command in enumerate(components):
+        for i, command in enumerate(getattr(config, self.step)):
             self.setProgress("commands", i+1)
 
             stdioLog = self.addLog("%d.log" % i)
@@ -58,7 +50,7 @@ class TravisRunner(buildstep.LoggingBuildStep):
         cmd.args['env'].update(env)
 
     def describe(self, done=False):
-        description = buildstep.LoggingBuildStep.describe(self, done)
+        description = buildstep.ConfigurableStep.describe(self, done)
         if done:
             description.append('%d commands' % self.step_status.getStatistic('commands', 0))
         return description

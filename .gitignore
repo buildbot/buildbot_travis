@@ -1,0 +1,7 @@
+*.pyc
+_trial_temp/
+bin/
+buildbot_travis.egg-info/
+distribute-*.tar.gz
+include/
+lib/
