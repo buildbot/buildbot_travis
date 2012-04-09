@@ -87,7 +87,7 @@ class Loader(object):
                 ),
             ))
 
-        self.config['schedulers'].apppend(Scheduler(
+        self.config['schedulers'].append(Scheduler(
             name = "%s-spawner" % name,
             builderNames = ["%s-spawner" % name],
             change_filter = ChangeFilter(project=name)
