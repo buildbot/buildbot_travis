@@ -1,18 +1,17 @@
-=======================
-Travis CI Compatibility
-=======================
+============================
+Travis CI Compatibility Shim
+============================
 
-Travis CI is an attempt to do for CI what GitHub has done for code hosting.
-It's an excellent site and neatly solves one problem facing buildbot - your CI
-configuration is stored with your code. This isn't a problem for teams with
-dedicated CI people, but can be a blocker for some users.
+This is a setup of Buildbot steps, factories and configuration helpers that
+give you the best of buildbot and the best of Travis CI:
 
-Right now Travis CI doesn't offer private builds - all builds are visible by
-any one. Also, your code needs to be hosted on GitHub. These stop it being a
-viable replacement for buildbot for a lot of people.
+ * Builder configuration that lives with the source code
+ * Private builds
+ * SVN and non-github Git support
 
-So we provide a compatibility shim in buildbot that allows it to consume a
-``.travis.yml`` file.
+Basically we provide a compatibility shim in buildbot that allows it to consume
+a ``.travis.yml`` file.
+
 
 Example
 =======
