@@ -1,4 +1,4 @@
-import urlparse
+import urlparse, os
 from buildbot.config import BuilderConfig as BuilderConfig_
 from buildbot.schedulers.triggerable import Triggerable
 from buildbot.schedulers.basic  import Scheduler
