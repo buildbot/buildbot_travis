@@ -38,7 +38,7 @@ class Loader(object):
             self.define_travis_builder(**p)
 
     def get_slaves(self):
-        return self.config['slaves']
+        return [s.slavename for s in self.config['slaves']]
 
     def define_travis_builder(self, name, repository, vcs_type=None, username=None, password=None):
         if not repository.endswith("/"):
