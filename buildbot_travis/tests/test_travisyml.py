@@ -26,6 +26,28 @@ class TestEnv(TravisYmlTestCase):
         self.failUnlessEqual(self.t.environments, [dict(FOO='1', BAR='2'), dict(FOO='2', BAR='1')])
 
 
+class TestHooks(TravisYmlTestCase):
+
+    def test_empty(self):
+        self.t.parse_hooks()
+        self.failUnlessEqual(self.t.before_install, [])
+        self.failUnlessEqual(self.t.install, [])
+        self.failUnlessEqual(self.t.after_install, [])
+        self.failUnlessEqual(self.t.before_script, [])
+        self.failUnlessEqual(self.t.script, [])
+        self.failUnlessEqual(self.t.after_script, [])
+
+    def test_single(self):
+        self.t.config["after_script"] = "wibble -f foo"
+        self.t.parse_hooks()
+        self.failUnlessEqual(self.t.after_script, ["wibble -f foo"])
+
+    def test_multi(self):
+        self.t.config["after_script"] = ["wibble -f foo", "fox"]
+        self.t.parse_hooks()
+        self.failUnlessEqual(self.t.after_script, ["wibble -f foo", "fox"])
+
+
 class TestBranches(TravisYmlTestCase):
 
     def test_nobranches(self):
@@ -65,4 +87,5 @@ class TestBranches(TravisYmlTestCase):
         self.failUnlessEqual(self.t.branch_blacklist, None)
         self.failUnlessEqual(self.t.can_build_branch("master"), True)
         self.failUnlessEqual(self.t.can_build_branch("feature-new-stuff"), False)
+
 
