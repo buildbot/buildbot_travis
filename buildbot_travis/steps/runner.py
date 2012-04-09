@@ -31,10 +31,10 @@ class TravisRunner(ConfigurableStep):
         for i, command in enumerate(getattr(config, self.step)):
             self.setProgress("commands", i+1)
 
-            stdioLog = self.addLog("%d.log" % i)
+            #stdioLog = self.addLog("%d.log" % i)
             cmd = buildstep.RemoteShellCommand(workdir="build",command=command)
             self.setupEnvironment(cmd)
-            cmd.useLog(stdioLog, False)
+            cmd.useLog(self.stdioLog, False)
             yield self.runCommand(cmd)
             if cmd.rc != 0:
                 self.finished(FAILURE)

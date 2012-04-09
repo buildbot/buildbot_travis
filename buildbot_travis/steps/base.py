@@ -14,15 +14,15 @@ class ConfigurableStep(buildstep.LoggingBuildStep):
 
     @defer.inlineCallbacks
     def getStepConfig(self):
-        log = self.addLog("stdio")
+        self.stdioLog = self.addLog("stdio")
         cmd = buildstep.RemoteShellCommand(workdir="build", command=["cat", ".travis.yml"])
-        cmd.useLog(log, False)
+        cmd.useLog(self.stdioLog, False)
         yield self.runCommand(cmd)
         if cmd.rc != 0:
             raise buildstep.BuildStepFailed()
 
         config = TravisYml()
-        config.parse(log.getText())
+        config.parse(self.stdioLog.getText())
 
         defer.returnValue(config)
 
