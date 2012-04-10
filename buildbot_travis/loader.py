@@ -41,6 +41,9 @@ class Loader(object):
         return [s.slavename for s in self.config['slaves']]
 
     def define_travis_builder(self, name, repository, vcs_type=None, username=None, password=None):
+        job_name = "%s-job" % name
+        spawner_name = name
+
         if not repository.endswith("/"):
             repository = repository + "/"
 
@@ -58,7 +61,7 @@ class Loader(object):
 
         # Define the builder for the main job
         self.config['builders'].append(BuilderConfig(
-            name = name,
+            name = job_name,
             slavenames = self.get_slaves(),
             properties = self.properties,
             mergeRequests = mergeRequests,
@@ -70,17 +73,17 @@ class Loader(object):
                 ),
              ))
 
-        self.config['schedulers'].append(Triggerable(name, [name]))
+        self.config['schedulers'].append(Triggerable(job_name, [job_name]))
 
 
         # Define the builder for a spawer
         self.config['builders'].append(BuilderConfig(
-            name = "%s-spawner" % name,
+            name = spawner_name,
             slavenames = self.get_slaves(),
             category = "spawner",
             factory = TravisSpawnerFactory(
                 repository = repository,
-                scheduler = name,
+                scheduler = job_name,
                 vcs_type = vcs_type,
                 username = username,
                 password = password,
@@ -88,8 +91,8 @@ class Loader(object):
             ))
 
         self.config['schedulers'].append(Scheduler(
-            name = "%s-spawner" % name,
-            builderNames = ["%s-spawner" % name],
+            name = spawner_name,
+            builderNames = [spawner_name],
             change_filter = ChangeFilter(project=name)
             ))
 
