@@ -40,7 +40,7 @@ class TravisRunner(ConfigurableStep):
                 self.finished(FAILURE)
 
         self.step_status.setStatistic('commands', i)
-        
+
         self.finished(SUCCESS)
         defer.returnValue(None)
 
@@ -62,7 +62,7 @@ class TravisRunner(ConfigurableStep):
         return description
 
     def hideStepIf(self, results, _):
-	"""
+        """
         Check to see how many commands were run - if we didnt running any
         then hide this step
         """
