@@ -51,6 +51,8 @@ class TravisRunner(ConfigurableStep):
             env[str(k)] = str(v[0])
         if not 'env' in cmd.args or not cmd.args['env']:
             cmd.args['env'] = {}
+        if self.build.slaveEnvironment:
+            cmd.args['env'].update(self.build.slaveEnvironment)
         cmd.args['env'].update(env)
 
     def describe(self, done=False):
