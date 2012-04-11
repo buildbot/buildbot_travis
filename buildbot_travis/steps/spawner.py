@@ -33,10 +33,15 @@ class TravisTrigger(ConfigurableStep):
         if ss.branch and not config.can_build_branch(ss.branch):
             defer.returnValue(self.finished(SUCCESS))
 
+        # Find the master object
+        master = self.build.builder.botmaster.parent
+
         # Find the scheduler we are going to use to queue actual builds
         all_schedulers = self.build.builder.botmaster.parent.allSchedulers()
         all_schedulers = dict([(sch.name, sch) for sch in all_schedulers])
         sch = all_schedulers[self.scheduler]
+
+        triggered = []
 
         for env in config.environments:
             props_to_set = Properties()
@@ -44,14 +49,51 @@ class TravisTrigger(ConfigurableStep):
             props_to_set.update(env, ".travis.yml")
 
             if hasattr(ss, "getSourceStampSetId"):
-                master = self.build.builder.botmaster.parent # seriously?!
                 d = ss.getSourceStampSetId(master)
             else:
                 d = defer.succeed(ss)
 
             def _trigger_build(ss_setid):
-                sch.trigger(ss_setid, set_props=props_to_set)
+                return sch.trigger(ss_setid, set_props=props_to_set)
             d.addCallback(_trigger_build)
+            triggered.append(d)
 
-        defer.returnValue(self.finished(SUCCESS))
+        results = yield defer.DeferredList(triggered, consumeErrors=1)
+
+        was_exception = was_failure = False
+        brids = {}
+
+        for was_cb, results in results:
+            if isinstance(results, tuple):
+                results, some_brids = results
+                brids.update(some_brids)
+
+            if not was_cb:
+                was_exception = True
+                log.err(results)
+                continue
+
+            if results == FAILURE:
+                was_failure = True
+
+        if was_exception:
+            result = EXCEPTION
+        elif was_failure:
+            result = FAILURE
+        else:
+            result = SUCCESS
+
+        if brids:
+            brid_to_bn = dict((_brid,_bn) for _bn,_brid in brids.iteritems())
+            res = yield DeferredList([master.db.builds.getBuildsForRequest(br) for br in brids.values()], consumeErrors=1)
+            for was_cb, builddicts in res:
+                if was_cb:
+                    for build in builddicts:
+                        bn = brid_to_bn[build['brid']]
+                        num = build['number']
+
+                        url = master.status.getURLForBuild(bn, num)
+                        self.step_status.addURL("%s #%d" % (bn,num), url)
+
+        defer.returnValue(self.finished(result))
 
