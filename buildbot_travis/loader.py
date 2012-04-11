@@ -37,8 +37,13 @@ class Loader(object):
         for p in safe_load(path).get("projects", []):
             self.define_travis_builder(**p)
 
-    def get_slaves(self):
-        return [s.slavename for s in self.config['slaves']]
+    def get_spawner_slaves(self):
+        slaves = [s.slavename for s in self.config['slaves']]
+        return slaves[1:]
+
+    def get_runner_slaves(self):
+        slaves = [s.slavename for s in self.config['slaves']]
+        return slaves[0]
 
     def define_travis_builder(self, name, repository, vcs_type=None, username=None, password=None):
         job_name = "%s-job" % name
@@ -62,7 +67,7 @@ class Loader(object):
         # Define the builder for the main job
         self.config['builders'].append(BuilderConfig(
             name = job_name,
-            slavenames = self.get_slaves(),
+            slavenames = self.get_runner_slaves(),
             properties = self.properties,
             mergeRequests = mergeRequests,
             factory = TravisFactory(
@@ -79,7 +84,7 @@ class Loader(object):
         # Define the builder for a spawer
         self.config['builders'].append(BuilderConfig(
             name = spawner_name,
-            slavenames = self.get_slaves(),
+            slavenames = self.get_spawner_slaves(),
             category = "spawner",
             factory = TravisSpawnerFactory(
                 repository = repository,
