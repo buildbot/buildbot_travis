@@ -11,6 +11,9 @@ from .base import ConfigurableStep
 
 class TravisTrigger(ConfigurableStep):
 
+    haltOnFailure = True
+    flunkOnFailure = True
+
     def __init__(self, scheduler, **kwargs):
         if not "name" in kwargs:
             kwargs['name'] = 'trigger'
