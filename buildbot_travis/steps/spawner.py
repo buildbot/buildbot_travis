@@ -4,6 +4,7 @@ from buildbot.process.buildstep import LoggingBuildStep, SUCCESS, FAILURE, EXCEP
 from buildbot.process.properties import Properties
 from twisted.spread import pb
 from twisted.internet import defer
+from twisted.python import log
 import StringIO
 
 from .base import ConfigurableStep
