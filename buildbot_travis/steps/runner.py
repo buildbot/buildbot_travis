@@ -37,10 +37,10 @@ class TravisRunner(ConfigurableStep):
             cmd.useLog(log, False, "stdio")
             yield self.runCommand(cmd)
             if cmd.rc != 0:
+                self.step_status.setStatistic('commands', i)
                 self.finished(FAILURE)
 
         self.step_status.setStatistic('commands', i)
-
         self.finished(SUCCESS)
         defer.returnValue(None)
 
