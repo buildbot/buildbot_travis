@@ -89,7 +89,7 @@ class TravisTrigger(ConfigurableStep):
 
         if brids:
             brid_to_bn = dict((_brid,_bn) for _bn,_brid in brids.iteritems())
-            res = yield DeferredList([master.db.builds.getBuildsForRequest(br) for br in brids.values()], consumeErrors=1)
+            res = yield defer.DeferredList([master.db.builds.getBuildsForRequest(br) for br in brids.values()], consumeErrors=1)
             for was_cb, builddicts in res:
                 if was_cb:
                     for build in builddicts:
