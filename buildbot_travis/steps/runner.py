@@ -1,4 +1,5 @@
 from twisted.internet import defer
+from twisted.python import log
 from buildbot.process import buildstep
 from buildbot.process.buildstep import SUCCESS, FAILURE
 
@@ -28,7 +29,7 @@ class TravisRunner(ConfigurableStep):
 
         i = 0
 
-        for i, command in enumerate(getattr(config, self.step)):
+        for i, command in enumerate(getattr(config, self.step), start=1):
             self.setProgress("commands", i+1)
 
             log = self.addLog("%d.log" % i)
@@ -36,11 +37,11 @@ class TravisRunner(ConfigurableStep):
             self.setupEnvironment(cmd)
             cmd.useLog(log, False, "stdio")
             yield self.runCommand(cmd)
+            self.step_status.setStatistic('commands', i)
             if cmd.rc != 0:
-                self.step_status.setStatistic('commands', i)
                 self.finished(FAILURE)
+                defer.returnValue(None)
 
-        self.step_status.setStatistic('commands', i)
         self.finished(SUCCESS)
         defer.returnValue(None)
 
