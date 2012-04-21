@@ -23,6 +23,18 @@ class TravisTrigger(ConfigurableStep):
         self.addFactoryArguments(scheduler=scheduler)
 
         self.scheduler = scheduler
+        self.running = False
+        self.ended = False
+
+    def interrupt(self, reason):
+        if self.running and not self.ended:
+            self.step_status.setText(["interrupted"])
+            return self.end(EXCEPTION)
+
+    def end(self, result):
+        if not self.ended:
+            self.ended = True
+            return self.finished(result)
 
     @defer.inlineCallbacks
     def start(self):
@@ -35,7 +47,7 @@ class TravisTrigger(ConfigurableStep):
 
         # Stop the build early if .travis.yml says we should ignore branch
         if ss.branch and not config.can_build_branch(ss.branch):
-            defer.returnValue(self.finished(SUCCESS))
+            defer.returnValue(self.end(SUCCESS))
 
         # Find the master object
         master = self.build.builder.botmaster.parent
@@ -46,6 +58,8 @@ class TravisTrigger(ConfigurableStep):
         sch = all_schedulers[self.scheduler]
 
         triggered = []
+
+        self.running = True
 
         for env in config.environments:
             props_to_set = Properties()
@@ -100,5 +114,5 @@ class TravisTrigger(ConfigurableStep):
                         url = master.status.getURLForBuild(bn, num)
                         self.step_status.addURL("%s #%d" % (bn,num), url)
 
-        defer.returnValue(self.finished(result))
+        defer.returnValue(self.end(result))
 
