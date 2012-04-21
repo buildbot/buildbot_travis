@@ -67,5 +67,6 @@ class TravisRunner(ConfigurableStep):
         Check to see how many commands were run - if we didnt running any
         then hide this step
         """
+        log.msg("hideStepIf %d %r" % (self.step_status.getStatistic('commands',-1), results))
         return int(self.step_status.getStatistic('commands', 0)) == 0
 
