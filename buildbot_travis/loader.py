@@ -28,11 +28,11 @@ class Loader(object):
 
     def get_spawner_slaves(self):
         slaves = [s.slavename for s in self.config['slaves']]
-        return slaves[1:]
+        return slaves[0]
 
     def get_runner_slaves(self):
         slaves = [s.slavename for s in self.config['slaves']]
-        return slaves[0]
+        return slaves[1:]
 
     def define_travis_builder(self, name, repository, vcs_type=None, username=None, password=None):
         job_name = "%s-job" % name
