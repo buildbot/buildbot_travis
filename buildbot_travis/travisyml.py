@@ -16,6 +16,7 @@ class TravisYml(object):
     def __init__(self):
         self.language = None
         self.environments = [{}]
+        self.environments_keys = []
         for hook in TRAVIS_HOOKS:
             setattr(self, hook, [])
         self.branch_whitelist = None
@@ -51,7 +52,7 @@ class TravisYml(object):
             ek = self.environments_keys
             if not k in ek:
                 if prev:
-                    ek.insert(ek.index(prev), k)
+                    ek.insert(ek.index(prev)+1, k)
                 else:
                     ek.insert(0, k)
             prev = k
