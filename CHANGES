@@ -1,7 +1,7 @@
 Changelog
 =========
 
-0.0.1 (unreleased)
+0.0.1 (2012-04-22)
 ------------------
 
 - Builds triggered by spawner build step get marked with a ``spawned_by``
