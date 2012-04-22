@@ -41,11 +41,20 @@ class TravisYml(object):
         props = {}
         if not env.strip():
             return props
-        
+
+        prev = None
         vars = env.split(" ")
         for v in vars:
             k, v = v.split("=")
             props[k] = v
+
+            ek = self.environments_keys
+            if not k in ek:
+                if prev:
+                    ek.insert(ek.index(prev), k)
+                else:
+                    ek.insert(0, k)
+            prev = k
         
         return props
 
@@ -54,8 +63,10 @@ class TravisYml(object):
         if env is None:
             return
         elif isinstance(env, basestring):
+            self.environments_keys = []
             self.environments = [self.parse_env(env)]
         elif isinstance(env, list):
+            self.environments_keys = []
             self.environments = [self.parse_env(e) for e in env]
         else:
             raise TravisYmlInvalid("'env' parameter is invalid")
