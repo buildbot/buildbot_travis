@@ -22,7 +22,10 @@ class TravisYml(object):
         self.branch_blacklist = None
 
     def parse(self, config_input):
-        self.config = safe_load(config_input)
+        self.parse_dict(safe_load(config_input))
+
+    def parse_dict(self, config):
+        self.config = config
         self.parse_language()
         self.parse_envs()
         self.parse_hooks()
