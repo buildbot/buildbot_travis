@@ -145,6 +145,13 @@ handled by the python re module and might behave differently to travis, which
 uses ruby.
 
 
+WebStatus
+=========
+
+This repository contains a set of ``HtmlResource`` classes for implementing a
+UI that works somewhat like the ``/console`` view.
+
+
 How it works
 ============
 
@@ -154,14 +161,13 @@ starts hacking on buildbot :)
 The runner
 ----------
 
-We can't dynamically change a Factory so instead there is a script called the
-runner which reads tasks out of ``.travis.yml`` and executes them. Buildbot has
-a step for each of the Travis phases, rather than for each command.
+We can't dynamically change a Factory so instead we have a single step for each
+phase (e.g. ``install`` or ``before_script``). Multiple commands can be
+executed by that step (by reading them from .travis.yml), but they will be
+logged under a single step. Any phases that don't execute commands will be
+hidden from the UI.
 
 All build properties are exposed as environment variables in the runner phases.
-
-Buildbot will only show phases that actually did some work (FIXME: This doesn't
-work yet).
 
 Triggerable scheduler
 ---------------------
@@ -189,13 +195,4 @@ Build merging
 
 A custom ``mergeRequests`` handler is provided that considers build properties
 from ``.travis.yml`` when decided if builds can be merged.
-
-Future work
------------
-
- * We could wait on the triggered jobs and consider GREEN/RED for a group of
-   jobs rather.
-
- * Could we tie this into the console view somehow?
-
 
