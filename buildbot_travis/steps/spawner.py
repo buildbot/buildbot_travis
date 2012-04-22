@@ -67,15 +67,8 @@ class TravisTrigger(ConfigurableStep):
             props_to_set.update(env, ".travis.yml")
             props_to_set.setProperty("spawned_by",  self.build.build_status.number, "Scheduler")
 
-            if hasattr(ss, "getSourceStampSetId"):
-                d = ss.getSourceStampSetId(master)
-            else:
-                d = defer.succeed(ss)
-
-            def _trigger_build(ss_setid):
-                return sch.trigger(ss_setid, set_props=props_to_set)
-            d.addCallback(_trigger_build)
-            triggered.append(d)
+            ss_setid = yield ss.getSourceStampSetId(master)
+            triggered.append(sch.trigger(ss_setid, set_props=props_to_set))
 
         results = yield defer.DeferredList(triggered, consumeErrors=1)
 
