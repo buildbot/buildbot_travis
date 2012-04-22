@@ -4,7 +4,16 @@ Changelog
 0.0.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Builds triggered by spawner build step get marked with a ``spawned_by``
+  property so we can relate them to their parent builds.
+
+- Add a HtmlResource for showing ``/console`` style views of builds.
+
+- Take advantage of features in Buildbot 0.8.6 and later.
+
+- Fix hideStepIf and flunking options
+
+- Custom steps should be interruptable
 
 
 0.0.0 (2012-04-11)
