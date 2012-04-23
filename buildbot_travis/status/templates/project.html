@@ -105,7 +105,7 @@
       <ul>
         {% for f in b.failures %}
         <li>
-          {{ f.name }}<br/>
+          {{ f.name }}: <pre style="display: inline;">{{ f.firstline }}</pre><br/>
           {%- for l in f.logs -%}<a href="../{{ l.url }}">{{ l.name }}</a>&nbsp;{%- endfor -%}
         </li>
         {% endfor %}

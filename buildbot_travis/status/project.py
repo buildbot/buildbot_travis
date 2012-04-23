@@ -90,17 +90,23 @@ class ProjectStatus(HtmlResource):
                     name = details['name'] = step.getName()
                     details['reason'] = reason
                     logs = details['logs'] = []
+                    details['firstline'] = ''
 
                     if step.getLogs():
                         for log in step.getLogs():
                             logname = log.getName()
+                            if logname in (".travis.yml, "):
+                                continue
                             logurl = req.childLink(
                               "../builders/%s/builds/%s/steps/%s/logs/%s" % 
                                 (urllib.quote(builderName),
                                  b.getNumber(),
                                  urllib.quote(name),
                                  urllib.quote(logname)))
-                            logs.append(dict(url=logurl, name=logname))
+                            firstline = log.getTextWithHeaders().split("\n")[0]
+                            logs.append(dict(url=logurl, name=logname, firstline=firstline))
+
+                        details['firstline'] = logs[-1]['firstline']
 
                     break
 
