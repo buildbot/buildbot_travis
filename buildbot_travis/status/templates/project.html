@@ -85,7 +85,7 @@
       {% endif %}
     </tr>
     <tr>
-      <td class="DevComment {{ alt }}" colspan="{{ span }}">{{ r.comments }}</td>
+      <td class="DevComment {{ alt }}" colspan="{{ span }}">{{ r.comments|replace('\n', '<br/>')|replace('  ','&nbsp; ') }}</td>
     </tr>
     {% endfor %}
   {% else %}
