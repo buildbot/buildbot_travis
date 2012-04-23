@@ -91,7 +91,7 @@ class ProjectStatus(HtmlResource):
                     details['reason'] = reason
                     logs = details['logs'] = []
                     details['firstline'] = ''
-
+                    details['env'] = self.getEnvironmentTuple(b)
                     if step.getLogs():
                         for log in step.getLogs():
                             logname = log.getName()

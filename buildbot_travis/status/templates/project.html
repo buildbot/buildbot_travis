@@ -105,8 +105,9 @@
       <ul>
         {% for f in b.failures %}
         <li>
+          <pre style="display: inline;">{% for k,v in f.env %}<b>{{ k }}</b> = {{ v }}; {% endfor %}</pre><br/>
           {{ f.name }}: <pre style="display: inline;">{{ f.firstline }}</pre><br/>
-          {%- for l in f.logs -%}<a href="../{{ l.url }}">{{ l.name }}</a>&nbsp;{%- endfor -%}
+          {%- for l in f.logs -%}<a href="../{{ l.url }}">{{ l.name }}</a>&nbsp;{%- endfor -%}<br/><br/>
         </li>
         {% endfor %}
       </ul>
