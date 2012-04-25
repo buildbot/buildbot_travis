@@ -23,7 +23,11 @@ class TravisYml(object):
         self.branch_blacklist = None
 
     def parse(self, config_input):
-        self.parse_dict(safe_load(config_input))
+        try:
+            d = safe_load(config_input)
+        except Exception as e:
+            raise TravisYmlInvalid("Invalid YAML data\n" + str(e))
+        self.parse_dict(d)
 
     def parse_dict(self, config):
         self.config = config
