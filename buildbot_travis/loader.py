@@ -34,7 +34,7 @@ class Loader(object):
         slaves = [s.slavename for s in self.config['slaves']]
         return slaves[1:]
 
-    def define_travis_builder(self, name, repository, vcs_type=None, username=None, password=None):
+    def define_travis_builder(self, name, repository, vcs_type=None, username=None, password=None, browserlink=None):
         job_name = "%s-job" % name
         spawner_name = name
 
@@ -112,5 +112,6 @@ class Loader(object):
                 split_file = svnpoller.split_file_branches,
                 svnuser = username,
                 svnpasswd = password,
+                revlinktmpl = browserlink,
                 ))
 
