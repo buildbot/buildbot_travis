@@ -131,7 +131,7 @@ class ProjectStatus(HtmlResource):
         revisions = {}
         for b in self.iterBuilds(job):
             spawnedby = b.getProperty("spawned_by", None)
-            if not spawnedby:
+            if spawnedby is None:
                 continue
             r = revisions.setdefault(spawnedby, [])
             r.append(b)
