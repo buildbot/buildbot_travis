@@ -3,12 +3,12 @@
 {% macro display_builds(b, span, alt) -%}
     {% if b.builds %}
       {% for sb in b.builds %}
-        <td class="DevStatusBox {{ alt }}">
+        <td class="DevStatus DevStatusBox {{ alt }}">
           <a href="#" title="" class="DevStatusBox {{ sb.color }}" target="_blank"></a>
         </td>
       {% endfor %}
     {% else %}
-      <td class="DevStatusBox {{ alt }}" width="100%" colspan="{{ span }}">
+      <td class="DevStatus DevStatusBox {{ alt }}" width="100%" colspan="{{ span }}">
         <a href="#" title="" class="DevStatusBox {{ b.color }}" target="_blank"></a>
       </td>
     {% endif %}
