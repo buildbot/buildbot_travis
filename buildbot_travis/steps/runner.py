@@ -32,8 +32,12 @@ class TravisRunner(ConfigurableStep):
         for i, command in enumerate(getattr(config, self.step), start=1):
             self.setProgress("commands", i+1)
 
+            # All commands are run under bash for extra compatibility with Travis.
+            # This allows things like ``if [[ "$FLAVOUR" == "freddy" ]]; then somecommand; fi``
+            actual_command = ["/bin/bash", "-c", command]
+
             log = self.addLog("%d.log" % i)
-            cmd = self.cmd = buildstep.RemoteShellCommand(workdir="build",command=command)
+            cmd = self.cmd = buildstep.RemoteShellCommand(workdir="build",command=actual_command)
             self.setupEnvironment(self.cmd)
             cmd.useLog(log, False, "stdio")
             yield self.runCommand(cmd)
