@@ -15,7 +15,7 @@ from buildbot.status.web.console import getResultsClass
 
 from buildbot_travis.factories import TravisSpawnerFactory 
 from buildbot_travis.envgraph import EnvMap
-from buildbot_travis.travisyml import TravisYml
+from buildbot_travis.travisyml import TravisYml, TravisYmlInvalid
 
 
 class ProjectStatus(HtmlResource):
@@ -154,9 +154,12 @@ class ProjectStatus(HtmlResource):
                     continue
                 for log in step.getLogs():
                     if log.getName() == ".travis.yml":
-                        config = TravisYml()
-                        config.parse(log.getText())
-                        return config
+                        try:
+                            config = TravisYml()
+                            config.parse(log.getText())
+                            return config
+                        except TravisYmlInvalid:
+                            pass
         raise ValueError("Could not find a valid .travis.yml in build history")
 
     def content(self, request, cxt):
