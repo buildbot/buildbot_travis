@@ -77,11 +77,7 @@
     {% for r in b.revisions %}
     <tr>
       <td width="1%" class="DevRev {{ alt }}">
-        {% if r.revlink %}
-          <a href="{{ r.revlink }}">{{ r.revision|shortrev(r.repository) }}</a>
-        {% else %}
-          {{ r.revision|shortrev(r.repository) }}
-        {% endif %}
+      {{ r.revision|revlink(r.repository) }}
       </td>
       <td width="1%" class="DevName {{ alt }}">{{ r.who }}</td>
       {% if loop.first %}
