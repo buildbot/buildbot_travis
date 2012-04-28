@@ -160,6 +160,7 @@ class ProjectStatus(HtmlResource):
                             return config
                         except TravisYmlInvalid:
                             pass
+            b = b.getPreviousBuild()
         raise ValueError("Could not find a valid .travis.yml in build history")
 
     def content(self, request, cxt):
