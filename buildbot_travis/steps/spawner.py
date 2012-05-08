@@ -40,7 +40,7 @@ class TravisTrigger(ConfigurableStep):
     def start(self):
         config = yield self.getStepConfig()
 
-        ss = self.build.getSourceStamp()
+        ss = self.build.getSourceStamp('')
         got = self.build.getProperty('got_revision')
         if got:
             ss = ss.getAbsoluteSourceStamp(got)
