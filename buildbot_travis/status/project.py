@@ -63,6 +63,8 @@ class ProjectStatus(HtmlResource):
             bdata[k] = d = {}
       
             d["color"] = getResultsClass(b.getResults(), None, not b.isFinished())
+            d['url'] = "../buildstatus?builder=%s&number=%s" % (
+                urllib.quote(b.builder.name), b.number)
 
         for key in envmap.iter_keys():
             if key in bdata:
@@ -70,6 +72,7 @@ class ProjectStatus(HtmlResource):
             else:
                 yield dict(
                     color="notstarted",
+                    url="",
                     )
 
     def getFailures(self, req, builds):
@@ -119,6 +122,7 @@ class ProjectStatus(HtmlResource):
             builds = list(self.getStatuses(req, builds, envmap)),
             failures = list(self.getFailures(req, builds)),
             color = getResultsClass(build.getResults(), None, not build.isFinished),
+            url = "hello",
             )
         return result
 
