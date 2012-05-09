@@ -27,12 +27,14 @@ class Loader(object):
             self.define_travis_builder(**p)
 
     def get_spawner_slaves(self):
-        slaves = [s.slavename for s in self.config['slaves']]
-        return slaves[0]
+        from buildbot.buildslave import BuildSlave
+        slaves = [s.slavename for s in self.config['slaves'] if isinstance(s, BuildSlave)]
+        return slaves
 
     def get_runner_slaves(self):
-        slaves = [s.slavename for s in self.config['slaves']]
-        return slaves[1:]
+        from buildbot.buildslave import AbstractLatentBuildSlave
+        slaves = [s.slavename for s in self.config['slaves'] if isinstance(s, AbstractLatentBuildSlave)]
+        return slaves
 
     def define_travis_builder(self, name, repository, vcs_type=None, username=None, password=None):
         job_name = "%s-job" % name
