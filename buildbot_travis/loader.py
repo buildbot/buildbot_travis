@@ -77,6 +77,7 @@ class Loader(object):
         self.config['builders'].append(BuilderConfig(
             name = spawner_name,
             slavenames = self.get_spawner_slaves(),
+            properties = self.properties,
             category = "spawner",
             factory = TravisSpawnerFactory(
                 repository = repository,
