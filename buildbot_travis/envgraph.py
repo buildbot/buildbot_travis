@@ -56,7 +56,6 @@ class EnvMap:
 
         for c in ordered:
             c['span'] = len(c['children']) or 1
-            c['width'] = (float(c['span']) / total) * 100
 
         return ordered
 

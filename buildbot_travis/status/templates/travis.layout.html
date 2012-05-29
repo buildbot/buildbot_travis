@@ -1,0 +1,133 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ pageTitle }}</title>
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le styles -->
+    <link rel="stylesheet" href="/bootstrap/bootstrap.css">
+   <style type="text/css">
+      body {
+        padding-top: 60px;
+        padding-bottom: 40px;
+      }
+      div.advanced {
+          display: none;
+      }
+      td {
+        word-break:break-all;
+      }
+
+      .projects-grid h3, .project .build {
+        margin-top: 5px;
+        margin-bottom: 5px;
+        padding: 15px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        border: 1px solid #DDDDDD;
+        border-radius: 4px 4px 4px 4px;
+      }
+
+      .project .build {
+        margin-bottom: 10px;
+        padding-bottom: 0px;
+        padding-top: 5px;
+      }
+
+      .projects-grid .success h3, .project .success {
+        background-color: #DFF0D8;
+        border: 1px solid #D6E9C6;
+        color: #468847;
+      }
+      .projects-grid .success a, .project .success a, .project .success h2 {
+        color: #468847;
+      }
+
+      .projects-grid .failure h3, .project .failure, .project .exception {
+        background-color: #F2DEDE;
+        border-color: #EED3D7;
+        color: #B94A48;
+      }
+      .projects-grid .failure a, .project .failure a, .project .exception a {
+        color: #B94A48;
+      }
+
+
+      .project .build .well {
+        color: black;
+      }
+
+      code {
+        color: black;
+        border: none;
+      }
+
+      {% block extracss %}
+      {% endblock %}
+    </style>
+    <link href="/bootstrap/bootstrap-responsive.css" rel="stylesheet">
+  </head>
+
+  <body>
+
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="/">CI</a>
+          <div class="nav-collapse">
+            <ul class="nav">
+              <li><a href="/about">About</a></li>
+              <li><a href="/projects">Projects</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="content">
+        {% if alert_msg is defined and alert_msg %}
+        <div class="alert alert-error">
+        {{ alert_msg }}
+        </div>
+        {% endif %}
+        {% block body %}
+        {% endblock %}
+      </div>
+
+      <hr />
+
+      <footer>
+        <p>&copy; Isotoma 2010-2012</p>
+      </footer>
+    </div>
+
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="/bootstrap/jquery.js"></script>
+    <script src="/bootstrap/bootstrap-transition.js"></script>
+    <script src="/bootstrap/bootstrap-alert.js"></script>
+    <script src="/bootstrap/bootstrap-modal.js"></script>
+    <script src="/bootstrap/bootstrap-dropdown.js"></script>
+    <script src="/bootstrap/bootstrap-scrollspy.js"></script>
+    <script src="/bootstrap/bootstrap-tab.js"></script>
+    <script src="/bootstrap/bootstrap-tooltip.js"></script>
+    <script src="/bootstrap/bootstrap-popover.js"></script>
+    <script src="/bootstrap/bootstrap-button.js"></script>
+    <script src="/bootstrap/bootstrap-collapse.js"></script>
+    <script src="/bootstrap/bootstrap-carousel.js"></script>
+    <script src="/bootstrap/bootstrap-typeahead.js"></script>
+
+  </body>
+</html>

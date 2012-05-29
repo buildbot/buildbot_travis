@@ -12,6 +12,8 @@ from buildbot.status import builder
 from buildbot.status.web.base import HtmlResource
 from buildbot.changes import changes
 from buildbot.status.web.console import getResultsClass
+from buildbot.status.web.base import path_to_build
+from buildbot.status.results import SUCCESS
 
 from buildbot_travis.factories import TravisSpawnerFactory 
 from buildbot_travis.envgraph import EnvMap
@@ -63,38 +65,19 @@ class ProjectStatus(HtmlResource):
             bdata[k] = d = {}
       
             d["color"] = getResultsClass(b.getResults(), None, not b.isFinished())
-            d['url'] = "../buildstatus?builder=%s&number=%s" % (
-                urllib.quote(b.builder.name), b.number)
-
-        for key in envmap.iter_keys():
-            if key in bdata:
-                yield bdata[key]
-            else:
-                yield dict(
-                    color="notstarted",
-                    url="",
-                    )
-
-    def getFailures(self, req, builds):
-        for b in builds:
-            details = {}
-            if not b.getLogs():
-                continue
-            if not b.isFinished():
-                continue
-            if b.getResults() == builder.SUCCESS:
-                continue
-
-            builderName = b.builder.name
+            d['url'] = path_to_build(req, b)
+            d['properties'] = b.getProperties().asDict()
+            d['number'] = b.number
 
             for step in b.getSteps():
                 (result, reason) = step.getResults()
                 if result != builder.SUCCESS:
-                    name = details['name'] = step.getName()
-                    details['reason'] = reason
-                    logs = details['logs'] = []
-                    details['firstline'] = ''
-                    details['env'] = self.getEnvironmentTuple(b)
+                    failure = d['failure'] = {}
+                    name = failure['step'] = step.getName()
+                    failure['reason'] = reason
+                    logs = failure['logs'] = []
+                    failure['firstline'] = ''
+                    failure['env'] = self.getEnvironmentTuple(b)
                     if step.getLogs():
                         for log in step.getLogs():
                             logname = log.getName()
@@ -102,28 +85,39 @@ class ProjectStatus(HtmlResource):
                                 continue
                             logurl = req.childLink(
                               "../builders/%s/builds/%s/steps/%s/logs/%s" % 
-                                (urllib.quote(builderName),
+                                (urllib.quote(b.builder.name),
                                  b.getNumber(),
                                  urllib.quote(name),
                                  urllib.quote(logname)))
                             firstline = log.getTextWithHeaders().split("\n")[0]
                             logs.append(dict(url=logurl, name=logname, firstline=firstline))
 
-                        details['firstline'] = logs[-1]['firstline']
+                        failure['firstline'] = logs[-1]['firstline']
 
                     break
 
-            yield details
+        ordered = bdata.keys()
+        ordered.sort()
+
+        for key in ordered:
+            yield bdata[key]
 
     def getBuild(self, req, build, builds, envmap):
-        ss = build.getSourceStamp()
         result = dict(
-            revisions = ss.changes[:],
+            revisions = build.getChanges(),
             builds = list(self.getStatuses(req, builds, envmap)),
-            failures = list(self.getFailures(req, builds)),
             color = getResultsClass(build.getResults(), None, not build.isFinished),
             url = "hello",
+            properties = build.getProperties().asDict(),
+            number = build.number,
             )
+
+        counters = result['counters'] = {}
+        counters['success'] = counters['failure'] = 0
+        for b in result['builds']:
+            color = b['color']
+            counters[color] = counters.get(color, 0) + 1
+
         return result
 
     def getBuilds(self, request, envmap):
@@ -180,12 +174,7 @@ class ProjectStatus(HtmlResource):
 
         cxt['builds'] = list(self.getBuilds(request, example))
 
-        cxt['span'] = len(list(example.iterall())) + 2
-        if cxt['span'] > 2:
-            cxt['environments'] = example.iter_all_depths()
-        else:
-            cxt['environments'] = [dict(label="", children=[dict(label=self.project, span="1", width="100")])]
-            cxt['span'] = 3
+        cxt['environments'] = list(example.iter_all_depths())
 
         templates = request.site.buildbot_service.templates
         template = templates.get_template("project.html")
@@ -201,10 +190,25 @@ class Projects(HtmlResource):
             b = status.botmaster.builders[name]
             if not isinstance(b.config.factory, TravisSpawnerFactory):
                 continue
-            yield b
+
+            p = {}
+            p['name'] = b.name
+
+            if b.builder_status.currentBuilds:
+                p['status'] = 'building'
+            else:
+                build = b.builder_status.getLastFinishedBuild()
+                if not build:
+                    p['status'] = "nobuilds"
+                elif build.results == SUCCESS:
+                    p['status'] = "success"
+                else:
+                    p['status'] = "failure"
+
+            yield p
 
     def getBuilderNames(self, req):
-        return [b.name for b in self.getBuilders(req)]
+        return [b['name'] for b in self.getBuilders(req)]
 
     @defer.inlineCallbacks
     def content(self, req, cxt):
@@ -225,4 +229,11 @@ class Projects(HtmlResource):
             return ProjectStatus(path)
         return HtmlResource.getChild(self, path, req)
 
+
+class About(HtmlResource):
+
+    def content(self, req, cxt):
+        templates = req.site.buildbot_service.templates
+        template = templates.get_template("about.html")
+        return template.render(cxt)
 

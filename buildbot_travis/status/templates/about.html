@@ -1,0 +1,73 @@
+ {% extends 'travis.layout.html' %}
+
+{% block body %}
+
+<div class="page-header">
+  <h1>Using CI</h1>
+</div>
+
+    <h2>How does my project get on here?</h2>
+	    <p>Speak to your friendly administrator. They will need to know the
+    name of your project and the repository where your code is hosted.</p>
+
+    <h2>How do I configure my builds?</h2>
+    <p>Your project will need a <code>.travis.yml</code>. This defines all the steps needed to build and test your project.</p>
+
+
+    <h2>What does a simple config file look like?</h2>
+    <p>For a simple buildout project the <code>.travis.yml</code> configuration might look as simple as this:</p>
+    <pre>
+    language: python
+
+    install:
+      - python bootstrap.py
+      - ./bin/buildout
+
+    script: ./bin/test
+    </pre>
+
+    <p>There are several targets you can run steps from:</p>
+    <ul>
+      <li>before_install</li>
+      <li>install</li>
+      <li>after_install</li>
+      <li>before_script</li>
+      <li>script</li>
+      <li>after_script</li>
+    </ul>
+    <p>All of these targets are optional and can be left out of the config file. It's expected that you will use <code>install</code> to buildout your software and <code>script</code> to execute your test suite.</p>
+
+    <h2>How do I do multiple builds of the same codebase?</h2>
+    <p>You can provide a list of environments to build like this:</p>
+    <pre>
+    env:
+      - PLONE=3.1
+      - PLONE=4.2
+
+    install: ./bin/buildout versions:Plone=$PLONE
+    </pre>
+
+
+    <h2>How do I control which branches get CI?</h2>
+    <p>You can use the <code>branches</code> stanza - you can blacklist a branch like this:
+    <pre>
+    branches:
+        except:
+            - experimental
+    </pre>
+
+    <p>You can also whitelist branches, for example if you only wanted to build trunk:</p>
+    <pre>
+    branches:
+        only:
+            - trunk
+    </pre>
+
+    <p>You can even use regular expressions. To only build branches that start with </code>deploy-</code> you might:</p>
+    <pre>
+    branches:
+        only:
+            - /^deploy-.$/
+    </pre>
+
+{% endblock %}
