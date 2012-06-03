@@ -1,5 +1,13 @@
 {% extends "travis.layout.html" %}
 
+{% macro shortenrev(rev) -%}
+    {% if rev|length == 40 %}
+    {{ rev[:8] }}
+    {% else %}
+    {{ rev }}
+    {% endif %}
+{%- endmacro %}
+
 {% block body %}
 
 <div class="page-title">
@@ -14,9 +22,9 @@
 <div class="build {{ b.color }}">
     <div>
       {% if b.revisions %}
-        <h2><a href="#build-{{ b.number }}" data-toggle="collapse">{{ b.revisions[-1].revision }} <small>{{ b.revisions[-1].comments }}</small></a></h2>
+        <h2><a href="#build-{{ b.number }}" data-toggle="collapse">{{ shortenrev(b.revisions[-1].revision) }} <small>{{ b.revisions[-1].comments }}</small></a></h2>
       {% else %}
-        <h2><a href="#build-{{ b.number }}" data-toggle="collapse">{{ b.properties.got_revision[0] }} <small>Manual build requested by {#{{ b.properties.owner[0] }}{# at {#{ b.when }#}</small></a></h2>
+        <h2><a href="#build-{{ b.number }}" data-toggle="collapse">{{ shortenrev(b.properties.got_revision[0]) }} <small>Manual build requested by {#{{ b.properties.owner[0] }}{# at {#{ b.when }#}</small></a></h2>
       {% endif %}
     </div>
 
