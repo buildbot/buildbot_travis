@@ -1,14 +1,64 @@
 import urlparse, os
+
+from twisted.python import log
+
 from buildbot.config import BuilderConfig
 from buildbot.schedulers.triggerable import Triggerable
 from buildbot.schedulers.basic  import Scheduler
 from buildbot.changes import svnpoller, gitpoller
 from buildbot.schedulers.filter import ChangeFilter
 
+from .changes import svnpoller
 from .factories import TravisFactory, TravisSpawnerFactory
 from .mergereq import mergeRequests
 
 from yaml import safe_load
+
+class SVNChangeSplitter(object):
+
+    def __init__(self, repository):
+        self.repository = repository
+        self.roots = []
+
+    def add(self, repository, branch, project):
+        assert repository.startswith(self.repository)
+        repository = repository[len(self.repository):]
+        self.roots.append((repository, branch, project))
+        print self.repository, repository, branch, project
+
+    def split_file(self, path):
+        pieces = path.split("/")
+        if pieces[0] == 'trunk':
+            return 'trunk', '/'.join(pieces[1:])
+        elif pieces[0] == 'branches':
+            return '/'.join(pieces[0:2]), '/'.join(pieces[2:])
+        return None
+
+    def __call__(self, path):
+        log.msg("Looking for match for '%s'" % path)
+        for root, branch, project in self.roots:
+            if path.startswith(root):
+                log.msg("Found match - project '%s'" % project)
+                f = svnpoller.SVNFile()
+                f.project = project
+                f.repository = self.repository + root
+                path = path[len(root):]
+                if not branch:
+                    log.msg("Determining branch")
+                    where = self.split_file(path)
+                    if not where:
+                        return None
+                    f.branch, f.path = where
+                else:
+                    log.msg("Trying to force branch")
+                    if not path.startswith(branch):
+                        log.msg("'%s' doesnt start with '%s'" % (path, branch))
+                        continue
+                    f.branch = branch
+                    f.path = path[len(branch):]
+                return f
+        log.msg("No match found")
+        log.msg(self.roots)
 
 
 class Loader(object):
@@ -18,6 +68,7 @@ class Loader(object):
         self.vardir = vardir
         self.passwords = {}
         self.properties = {}
+        self.repositories = {}
 
     def add_password(self, scheme, netloc, username, password):
         self.passwords[(scheme, netloc)] = (username, password)
@@ -36,7 +87,7 @@ class Loader(object):
         slaves = [s.slavename for s in self.config['slaves'] if isinstance(s, AbstractLatentBuildSlave)]
         return slaves
 
-    def define_travis_builder(self, name, repository, vcs_type=None, username=None, password=None):
+    def define_travis_builder(self, name, repository, branch=None, vcs_type=None, username=None, password=None):
         job_name = "%s-job" % name
         spawner_name = name
 
@@ -64,6 +115,7 @@ class Loader(object):
             mergeRequests = False,
             factory = TravisFactory(
                 repository = repository,
+                branch = branch,
                 vcs_type = vcs_type,
                 username = username,
                 password = password,
@@ -81,6 +133,7 @@ class Loader(object):
             category = "spawner",
             factory = TravisSpawnerFactory(
                 repository = repository,
+                branch = branch,
                 scheduler = job_name,
                 vcs_type = vcs_type,
                 username = username,
@@ -94,26 +147,66 @@ class Loader(object):
             change_filter = ChangeFilter(project=name)
             ))
 
+        setup_poller = dict(git=self.setup_git_poller, svn=self.setup_svn_poller)[vcs_type]
+        setup_poller(repository, branch, name, username, password)
+
+
+    def make_poller_dir(self, name):
         # Set up polling for the projects repository
         # Each poller will get its own directory to store state in
         pollerdir = os.path.join(self.vardir, "pollers", name)
         if not os.path.exists(pollerdir):
+            log.msg("Creating pollerdir '%s'" % pollerdir)
             os.makedirs(pollerdir)
+        return pollerdir
 
-        if vcs_type == "git":
-            self.config['change_source'].append(gitpoller.GitPoller(
-                repourl = repository,
-                workdir = pollerdir,
-                project = name,
-                ))
+    def setup_git_poller(self, repository, branch, project, username=None, password=None):
+        pollerdir = self.make_poller_dir(project)
+        self.config['change_source'].append(gitpoller.GitPoller(
+            name = project,
+            repourl = repository,
+            workdir = pollerdir,
+            project = project,
+            ))
 
-        elif vcs_type == "svn":
+    def setup_svn_poller(self, repository, branch, project, username=None, password=None):
+        for repo in self.repositories:
+            if repository.startswith(repo):
+                splitter = self.repositories[repo]
+                break
+        else:
+            import subprocess
+            options = {}
+            cmd = ["svn", "info", repository, "--non-interactive"]
+            if username:
+                cmd.extend(["--username", username])
+            if password:
+                cmd.extend(["--password", password])
+            p = subprocess.Popen(cmd, stdout=subprocess.PIPE, env={'LC_MESSAGES':'C'})
+            s, e = p.communicate()
+            for line in s.split("\n"):
+                if ":" in line:
+                    k, v = line.split(": ")
+                    k = k.strip().lower().replace(" ", "-")
+                    v = v.strip()
+                    options[k] = v
+            repo = options["repository-root"] + "/"
+
+            scheme, netloc, path, params, query, fragment = urlparse.urlparse(repo)
+            name = "%s-%s-%s" % (scheme, netloc.replace(".", "-"), path.replace("/", "-").rstrip("/"))
+            pollerdir = self.make_poller_dir(name)
+
+            splitter = self.repositories[repo] = SVNChangeSplitter(repo)
+
             self.config['change_source'].append(svnpoller.SVNPoller(
-                svnurl = repository,
+                name = name,
+                svnurl = repo,
                 cachepath = os.path.join(pollerdir, "pollerstate"),
-                project = name,
-                split_file = svnpoller.split_file_branches,
+                project = None,
+                split_file = splitter,
                 svnuser = username,
                 svnpasswd = password,
                 ))
+
+        splitter.add(repository, branch, project)
 
