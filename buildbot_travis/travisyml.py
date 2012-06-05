@@ -21,6 +21,7 @@ class TravisYml(object):
             setattr(self, hook, [])
         self.branch_whitelist = None
         self.branch_blacklist = None
+        self.email = TravisYmlEmail()
 
     def parse(self, config_input):
         try:
@@ -35,6 +36,7 @@ class TravisYml(object):
         self.parse_envs()
         self.parse_hooks()
         self.parse_branches()
+        self.parse_notifications_email()
 
     def parse_language(self):
         try:
@@ -60,7 +62,7 @@ class TravisYml(object):
                 else:
                     ek.insert(0, k)
             prev = k
-        
+
         return props
 
     def parse_envs(self):
@@ -104,6 +106,10 @@ class TravisYml(object):
 
         raise TravisYmlInvalid("'branches' parameter contains neither 'only' nor 'except'")
 
+    def parse_notifications_email(self):
+        notifications = self.config.get("notifications", {})
+        self.email.parse(notifications.get("email", {}))
+
     def _match_branch(self, branch, lst):
         for b in lst:
             if b.startswith("/") and b.endswith("/"):
@@ -124,4 +130,35 @@ class TravisYml(object):
                 return False
             return True
         return True
+
+
+class TravisYmlEmail(object):
+
+    def __init__(self):
+        self.enabled = True
+        self.addresses = []
+        self.success = "change"
+        self.failure = "always"
+
+    def parse(self, settings):
+        if settings == False:
+            self.enabled = False
+            return
+
+        if isinstance(settings, list):
+            self.addresses = settings
+            return
+
+        if not isinstance(settings, dict):
+            raise TravisYmlInvalid("Exepected a False, a list of addresses or a dictionary at noficiations.email")
+
+        self.addresses = settings.get("recipients", self.addresses)
+
+        self.success = settings.get("on_success", self.success)
+        if not self.success in ("always", "never", "change"):
+            raise TravisYmlInvalid("Invalid value '%s' for on_success" % self.success)
+
+        self.failure = settings.get("on_failure", self.failure)
+        if not self.failure in ("always", "never", "change"):
+            raise TravisYmlInvalid("Invalid value '%s' for on_failure" % self.failure)
 
