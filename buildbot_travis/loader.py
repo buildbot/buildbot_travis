@@ -169,28 +169,31 @@ class Loader(object):
             project = project,
             ))
 
+    def get_repository_root(self, repository, username=None, password=None):
+        import subprocess
+        options = {}
+        cmd = ["svn", "info", repository, "--non-interactive"]
+        if username:
+            cmd.extend(["--username", username])
+        if password:
+            cmd.extend(["--password", password])
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, env={'LC_MESSAGES':'C'})
+        s, e = p.communicate()
+        for line in s.split("\n"):
+            if ":" in line:
+                k, v = line.split(": ")
+                k = k.strip().lower().replace(" ", "-")
+                v = v.strip()
+                options[k] = v
+        return options["repository-root"] + "/"
+
     def setup_svn_poller(self, repository, branch, project, username=None, password=None):
         for repo in self.repositories:
             if repository.startswith(repo):
                 splitter = self.repositories[repo]
                 break
         else:
-            import subprocess
-            options = {}
-            cmd = ["svn", "info", repository, "--non-interactive"]
-            if username:
-                cmd.extend(["--username", username])
-            if password:
-                cmd.extend(["--password", password])
-            p = subprocess.Popen(cmd, stdout=subprocess.PIPE, env={'LC_MESSAGES':'C'})
-            s, e = p.communicate()
-            for line in s.split("\n"):
-                if ":" in line:
-                    k, v = line.split(": ")
-                    k = k.strip().lower().replace(" ", "-")
-                    v = v.strip()
-                    options[k] = v
-            repo = options["repository-root"] + "/"
+            repo = self.get_repository_root(repository, username, password)
 
             scheme, netloc, path, params, query, fragment = urlparse.urlparse(repo)
             name = "%s-%s-%s" % (scheme, netloc.replace(".", "-"), path.replace("/", "-").rstrip("/"))

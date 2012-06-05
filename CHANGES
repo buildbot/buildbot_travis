@@ -4,7 +4,7 @@ Changelog
 0.0.5 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- SVN poller configuration is subclassable
 
 
 0.0.4 (2012-06-05)
