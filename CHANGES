@@ -1,10 +1,10 @@
 Changelog
 =========
 
-0.0.4 (unreleased)
+0.0.4 (2012-06-05)
 ------------------
 
-- Nothing changed yet.
+- Custom MailNotifier that makes use of .travis.yml
 
 
 0.0.3 (2012-06-05)
