@@ -1,5 +1,6 @@
 from twisted.internet import defer
 from buildbot.status import mail
+from buildbot.status.results import FAILURE, SUCCESS, WARNINGS, EXCEPTION, Results
 
 from ..factories import TravisSpawnerFactory
 from ..travisyml import TravisYml, TravisYmlInvalid
