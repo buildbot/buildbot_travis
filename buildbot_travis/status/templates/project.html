@@ -21,48 +21,18 @@
 {% for b in builds %}
 <div class="build {{ b.color }}">
     <div>
-      {% if b.revisions %}
-        <h2><a href="#build-{{ b.number }}" data-toggle="collapse">{{ shortenrev(b.revisions[-1].revision) }} <small>{{ b.revisions[-1].comments }}</small></a></h2>
-      {% else %}
-        <h2><a href="#build-{{ b.number }}" data-toggle="collapse">{{ shortenrev(b.properties.got_revision[0]) }} <small>Manual build requested by {#{{ b.properties.owner[0] }}{# at {#{ b.when }#}</small></a></h2>
-      {% endif %}
-    </div>
-
-    <div id="build-{{ b.number }}" class="collapse {% if loop.first %}in{% endif %}">
-      <div class="well">
-
-      <table class="table table-bordered table-condensed">
-      <thead>
-        <tr>
-          <th>#</th>
-          {% for e in environments %}
-          <th>{{ e.label }}</th>
-          {% endfor %}
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for sb in b.builds %} 
-        <tr>
-          <td><a href="{{ sb.url }}">{{ sb.number }}</a></td>
-          {% for e in environments %}
-          <td><code>{{ sb.properties.get(e.label, ['?'])[0] }}</code></td>
-          {% endfor %}
-          <td>
-            The build ended in <span class="label label-{{ sb.color }}">{{ sb.color }}</span>.
-            {% if sb.failure %}
-              <a href="#"><code>{{ sb.failure.firstline }}</code></a>
-            {% endif %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-      </table>
-
+      <div class="pull-right">
+        <a class="btn btn-primary" href="{{project}}/{{ b.number }}">Details</a>
       </div>
+      {% if b.revisions %}
+        <h2><a href="#">{{ shortenrev(b.revisions[-1].revision) }}</a> <small>{{ b.revisions[-1].comments }}</small></h2>
+      {% else %}
+        <h2><a href="#">{{ shortenrev(b.properties.got_revision[0]) }}</a> <small>Manual build requested by {#{{ b.properties.owner[0] }}{# at {#{ b.when }#}</small></h2>
+      {% endif %}
     </div>
 </div>
 {% endfor %}
+
 </div>
 
 {% endblock %}

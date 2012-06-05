@@ -85,7 +85,6 @@ class Build(HtmlResource):
 
     def getCommonBuildInfo(self, req, b):
         cxt = {}
-
         cxt['number'] = b.getNumber()
 
         if not b.isFinished():
@@ -103,11 +102,9 @@ class Build(HtmlResource):
                 cxt['when_time'] = time.strftime("%H:%M:%S",
                                                 time.localtime(time.time() + when))
 
+            cxt['result_css'] = "building"
         else:
             cxt['result_css'] = css_classes[b.getResults()]
-            if b.getTestResults():
-                cxt['tests_link'] = req.childLink("tests")
-
 
         (start, end) = b.getTimes()
         cxt['start'] = time.ctime(start)

@@ -4,20 +4,22 @@
 
 {% set buildername = b.getBuilder().getName() %}
 
-{% block extracss %}
-#steps .accordion-inner {
-  padding: 9px 30px;
-}
-{% endblock %}
-
 {% block body %}
 
 <div class="page-header">
-  <h1>Build summary <small>for #{{ b.getNumber() }}</small></h1>
+  <h1>{{ buildername }} <small>(build #{{ b.getNumber() }})</small></h1>
 </div>
 
-<div>
+<ul class="nav nav-tabs" id="build-tabs">
+  <li class="active"><a data-toggle="tab" href="#builds">Build</a></li>
+  <li class=""><a data-toggle="tab" href="#source">Source</a></li>
+  <li class=""><a data-toggle="tab" href="#properties">Properties</a></li>
+  <li class=""><a data-toggle="tab" href="#metrics">Metrics</a></li>
+</ul>
 
+<div class="tab-content">
+
+{#
 {% if not b.isFinished() %}
   <h2>
     Build In Progress <small>
@@ -39,7 +41,84 @@
   {% endif %}
 
 {% endif %}
+#}
 
+<div class="tab-pane active" id="builds">
+{% if builds|length > 1 %}
+
+{% set env = builds[0].environment.keys() %}
+
+<h2>Build Matrix</h2>
+
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>#</th>
+      {% for e in env %}
+      <th>{{ e }}</th>
+      {% endfor %}
+      <th>Finished</th>
+      <th>Result</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for b in builds %}
+    <tr>
+      <td><a href="#build-{{ b.number }}">{{ b.number }}</a></td>
+      {% for e in env %}
+      <td><code>{{ b.environment[e] }}</code></td>
+      {% endfor %}
+      <td>{{ b.end|default("-") }}</td>
+      <td><span class="label label-{{ b.result_css}}">{{ b.result_css }}</span></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endif %}
+
+{% for b in builds %}
+<section name="build-{{ b.number }}">
+<h2>Build {{ b.number }} {% if b.environment %}
+<small>({% for k, v in b.environment.items() %}{{k}} = {{v}}{% if not loop.last %}, {% endif %}{% endfor %})</small>
+{% endif %}</h2>
+
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>Step</th>
+      <th>Log</th>
+      <th>Duration</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for s in b.steps if s.css_class != 'not_started' %}
+    <tr>
+      <td>
+        {% if not s.name.startswith("travis_") %}
+        {{ s.name }}
+        {% else %}
+        <code>{{ s.text }}</code>
+        {% endif %}
+      </td>
+      <td>
+        {% for l in s.logs %}
+        <a href="{{ l.link }}">{{ l.name }}</a>
+        {% endfor %}
+      </td>
+      <td>{{ s.time_to_run if s.time_to_run else '-' }}</td>
+      <td><span class="badge badge-{{ s.css_class }}"></span></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+</section>
+{% endfor %}
+</div>
+
+<div class="tab-pane" id="source">
 <h2>Source</h2>
 
 {% for ss in sourcestamps %}
@@ -79,40 +158,28 @@
 </table>
 {% endfor %}
 
-<h2>Steps and Logfiles</h2>
-
-<div id="steps" class="accordion">
-{% for s in steps if s.css_class != 'not_started' %}
-  <div class="accordion-group">
-    <div class="accordion-heading">
-      <a class="accordion-toggle" href="#steps-{{ s.name }}" data-parent="#steps" data-toggle="collapse">
-        {% if not s.name.startswith("travis_") %}
-        {{ s.name }}
-        {% else %}
-        <code>{{ s.text }}</code>
-        {% endif %}
-        <span style="float:right; padding-left: 5px"><span class="badge badge-{{ s.css_class }}"></span></span>
-        <span style="float:right;">{{ '( ' + s.time_to_run + ' )' if s.time_to_run else '' }}</span>
-      </a>
+{% if has_changes %}
+    <div class="column">
+      <h2>All Changes:</h2>
+        {% for ss in sourcestamps %}
+            {% if ss.changes %}
+            <h3 id="changes-{{ ss.codebase }}"> {{ ss.codebase }}:</h3>
+            <ol>
+                  {% for c in ss.changes %}
+                    <li><h3>Change #{{ c.number }}</h3>
+                      {{ change(c.asDict()) }}
+                    </li>
+                  {% endfor %}
+            </ol>
+            {% endif %}
+        {% endfor %}
     </div>
+{% endif %}
 
-    <div id="steps-{{ s.name }}" class="accordion-body collapse {% if loop.last %}in{% endif %}">
-    <div class="accordion-inner">
-      {% set item_class = cycler('alt', '') %}
-      {% for l in s.logs %}
-        <li class="{{ item_class.next() }}"><a href="{{ l.link }}">{{ l.name }}</a></li>
-      {% else %}
-        <li class="{{ item_class.next() }}">- no logs -</li>
-      {% endfor %}
-    
-      {% for u in s.urls %}
-        <li class="{{ item_class.next() }}"><a href="{{ u.url }}">{{ u.logname }}</a></li>
-      {% endfor %}
-    </div>
-    </div>  
-  </div>
-{% endfor %}
 </div>
+
+
+<div class="tab-pane" id="properties">
 
 <h2>Build Properties</h2>
 
@@ -139,7 +206,9 @@
   </tr>
 {% endfor %}
 </table>
+</div>
 
+<div class="tab-pane" id="metrics">
 <h2>Timing</h2>
 <table class="table table-striped table-bordered table-condensed" width="100%">
   <tr class="alt"><td class="left">Start</td><td>{{ start }}</td></tr>
@@ -148,6 +217,7 @@
 {% endif %}
   <tr {{ 'class="alt"' if end else '' }}><td class="left">Elapsed</td><td>{{ elapsed }}</td></tr>
 </table>
+</div>
 
 </div>
 {% endblock %}
