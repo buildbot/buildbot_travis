@@ -45,13 +45,11 @@ class MailNotifier(mail.MailNotifier):
             elif config == "change":
                 prev = build.getPreviousBuild()
                 return prev.getResults() != results
+            return False
 
         if results == SUCCESS:
-            decide(config.email.success)
-        else:
-            decide(config.email.failure)
-
-        return False
+            return decide(config.email.success)
+        return decide(config.email.failure)
 
     def getTravisAddresses(self, build):
         config = self.getConfiguration(build)
