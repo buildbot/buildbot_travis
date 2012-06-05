@@ -1,8 +1,8 @@
-
+from twisted.internet import defer
 from buildbot.status import mail
 
-from ..factories import SpawnerFactory
-from ..travisyml import TravisYml
+from ..factories import TravisSpawnerFactory
+from ..travisyml import TravisYml, TravisYmlInvalid
 
 
 class MailNotifier(mail.MailNotifier):
@@ -23,7 +23,7 @@ class MailNotifier(mail.MailNotifier):
         builder_config = filter(lambda b: b.name == builder.name, self.master.config.builders)[0]
 
         # This notifier will only generate emails for the "spawner" builds
-        if not isinstance(builder_config.factory, SpawnerFactory):
+        if not isinstance(builder_config.factory, TravisSpawnerFactory):
             return False
 
         # That have valid configuration
