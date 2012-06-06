@@ -4,7 +4,8 @@ Changelog
 0.0.6 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- The pollers are now named - this allows them to be triggered by a change
+  hook.
 
 
 0.0.5 (2012-06-05)
