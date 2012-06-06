@@ -11,6 +11,7 @@ from buildbot.schedulers.filter import ChangeFilter
 from .changes import svnpoller
 from .factories import TravisFactory, TravisSpawnerFactory
 from .mergereq import mergeRequests
+from .config import nextBuild
 
 from yaml import safe_load
 
@@ -128,6 +129,7 @@ class Loader(object):
         # Define the builder for a spawer
         self.config['builders'].append(BuilderConfig(
             name = spawner_name,
+            nextBuild = nextBuild,
             slavenames = self.get_spawner_slaves(),
             properties = self.properties,
             category = "spawner",

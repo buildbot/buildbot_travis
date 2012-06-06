@@ -4,7 +4,8 @@ Changelog
 0.0.9 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Add a ``nextBuild`` handler that stops there being spawner builds without
+  runner capacity.
 
 
 0.0.8 (2012-06-06)
