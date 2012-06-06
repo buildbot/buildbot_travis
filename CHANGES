@@ -9,6 +9,8 @@ Changelog
 
 - Add some default ignores.
 
+- Use SingleBranchScheduler / AnyBranchScheduler
+
 
 0.0.8 (2012-06-06)
 ------------------

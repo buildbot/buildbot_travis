@@ -4,7 +4,7 @@ from twisted.python import log
 
 from buildbot.config import BuilderConfig
 from buildbot.schedulers.triggerable import Triggerable
-from buildbot.schedulers.basic  import Scheduler
+from buildbot.schedulers.basic  import SingleBranchScheduler, AnyBranchScheduler
 from buildbot.changes import svnpoller, gitpoller
 from buildbot.schedulers.filter import ChangeFilter
 
@@ -168,7 +168,9 @@ class Loader(object):
                 ),
             ))
 
-        self.config['schedulers'].append(Scheduler(
+        SchedulerKlass = {True:SingleBranchScheduler, False:AnyBranchScheduler}[bool(branch)]
+
+        self.config['schedulers'].append(SchedulerKlass(
             name = spawner_name,
             builderNames = [spawner_name],
             change_filter = ChangeFilter(project=name),
