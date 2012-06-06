@@ -1,7 +1,7 @@
 Changelog
 =========
 
-0.0.8 (unreleased)
+0.0.8 (2012-06-06)
 ------------------
 
 - Fix unskinned 'building' view on ``/projects/wibble/`` url handler.
