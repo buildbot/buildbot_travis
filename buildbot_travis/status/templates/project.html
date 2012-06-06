@@ -18,6 +18,15 @@
 
 <div class="project">
 
+{% for p in pending %}
+<div class="build notstarted">
+    <div>
+      <h2><a href="#">{{ shortenrev(p.revision) }}</a> <small>{{ p.comments }}</small></h2>
+    </div>
+</div>
+{% endfor %}
+
+
 {% for b in builds %}
 <div class="build {{ b.color }}">
     <div>

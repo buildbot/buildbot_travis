@@ -59,11 +59,29 @@ class ProjectStatus(HtmlResource):
             b = b.getPreviousBuild()
             depth += 1
 
+    @defer.inlineCallbacks
+    def getPendingBuilds(self, req):
+        spawner = self.getStatus(req).getBuilder(self.project)
+        pending = yield builder.getPendingBuildRequestStatuses()
+
+        builds = []
+        for b in pending:
+            source = yield b.getSourceStamp()
+            last = source.changes[-1]
+            info = dict(
+                revision = last.revision,
+                comments = last.comments,
+                )
+            builds.append(info)
+        defer.returnValue(builds)
+
+    @defer.inlineCallbacks
     def content(self, request, cxt):
         request.setHeader('Cache-Control', 'no-cache')
 
         cxt['project'] = self.project
 
+        cxt['pending'] = yield self.getPendingBuilds(request)
         cxt['builds'] = list(self.getBuilds(request))
 
         templates = request.site.buildbot_service.templates
