@@ -15,6 +15,31 @@ from .config import nextBuild
 
 from yaml import safe_load
 
+def fileIsImportant(change):
+    # Ignore "branch created"
+    if len(change.files) == 1 and change.files[0] == '':
+        return False
+
+    for f in change.files:
+        dirname = ''
+        if "/" in f:
+            dirname, f = f.rsplit("/", 1)
+
+        # Ignore files modified by zest
+        if f in ("CHANGES", "CHANGES.rst", "CHANGES.txt", "HISTORY.txt", "HISTORY"):
+            continue
+        if f == "version.txt":
+            continue
+
+        # Ignore badger configuration
+        if f == ".badger.yml":
+            continue
+
+        return True
+
+    return False
+
+
 class SVNChangeSplitter(object):
 
     def __init__(self, repository):
@@ -146,7 +171,9 @@ class Loader(object):
         self.config['schedulers'].append(Scheduler(
             name = spawner_name,
             builderNames = [spawner_name],
-            change_filter = ChangeFilter(project=name)
+            change_filter = ChangeFilter(project=name),
+            onlyImportant = True,
+            fileIsImportant = fileIsImportant,
             ))
 
         setup_poller = dict(git=self.setup_git_poller, svn=self.setup_svn_poller)[vcs_type]

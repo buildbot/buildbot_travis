@@ -7,6 +7,8 @@ Changelog
 - Add a ``nextBuild`` handler that stops there being spawner builds without
   runner capacity.
 
+- Add some default ignores.
+
 
 0.0.8 (2012-06-06)
 ------------------
