@@ -11,7 +11,6 @@ from buildbot import util
 from buildbot.status import builder
 from buildbot.status.web.base import HtmlResource
 from buildbot.changes import changes
-from buildbot.status.web.console import getResultsClass
 from buildbot.status.web.base import path_to_build
 from buildbot.status.results import SUCCESS
 
@@ -36,11 +35,17 @@ class ProjectStatus(HtmlResource):
     def getBuild(self, req, build):
         result = dict(
             revisions = build.getChanges(),
-            color = getResultsClass(build.getResults(), None, not build.isFinished),
-            url = "hello",
             properties = build.getProperties().asDict(),
             number = build.number,
             )
+
+        if not build.isFinished():
+            result['color'] = 'building'
+        elif build.results == SUCCESS:
+            result['color'] = "success"
+        else:
+            result['color'] = "failure"
+
         return result
 
     def getBuilds(self, request):
