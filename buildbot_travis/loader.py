@@ -196,7 +196,7 @@ class Loader(object):
             repo = self.get_repository_root(repository, username, password)
 
             scheme, netloc, path, params, query, fragment = urlparse.urlparse(repo)
-            name = "%s-%s-%s" % (scheme, netloc.replace(".", "-"), path.replace("/", "-").rstrip("/"))
+            name = "%s-%s-%s" % (scheme, netloc.replace(".", "-"), path..rstrip("/").lstrip("/").replace("/", "-"))
             pollerdir = self.make_poller_dir(name)
 
             splitter = self.repositories[repo] = SVNChangeSplitter(repo)
