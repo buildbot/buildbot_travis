@@ -7,6 +7,7 @@ setup(
     version = version,
     description = "Adapt buildbot to work a little more like Travis.",
     keywords = "buildbot travis ci",
+    url = "http://github.com/Jc2k/buildbot_travis",
     author = "John Carr",
     author_email = "john.carr@unrouted.co.uk",
     license="Apache Software License",
