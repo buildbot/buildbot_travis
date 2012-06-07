@@ -62,16 +62,22 @@ class ProjectStatus(HtmlResource):
     @defer.inlineCallbacks
     def getPendingBuilds(self, req):
         spawner = self.getStatus(req).getBuilder(self.project)
-        pending = yield builder.getPendingBuildRequestStatuses()
+        pending = yield spawner.getPendingBuildRequestStatuses()
 
         builds = []
         for b in pending:
             source = yield b.getSourceStamp()
-            last = source.changes[-1]
-            info = dict(
-                revision = last.revision,
-                comments = last.comments,
-                )
+            if source.changes:
+                last = source.changes[-1]
+                info = dict(
+                    revision = last.revision,
+                    comments = last.comments,
+                    )
+            else:
+                info = dict(
+                    revision = "HEAD",
+                    comments = "Pending manual build",
+                    )
             builds.append(info)
         defer.returnValue(builds)
 
@@ -87,7 +93,7 @@ class ProjectStatus(HtmlResource):
         templates = request.site.buildbot_service.templates
         template = templates.get_template("project.html")
         data = template.render(cxt)
-        return data
+        defer.returnValue(data)
 
     def getChild(self, path, request):
         builder = self.getStatus(request).getBuilder(self.project)
