@@ -77,7 +77,7 @@
 
 {% endif %}
 
-{% for b in builds %}
+{% for b in builds if b.result_css != 'pending' %}
 <section name="build-{{ b.number }}">
 <h2>Build {{ b.number }} {% if b.environment %}
 <small>({% for k, v in b.environment.items() %}{{k}} = {{v}}{% if not loop.last %}, {% endif %}{% endfor %})</small>

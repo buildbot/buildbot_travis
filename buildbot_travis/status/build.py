@@ -1,6 +1,7 @@
 
 import urllib, time
 from twisted.python import log
+from twisted.internet import defer
 
 from buildbot.status.web.base import HtmlResource, \
      css_classes, path_to_build, path_to_builder
@@ -20,6 +21,46 @@ class Build(HtmlResource):
             self.build_status.getNumber(),
             )
 
+    @defer.inlineCallbacks
+    def getPending(self, request):
+        nr = self.build_status.getNumber()
+
+        status = self.getStatus(request)
+        job = status.getBuilder(self.build_status.getBuilder().getName() + "-job")
+
+        builds = []
+        pending = yield job.getPendingBuildRequestStatuses()
+
+        for b in pending:
+            source = yield b.getSourceStamp()
+            submitTime = yield b.getSubmitTime()
+            bsid = yield b.getBsid()
+            properties = yield \
+                b.master.db.buildsets.getBuildsetProperties(bsid)
+
+            info = {}
+
+            info['number'] = "?"
+
+            env = info['environment'] = {}
+            for name, value in properties.items():
+                value, source = value
+                if source != ".travis.yml":
+                    continue
+                env[name] = value
+
+            # How long has it been pending?
+            info['start'] = time.strftime("%b %d %H:%M:%S",
+                                      time.localtime(submitTime))
+            info['elapsed'] = util.formatInterval(util.now() - submitTime)
+
+            info['result_css'] = "pending"
+
+            builds.append(info)
+
+        defer.returnValue(builds)
+
+
     def getChildren(self, request):
         nr = self.build_status.getNumber()
 
@@ -31,8 +72,11 @@ class Build(HtmlResource):
             b = job.getBuild(-2)
 
         while b:
-            if b.getProperty("spawned_by", None) == nr:
+            spawned_by = b.getProperty("spawned_by", None)
+            if spawned_by == nr:
                 yield b
+            if spawned_by and spawned_by < nr:
+                break
             b = b.getPreviousBuild()
     
     def getChildBuild(self, req, b):
@@ -117,6 +161,7 @@ class Build(HtmlResource):
 
         return cxt
 
+    @defer.inlineCallbacks
     def content(self, req, cxt):
         b = self.build_status
         status = self.getStatus(req)
@@ -136,6 +181,10 @@ class Build(HtmlResource):
         cxt['builds'] = []
         for c in self.getChildren(req):
             cxt['builds'].append(self.getChildBuild(req, c))
+
+        pending = yield self.getPending(req)
+        for p in pending:
+            cxt['builds'].append(p)
 
         ps = cxt['properties'] = []
         for name, value, source in b.getProperties().asList():
@@ -161,5 +210,5 @@ class Build(HtmlResource):
         cxt['authz'] = self.getAuthz(req)
 
         template = req.site.buildbot_service.templates.get_template("travis.build.html")
-        return template.render(**cxt)
+        defer.returnValue(template.render(**cxt))
 
