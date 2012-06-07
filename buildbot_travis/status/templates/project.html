@@ -36,7 +36,7 @@
       {% if b.revisions %}
         <h2><a href="#">{{ shortenrev(b.revisions[-1].revision) }}</a> <small>{{ b.revisions[-1].comments }}</small></h2>
       {% else %}
-        <h2><a href="#">{{ shortenrev(b.properties.got_revision[0]) }}</a> <small>Manual build requested by {#{{ b.properties.owner[0] }}{# at {#{ b.when }#}</small></h2>
+        <h2><a href="#">{{ shortenrev(b.properties.got_revision[0])|default('HEAD') }}</a> <small>Manual build requested by {% if b.properties.owner and b.properties.owner[0] %}{{ b.properties.owner[0] }}{% else %}unknown{% endif %}{# at {#{ b.when }#}</small></h2>
       {% endif %}
     </div>
 </div>
