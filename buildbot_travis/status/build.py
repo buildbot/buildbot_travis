@@ -38,6 +38,9 @@ class Build(HtmlResource):
             properties = yield \
                 b.master.db.buildsets.getBuildsetProperties(bsid)
 
+            if properties["spawned_by"][0] != nr:
+                continue
+
             info = {}
 
             info['number'] = "?"
