@@ -212,6 +212,8 @@ class Build(HtmlResource):
         cxt['build_url'] = path_to_build(req, b)
         cxt['authz'] = self.getAuthz(req)
 
+        cxt['shutting_down'] = status.shuttingDown
+
         template = req.site.buildbot_service.templates.get_template("travis.build.html")
         defer.returnValue(template.render(**cxt))
 

@@ -139,6 +139,12 @@
 
     <div class="container">
       <div class="content">
+        {% if shutting_down %}
+        <div class="alert alert-warning">
+        <strong>Please note!</strong> This service will go down for maintenance when all current builds are complete. New builds will be held in a queue until this maintenance work has been completed.
+        </div>
+        {% endif %}
+
         {% if alert_msg is defined and alert_msg %}
         <div class="alert alert-error">
         {{ alert_msg }}

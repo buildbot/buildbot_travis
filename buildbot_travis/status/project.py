@@ -90,6 +90,8 @@ class ProjectStatus(HtmlResource):
         cxt['pending'] = yield self.getPendingBuilds(request)
         cxt['builds'] = list(self.getBuilds(request))
 
+        cxt['shutting_down'] = self.getStatus(req).shuttingDown
+
         templates = request.site.buildbot_service.templates
         template = templates.get_template("project.html")
         data = template.render(cxt)
@@ -139,6 +141,7 @@ class Projects(HtmlResource):
         yield defer.succeed(None)
 
         cxt['projects'] = sorted(list(self.getBuilders(req)))
+        cxt['shutting_down'] = self.getStatus(req).shuttingDown
 
         templates = req.site.buildbot_service.templates
         template = templates.get_template("projects.html")
