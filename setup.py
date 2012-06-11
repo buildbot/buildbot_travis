@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = '0.0.14dev'
+version = '0.0.14'
 
 setup(
     name = 'buildbot_travis',
