@@ -5,3 +5,4 @@ buildbot_travis.egg-info/
 distribute-*.tar.gz
 include/
 lib/
+.tox
