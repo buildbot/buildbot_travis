@@ -1,6 +1,6 @@
 from twisted.trial import unittest
 
-from buildbot_travis.travisyml import TravisYml
+from buildbot_travis.travisyml import TravisYml, TravisYmlInvalid
 
 class TravisYmlTestCase(unittest.TestCase):
 
@@ -88,4 +88,44 @@ class TestBranches(TravisYmlTestCase):
         self.failUnlessEqual(self.t.can_build_branch("master"), True)
         self.failUnlessEqual(self.t.can_build_branch("feature-new-stuff"), False)
 
+
+class TestMailNotificatios(TravisYmlTestCase):
+
+    def test_nomail(self):
+        self.t.parse_notifications_email()
+        self.assertEqual(self.t.email.enabled, True)
+        self.assertEqual(self.t.email.success, "change")
+        self.assertEqual(self.t.email.failure, "always")
+
+    def test_mail_on_success(self):
+        b = self.t.config["notifications"] = {}
+        b["email"] = {"on_success": "never"}
+        self.t.parse_notifications_email()
+        self.assertEqual(self.t.email.enabled, True)
+        self.assertEqual(self.t.email.success, "never")
+        self.assertEqual(self.t.email.failure, "always")
+
+    def test_mail_on_success_fail(self):
+        n = self.t.config["notifications"] = {}
+        n["email"] = {"on_success": "wibble"}
+        self.assertRaises(TravisYmlInvalid, self.t.parse_notifications_email)
+
+    def test_mail_on_failure(self):
+        n = self.t.config["notifications"] = {}
+        n["email"] = {"on_failure": "never"}
+        self.t.parse_notifications_email()
+        self.assertEqual(self.t.email.enabled, True)
+        self.assertEqual(self.t.email.success, "change")
+        self.assertEqual(self.t.email.failure, "never")
+
+    def test_mail_on_failure_fail(self):
+        n = self.t.config["notifications"] = {}
+        n["email"] = {"on_failure": "wibble"}
+        self.assertRaises(TravisYmlInvalid, self.t.parse_notifications_email)
+
+    def test_mail_off(self):
+        n = self.t.config["notifications"] = {}
+        n["email"] = False
+        self.t.parse_notifications_email()
+        self.assertEqual(self.t.email.enabled, False)
 
