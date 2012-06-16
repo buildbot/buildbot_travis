@@ -139,6 +139,14 @@ class Loader(object):
             properties = self.properties,
             #mergeRequests = mergeRequests,
             mergeRequests = False,
+            env = dict(
+                DEBIAN_FRONTEND = "noninteractive",
+                CI = "true",
+                TRAVIS = "true",
+                HAS_JOSH_K_SEAL_OF_APPROVAL = "true",
+                LANG = "en_US.UTF-8",
+                LC_ALL = "en_US.UTF-8",
+                ),
             factory = TravisFactory(
                 repository = repository,
                 branch = branch,
