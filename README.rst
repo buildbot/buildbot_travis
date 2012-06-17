@@ -13,8 +13,20 @@ Basically we provide a compatibility shim in buildbot that allows it to consume
 a ``.travis.yml`` file.
 
 
-Example
-=======
+Registering a project
+=====================
+
+This is still buildbot. Whilst we can move the build definition out of the way,
+we still need to register a builder and set up change sources. There is a
+travis.yay in the CI codebase::
+
+    projects:
+      - name: project1
+        repository: https://svn.example.com/svn/customer/project
+
+
+The config file
+===============
 
 This is a ``.travis.yml`` for a typical buildout project::
 
@@ -31,20 +43,8 @@ You can read more about this file format on the travis-ci website::
 But features not also mentioned on this page might not currently be supported.
 
 
-Registering a project
-=====================
-
-This is still buildbot. Whilst we can move the build definition out of the way,
-we still need to register a builder and set up SVN polling. There is a
-travis.yay in the CI codebase::
-
-    projects:
-      - name: project1
-        repository: https://svn.example.com/svn/customer/project
-
-
 Supported languages
-===================
+-------------------
 
 We only really support python and mandate that you set the ``language`` to
 ``python``. However right now there is nothing python specific going on: your
@@ -52,7 +52,7 @@ install/script steps can do anything needed.
 
 
 Build Steps
-===========
+-----------
 
 Travis provides 6 hook points for your builds:
 
@@ -78,7 +78,7 @@ Or multiple commands like this::
 
 
 Installing dependencies
-=======================
+-----------------------
 
 Your code is built inside a VM and is thrown away after a build. Thus it is
 granted passwordless sudo. This is also true of Travis. Tempting as it was to
@@ -95,7 +95,7 @@ doesn't prompt for human input.
 
 
 Environments
-============
+------------
 
 You might want to perform multiple builds of the same piece of software. Travis
 delivers::
@@ -122,7 +122,7 @@ on a single line like this::
 
 
 Build Matrix
-============
+------------
 
 Your options for ``language`` and ``env`` create an implicit build matrix. A
 build matrix is a collection of all the possible combinations of the ``env``
@@ -154,7 +154,7 @@ for python 2.7.
 
 
 Whitelisting and blacklisting branches
-======================================
+--------------------------------------
 
 If you want to black list a set of branches::
 
@@ -210,43 +210,35 @@ How it works
 This is really not something djmitche has in mind when he fires up vim and
 starts hacking on buildbot :)
 
-The runner
-----------
+The basic behaviour is:
 
-We can't dynamically change a Factory so instead we have a single step for each
-phase (e.g. ``install`` or ``before_script``). Multiple commands can be
-executed by that step (by reading them from .travis.yml), but they will be
-logged under a single step. Any phases that don't execute commands will be
-hidden from the UI.
+ * Commit is picked up (polling by default, with additional triggers via
+   ``/change_hook/poller?poller=pollername`` web hook
 
-All build properties are exposed as environment variables in the runner phases.
+ * Build is scheduled on a 'spawner' builder - this is a builder configured to
+   use an ordinary slave
 
-Triggerable scheduler
----------------------
+ * Checkout occurs - for the purposes of acquiring the ``.travis.yml`` rather
+   than for actually performing a build
 
-The main CI job is just calls each of the phases in turn. It is wrapped in a
-Triggerable scheduler.
+ * 'spawner' triggers a build on a 'job' builder for each environment in the
+   build matrix defined in ``.travis.yml``
 
-This job will run in a throwaway VM.
+ * A custom ``mergeRequests`` handler is provided that considers build
+   properties from ``.travis.yml`` when decided if builds can be merged.
 
-Spawner
--------
+ * 'job' builder does a single build in a clean VM
 
-The CI job that is actually wired up to repository polling.
+ * ``setup-steps`` step dynamically appends ShellCommand steps based on
+   contents of ``.travis.yml``
 
-Commits trigger a spawner build. This is meant to be lightweight so will take
-steps to be fast: keeping caches, not being a throw away VM etc.
+ * when job is over VM is thrown away.
 
-It's job is to read the ``.travis.yml`` file and see what actions are actually
-required. If a source code change doesn't match the branch requirements no
-further actions are taken. But if it does, a build will be created for each
-environment listed in ``env``.
+ * The 'spawner' build acts as a way of aggregating the build results in a
+   single pass/fail status.
 
-Build merging
--------------
-
-A custom ``mergeRequests`` handler is provided that considers build properties
-from ``.travis.yml`` when decided if builds can be merged.
+ * MailNotifier subclass uses ``.travis.yml`` found in build history so that
+   recipients list and whether or not to mail can be adapted accordingly.
 
 
 Deploying
