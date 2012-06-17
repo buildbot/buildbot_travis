@@ -35,6 +35,21 @@ class TestEnv(TravisYmlTestCase):
             ])
 
 
+class TestMatrix(TravisYmlTestCase):
+
+    def test_exclude_match(self):
+        self.t.config["env"] = ["FOO=1 BAR=2", "FOO=2 BAR=1"]
+        m = self.t.config["matrix"] = {}
+        m['exclude'] = [dict(python="python2.6", env="FOO=2 BAR=1")]
+
+        self.t.parse_envs()
+        self.t.parse_matrix()
+
+        self.failUnlessEqual(self.t.matrix, [
+            dict(python="python2.6", env=dict(FOO='1', BAR='2')),
+            ])
+
+
 class TestHooks(TravisYmlTestCase):
 
     def test_empty(self):

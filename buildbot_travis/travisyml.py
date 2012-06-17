@@ -8,6 +8,19 @@ class TravisYmlInvalid(Exception):
     pass
 
 
+def parse_env_string(env):
+    props = {}
+    if not env.strip():
+        return props
+
+    vars = env.split(" ")
+    for v in vars:
+        k, v = v.split("=")
+        props[k] = v
+
+    return props
+
+
 class TravisYml(object):
     """
     Loads a .travis.yml file and parses it.
@@ -16,7 +29,6 @@ class TravisYml(object):
     def __init__(self):
         self.language = None
         self.environments = [{}]
-        self.environments_keys = []
         self.matrix = []
         for hook in TRAVIS_HOOKS:
             setattr(self, hook, [])
@@ -48,26 +60,6 @@ class TravisYml(object):
         except:
             raise TravisYmlInvalid("'language' parameter is missing")
 
-    def parse_env(self, env):
-        props = {}
-        if not env.strip():
-            return props
-
-        prev = None
-        vars = env.split(" ")
-        for v in vars:
-            k, v = v.split("=")
-            props[k] = v
-
-            ek = self.environments_keys
-            if not k in ek:
-                if prev:
-                    ek.insert(ek.index(prev)+1, k)
-                else:
-                    ek.insert(0, k)
-            prev = k
-
-        return props
 
     def parse_envs(self):
         env = self.config.get("env", None)
@@ -75,10 +67,10 @@ class TravisYml(object):
             return
         elif isinstance(env, basestring):
             self.environments_keys = []
-            self.environments = [self.parse_env(env)]
+            self.environments = [parse_env_string(env)]
         elif isinstance(env, list):
             self.environments_keys = []
-            self.environments = [self.parse_env(e) for e in env]
+            self.environments = [parse_env_string(e) for e in env]
         else:
             raise TravisYmlInvalid("'env' parameter is invalid")
 
@@ -124,11 +116,15 @@ class TravisYml(object):
         cfg = self.config.get("matrix", {})
 
         for env in cfg.get("exclude", []):
-            if env in matrix:
-                matrix.remove(env)
+            matchee = env.copy()
+            matchee['env'] = parse_env_string(matchee.get('env', ''))
+            if matchee in matrix:
+                matrix.remove(matchee)
 
         for env in cfg.get("include", []):
-            matrix.append(env)
+            e = env.copy()
+            e['env'] = parse_env_string(e.get('env',''))
+            matrix.append(e)
 
         self.matrix = matrix
 
