@@ -89,7 +89,7 @@ class TestBranches(TravisYmlTestCase):
         self.failUnlessEqual(self.t.can_build_branch("feature-new-stuff"), False)
 
 
-class TestMailNotificatios(TravisYmlTestCase):
+class TestMailNotifications(TravisYmlTestCase):
 
     def test_nomail(self):
         self.t.parse_notifications_email()
@@ -128,4 +128,24 @@ class TestMailNotificatios(TravisYmlTestCase):
         n["email"] = False
         self.t.parse_notifications_email()
         self.assertEqual(self.t.email.enabled, False)
+
+
+class TestIrcNotifications(TravisYmlTestCase):
+
+    def test_noirc(self):
+        self.t.parse_notifications_irc()
+        self.assertEqual(self.t.irc.enabled, False)
+
+    def test_channels(self):
+        channels=[
+            "irc.freenode.org#travis",
+            "irc.freenode.org#some-other-channel"
+            ]
+
+        n = self.t.config["notifications"] = {}
+        n["irc"] = dict(channels=channels[:])
+        self.t.parse_notifications_irc()
+
+        self.assertEqual(self.t.irc.enabled, True)
+        self.assertEqual(self.t.irc.channels, channels)
 

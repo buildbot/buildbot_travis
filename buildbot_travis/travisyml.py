@@ -22,6 +22,7 @@ class TravisYml(object):
         self.branch_whitelist = None
         self.branch_blacklist = None
         self.email = TravisYmlEmail()
+        self.irc = TravisYmlIrc()
 
     def parse(self, config_input):
         try:
@@ -37,6 +38,7 @@ class TravisYml(object):
         self.parse_hooks()
         self.parse_branches()
         self.parse_notifications_email()
+        self.parse_notifications_irc()
 
     def parse_language(self):
         try:
@@ -106,6 +108,10 @@ class TravisYml(object):
 
         raise TravisYmlInvalid("'branches' parameter contains neither 'only' nor 'except'")
 
+    def parse_notifications_irc(self):
+        notifications = self.config.get("notifications", {})
+        self.irc.parse(notifications.get("irc", {}))
+
     def parse_notifications_email(self):
         notifications = self.config.get("notifications", {})
         self.email.parse(notifications.get("email", {}))
@@ -132,7 +138,19 @@ class TravisYml(object):
         return True
 
 
-class TravisYmlEmail(object):
+class _NotificationsMixin(object):
+
+    def parse_failure_success(self, settings):
+        self.success = settings.get("on_success", self.success)
+        if not self.success in ("always", "never", "change"):
+            raise TravisYmlInvalid("Invalid value '%s' for on_success" % self.success)
+
+        self.failure = settings.get("on_failure", self.failure)
+        if not self.failure in ("always", "never", "change"):
+            raise TravisYmlInvalid("Invalid value '%s' for on_failure" % self.failure)
+   
+
+class TravisYmlEmail(_NotificationsMixin):
 
     def __init__(self):
         self.enabled = True
@@ -154,11 +172,29 @@ class TravisYmlEmail(object):
 
         self.addresses = settings.get("recipients", self.addresses)
 
-        self.success = settings.get("on_success", self.success)
-        if not self.success in ("always", "never", "change"):
-            raise TravisYmlInvalid("Invalid value '%s' for on_success" % self.success)
+        self.parse_failure_success(settings)
 
-        self.failure = settings.get("on_failure", self.failure)
-        if not self.failure in ("always", "never", "change"):
-            raise TravisYmlInvalid("Invalid value '%s' for on_failure" % self.failure)
+
+class TravisYmlIrc(_NotificationsMixin):
+
+    def __init__(self):
+        self.enabled = False
+        self.channels = []
+        self.template = []
+        self.success = "change"
+        self.failure = "always"
+        self.notice = False
+        self.join = True
+
+    def parse(self, settings):
+        if not settings:
+            return
+
+        self.enabled = True
+        self.channels = settings.get("channels", [])
+        self.template = settings.get("template", [])
+        self.notice = settings.get("use_notice", False)
+        self.join = not settings.get("skip_join", False)
+
+        self.parse_failure_success(settings)
 
