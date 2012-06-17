@@ -61,10 +61,10 @@ class TravisTrigger(ConfigurableStep):
 
         self.running = True
 
-        for env in config.environments:
+        for env in config.matrix:
             props_to_set = Properties()
             props_to_set.updateFromProperties(self.build.getProperties())
-            props_to_set.update(env, ".travis.yml")
+            props_to_set.update(env["env"], ".travis.yml")
             props_to_set.setProperty("spawned_by",  self.build.build_status.number, "Scheduler")
 
             ss_setid = yield ss.getSourceStampSetId(master)
