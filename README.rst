@@ -183,6 +183,26 @@ WebStatus
 This repository contains a set of ``HtmlResource`` classes for implementing a
 UI that works somewhat like the ``/console`` view.
 
+The root resource is ``Projects``. It provides a simple list of registered
+projects which are colour coded to indicate the state of the build.
+
+.. image:: https://raw.github.com/Jc2k/buildbot_travis/master/docs/images/status.projects.png
+   :align: center
+
+When a user drills down in to a particular project they see a ``ProjectStatus``
+view. This is basically a list of commits with colour coding to indicate
+whether the corresponding build was successful or not.
+
+.. image:: https://raw.github.com/Jc2k/buildbot_travis/master/docs/images/status.commits.png
+   :align: center
+
+Drilling down to a particular revision reveals a ``Build`` view. Of particular
+interest here is the build matrix which shows a summary of all the builds this
+commit triggered. A detail view of each build follows on he same page.
+
+.. image:: https://raw.github.com/Jc2k/buildbot_travis/master/docs/images/status.build.png
+   :align: center
+
 
 How it works
 ============
@@ -227,4 +247,13 @@ Build merging
 
 A custom ``mergeRequests`` handler is provided that considers build properties
 from ``.travis.yml`` when decided if builds can be merged.
+
+
+Deploying
+=========
+
+Don't. She's not ready.
+
+.. image:: http://alex-holmes.com/b/soon.jpg
+   :align: center
 
