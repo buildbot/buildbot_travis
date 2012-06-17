@@ -20,10 +20,19 @@ class TestEnv(TravisYmlTestCase):
         self.t.parse_envs()
         self.failUnlessEqual(self.t.environments, [dict(FOO='1', BAR='2')])
 
+        self.t.parse_matrix()
+        self.failUnlessEqual(self.t.matrix, [dict(python="python2.6", env=dict(FOO='1', BAR='2')), ])
+
     def test_multienv(self):
         self.t.config["env"] = ["FOO=1 BAR=2", "FOO=2 BAR=1"]
         self.t.parse_envs()
         self.failUnlessEqual(self.t.environments, [dict(FOO='1', BAR='2'), dict(FOO='2', BAR='1')])
+
+        self.t.parse_matrix()
+        self.failUnlessEqual(self.t.matrix, [
+            dict(python="python2.6", env=dict(FOO='1', BAR='2')),
+            dict(python="python2.6", env=dict(FOO='2', BAR='1')),
+            ])
 
 
 class TestHooks(TravisYmlTestCase):

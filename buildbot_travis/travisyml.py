@@ -17,6 +17,7 @@ class TravisYml(object):
         self.language = None
         self.environments = [{}]
         self.environments_keys = []
+        self.matrix = []
         for hook in TRAVIS_HOOKS:
             setattr(self, hook, [])
         self.branch_whitelist = None
@@ -35,6 +36,7 @@ class TravisYml(object):
         self.config = config
         self.parse_language()
         self.parse_envs()
+        self.parse_matrix()
         self.parse_hooks()
         self.parse_branches()
         self.parse_notifications_email()
@@ -107,6 +109,28 @@ class TravisYml(object):
             return
 
         raise TravisYmlInvalid("'branches' parameter contains neither 'only' nor 'except'")
+
+    def parse_matrix(self):
+        matrix = []
+
+        # First of all, build the implicit matrix
+        for lang in self.config.get("python", ["python2.6"]):
+            for env in self.environments:
+                matrix.append(dict(
+                    python = lang,
+                    env = env,
+                    ))
+
+        cfg = self.config.get("matrix", {})
+
+        for env in cfg.get("exclude", []):
+            if env in matrix:
+                matrix.remove(env)
+
+        for env in cfg.get("include", []):
+            matrix.append(env)
+
+        self.matrix = matrix
 
     def parse_notifications_irc(self):
         notifications = self.config.get("notifications", {})
