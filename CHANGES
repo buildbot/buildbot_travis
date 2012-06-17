@@ -4,7 +4,27 @@ Changelog
 0.0.15 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Now fully support the ``matrix`` options allowing finer control over the
+  implied matrix generated from the list of runtimes and environment
+  variables::
+
+      python:
+        - 2.6
+        - 2.7
+      env:
+        - FLAVOUR=apple
+        - FLAVOUR=orange
+      matrix:
+        exclude:
+          - python: 2.7
+            env: FLAVOUR=orange
+        include:
+          - python: 2.7
+            env: FLAVOUR=banana
+
+  This will do an additional build of the ``banana`` build but only for python
+  2.7. And it will turn off the build for the ``orange`` flavour, again only
+  for python 2.7.
 
 
 0.0.14 (2012-06-11)
