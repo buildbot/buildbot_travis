@@ -121,6 +121,38 @@ on a single line like this::
      - PROP1=foo PROP2=bar
 
 
+Build Matrix
+============
+
+Your options for ``language`` and ``env`` create an implicit build matrix. A
+build matrix is a collection of all the possible combinations of the ``env``
+options and language versions. You can fine tine this matrix by excluding
+certain combinations, or inserting additional ones.
+
+Here is an example of excluding a combination and inserting an additional
+build::
+
+      python:
+        - 2.6
+        - 2.7
+
+      env:
+        - FLAVOUR=apple
+        - FLAVOUR=orange
+
+      matrix:
+        exclude:
+          - python: 2.7
+            env: FLAVOUR=orange
+        include:
+          - python: 2.7
+            env: FLAVOUR=banana
+
+This will do an additional build of the ``banana`` build but only for python
+2.7. And it will turn off the build for the ``orange`` flavour, again only
+for python 2.7.
+
+
 Whitelisting and blacklisting branches
 ======================================
 
