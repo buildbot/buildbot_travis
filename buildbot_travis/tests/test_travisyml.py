@@ -49,6 +49,33 @@ class TestMatrix(TravisYmlTestCase):
             dict(python="python2.6", env=dict(FOO='1', BAR='2')),
             ])
 
+    def test_exclude_nomatch(self):
+        self.t.config["env"] = ["FOO=1 BAR=2", "FOO=2 BAR=1"]
+        m = self.t.config["matrix"] = {}
+        m['exclude'] = [dict(python="python2.6", env="FOO=2 BAR=3")]
+
+        self.t.parse_envs()
+        self.t.parse_matrix()
+
+        self.failUnlessEqual(self.t.matrix, [
+            dict(python="python2.6", env=dict(FOO='1', BAR='2')),
+            dict(python="python2.6", env=dict(FOO='2', BAR='1')),
+            ])
+
+    def test_include(self):
+        self.t.config["env"] = ["FOO=1 BAR=2", "FOO=2 BAR=1"]
+        m = self.t.config["matrix"] = {}
+        m['include'] = [dict(python="python2.6", env="FOO=2 BAR=3")]
+
+        self.t.parse_envs()
+        self.t.parse_matrix()
+
+        self.failUnlessEqual(self.t.matrix, [
+            dict(python="python2.6", env=dict(FOO='1', BAR='2')),
+            dict(python="python2.6", env=dict(FOO='2', BAR='1')),
+            dict(python="python2.6", env=dict(FOO='2', BAR='3')),
+            ])
+
 
 class TestHooks(TravisYmlTestCase):
 
