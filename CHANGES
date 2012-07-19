@@ -26,6 +26,9 @@ Changelog
   2.7. And it will turn off the build for the ``orange`` flavour, again only
   for python 2.7.
 
+- Mail notification can't send a change notification if it doesn't have
+  anything to compare to (to detect the change). So it doesn't try to.
+
 
 0.0.14 (2012-06-11)
 -------------------

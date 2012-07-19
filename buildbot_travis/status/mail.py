@@ -44,6 +44,8 @@ class MailNotifier(mail.MailNotifier):
                 return True
             elif config == "change":
                 prev = build.getPreviousBuild()
+                if not prev:
+                    return False
                 return prev.getResults() != results
             return False
 
