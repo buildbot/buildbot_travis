@@ -1,7 +1,7 @@
 Changelog
 =========
 
-0.0.15 (unreleased)
+0.0.15 (2012-11-01)
 -------------------
 
 - Now fully support the ``matrix`` options allowing finer control over the
