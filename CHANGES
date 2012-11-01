@@ -4,7 +4,7 @@ Changelog
 0.0.16 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Remove the ``name`` args from the pollers - they were removed in time for 0.8.7.
 
 
 0.0.15 (2012-11-01)

@@ -202,7 +202,6 @@ class Loader(object):
     def setup_git_poller(self, repository, branch, project, username=None, password=None):
         pollerdir = self.make_poller_dir(project)
         self.config['change_source'].append(gitpoller.GitPoller(
-            name = project,
             repourl = repository,
             workdir = pollerdir,
             project = project,
@@ -241,7 +240,6 @@ class Loader(object):
             splitter = self.repositories[repo] = SVNChangeSplitter(repo)
 
             self.config['change_source'].append(svnpoller.SVNPoller(
-                name = name,
                 svnurl = repo,
                 cachepath = os.path.join(pollerdir, "pollerstate"),
                 project = None,
