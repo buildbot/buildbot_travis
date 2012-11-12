@@ -1,7 +1,7 @@
 Changelog
 =========
 
-0.0.17 (unreleased)
+0.0.17 (2012-11-12)
 -------------------
 
 - Update to use the latest trigger API (as it was changed in 0.8.7).
