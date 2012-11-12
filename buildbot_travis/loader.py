@@ -107,7 +107,7 @@ class Loader(object):
         shelf = shelve.open(path)
         for project in shelf.keys():
             definition = shelf[project]
-            l.define_travis_builder(**definition)
+            self.define_travis_builder(**definition)
         shelf.close()
 
     def get_spawner_slaves(self):

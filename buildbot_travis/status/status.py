@@ -53,7 +53,7 @@ class CiWebStatus(baseweb.WebStatus):
         self.putChild("about", About())
 
         self.putChild("add_form", AddProjectForm())
-        self.putChild("add", AddProject(os.path.join(self.vardir, "travis")))
+        self.putChild("add", AddProject(self, os.path.join(self.vardir, "travis")))
 
         baseweb.WebStatus.setupSite(self)
 
