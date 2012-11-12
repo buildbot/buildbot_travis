@@ -1,4 +1,4 @@
-import urlparse, os
+import urlparse, os, shelve
 
 from twisted.python import log
 
@@ -102,6 +102,13 @@ class Loader(object):
     def load(self, path):
         for p in safe_load(path).get("projects", []):
             self.define_travis_builder(**p)
+
+    def load_shelve(self, path):
+        shelf = shelve.open(path)
+        for project in shelf.keys():
+            definition = shelf[project]
+            l.define_travis_builder(**definition)
+        shelf.close()
 
     def get_spawner_slaves(self):
         from buildbot.buildslave import BuildSlave

@@ -1,0 +1,100 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd"> 
+<html>
+    <head>
+        <title>10-foot Build View</title>
+        <link rel="stylesheet" type="text/css" href="reset.css" media="all"/>
+        <link rel="stylesheet" type="text/css" href="10foot.css" media="all"/>
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" ></script>
+        <script type="text/javascript" src="date.format.js"></script>
+        <script language='javascript'>
+            var tfc = function() {
+                var update_stats = function() {
+                    //TODO: Also needs to count the successes and failures, suggest a jquery selector and count the size of the array coming back
+                    $('#ci-status-poll').html(new Date().format("ddd d mmm yy, HH:MM:ss"));
+                };
+                var ws = new WebSocket("{{ ws_url }}");
+                ws.onmessage = function(evt) {
+                    var data = JSON.parse(evt.data);
+                    var id = data['builder'].replace(/[.]/g, '-');
+
+                    // If this is already on the display, cull it
+                    // Side effect: Building -> Finished transition will bump build to top of list
+                    existing = $('#' + id);
+                    if (existing.length)
+                        existing.remove();
+
+                    // Name is either the full builder name, or builder might have a defined
+                    // shortname in its config
+                    var name = data['buildProperties']['shortname'];
+                    if (typeof(name) == "undefined")
+                        name = data["builder"];
+                    name = name.replace(/[.-]/g, " ");
+
+                    // Build status maps to a css class, we also add 'long-name' if it is a long name.
+                    // TODO: this it should find the longest word and use that for the test, maybe
+                    var cls = data["status"];
+                    if (name.length > 6)
+                        cls += " medium-name";
+                    else if (name.length > 10)
+                        cls += " long-name";
+
+                    // The content inside the <li> is either just the name or an <img> tag with a logo
+                    // retrieved from builder properties
+                    var style = '';
+                    if (data['buildProperties']['logo'])
+                        var style= "style=\"background-image: url('{{ bb_url }}" + data['buildProperties']['logo'] + "');\"";
+
+                    $('#ci-list').prepend("<li id='" + id + "' class='" + cls + "'" + style + ">" + name + "</li>");
+
+                    update_stats();
+                
+                    // Keep the list just on the screen by culling from the end whenever there are scrollbars
+                    while (document.body.scrollHeight > window.innerHeight) {
+                        if ($('#ci-list li').length == 0)
+                            break;
+                        $('#ci-list li').filter(':last-child').remove();
+                        }
+                }
+                ws.onopen = function(evt) {
+                    $('#ci-status-connection').html('Connected');
+                }
+                ws.onerror = function(evt) {
+                    $('#ci-status-connection').html('Error');
+                    setTimeout(tfc, 1000);
+                }
+                ws.onclose = function(evt) {
+                    $('#ci-status-connection').html('Closed');
+                    setTimeout(tfc, 1000);
+                }
+            }
+
+            $(document).ready(tfc);
+
+        </script>
+    </head>
+    <body>
+        <div id="ci-header" class="hidden-structure">
+            <h1>10 Foot CI</h1>
+        </div>
+
+        <div id="ci-content">
+            <ol id="ci-list" class="clearfix"></ol>
+        </div>
+
+        <div id="ci-footer">
+            <dl id="ci-stats">
+                <dt>Status:</dt><dd id="ci-status-connection">Not connected</dd>
+                <dt>Last poll:</dt><dd id="ci-status-poll">?</dd>
+<!--
+                <dt>Building:</dt><dd id="ci-status-building">?</dd>
+                <dt>Successes:</dt><dd id="ci-status-success">?</dd>
+                <dt>Fails:</dt><dd id="ci-status-failure">?</dd>
+                <dt>Exceptions:</dt><dd id="ci-status-exception">?</dd>
+-->
+            </dl>
+        </div>
+
+        <ol id="output"></ol>
+    </body>
+</html>
+

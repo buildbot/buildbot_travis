@@ -6,6 +6,8 @@ Changelog
 
 - Update to use the latest trigger API (as it was changed in 0.8.7).
 
+- Add web UI for registering new projects.
+
 
 0.0.16 (2012-11-01)
 -------------------
