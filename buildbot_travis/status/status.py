@@ -9,7 +9,7 @@ from twisted.internet import reactor
 
 from buildbot.status.web import baseweb
 
-from isotoma.buildbot.status import websocketstatus
+from . import websocketstatus
 
 from .add_project import AddProjectForm, AddProject
 from .project import Projects, ProjectStatus, About

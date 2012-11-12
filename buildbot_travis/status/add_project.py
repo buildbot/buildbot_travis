@@ -10,10 +10,6 @@ from twisted.internet import reactor
 from buildbot.status.web import baseweb
 from buildbot.status.web.base import HtmlResource, ActionResource
 
-from isotoma.buildbot.status import websocketstatus
-
-from buildbot_travis.status import Projects, About
-
 import os, shelve, re
 
 class AddProjectForm(HtmlResource):
