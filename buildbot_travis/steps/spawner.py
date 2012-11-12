@@ -61,14 +61,18 @@ class TravisTrigger(ConfigurableStep):
 
         self.running = True
 
+        ss_for_trigger = {}
+        objs_from_build = self.build.getAllSourceStamps()
+        for ss in objs_from_build:
+            ss_for_trigger[ss.codebase] = ss.asDict()
+
         for env in config.matrix:
             props_to_set = Properties()
             props_to_set.updateFromProperties(self.build.getProperties())
             props_to_set.update(env["env"], ".travis.yml")
             props_to_set.setProperty("spawned_by",  self.build.build_status.number, "Scheduler")
 
-            ss_setid = yield ss.getSourceStampSetId(master)
-            triggered.append(sch.trigger(ss_setid, set_props=props_to_set))
+            triggered.append(sch.trigger(ss_for_trigger, set_props=props_to_set))
 
         results = yield defer.DeferredList(triggered, consumeErrors=1)
 
