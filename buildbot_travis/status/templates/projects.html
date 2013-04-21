@@ -2,17 +2,68 @@
 {% block body %}
 
 <div class="page-title">
-<h1>Projects</h1> 
+  <div class="pull-right btn-group">
+    <a class="btn dropdown-toggle" data-toggle="model" href="#formAddProject"><i class="icon-plus"></i></a>
+  </div>
+
+  <h1>Projects</h1> 
 </div>
 
 <hr />
 
 <div class="row projects-grid">
 {% for project in projects %}
-  <div class="span3 {{ project.status}}">
+  <div class="span4 {{ project.status}}">
     <h3><a href="projects/{{ project.name }}">{{ project.name }}</a></h3>
   </div>
 {% endfor %}
 </div>
+
+
+<form action="/add" class="form-horizontal">
+<div id="formAddProject" class="modal hide fade">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <h3>Add a project</h3>
+  </div>
+  <div class="modal-body">
+
+    <p>Your project should contain a <code>.travis.yml</code>. This should be in the root of your trunk or branch. Normally this is the same folder as your <code>bootstrap.py</code>, <code>buildout.cfg</code> or <code>setup.py</code>. You should have read the about page, in particular the notes about SVN layout.</p>
+
+    <fieldset>
+        <div class="control-group">
+            <label class="control-label" for="name">Project name:</label>
+            <div class="controls">
+                <input class="span4" id="name" name="name" size="30" type="text" value=""/>
+                <p class="help-block">Name to show in CI for project. Please use a-z, 0-9 and dashes only.</p>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label class="control-label" for="repository">Repository:</label>
+            <div class="controls">
+                <input class="span4" id="repository" name="repository" size="30" type="url" value=""/>
+                <p class="help-block">An SVN or Git repository (currently limited to Isotoma and GitHub). In the case of SVN, this should be the folder that contains the trunk/tags/branches folder.</p>
+            </div>
+        </div>
+
+        <!--
+        <div class="control-group">
+            <label class="control-label" for="branch">Branch:</label>
+            <div class="controls">
+                <input class="span4" id="branch" name="branch" size="30" type="text" value=""/>
+                <p class="help-block"><b>This is only for projects that don't have a sensible SVN layout</b>. You should only use it when buildbot_travis branch finding heuristics fail.</p>
+            </div>
+        </div>
+        -->
+
+    </fieldset>
+
+  </div>
+  <div class="modal-footer">
+    <input type="submit" value="Submit" class="btn btn-primary" />
+  </div>
+</div>
+</form>
 
 {% endblock %}

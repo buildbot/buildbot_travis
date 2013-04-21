@@ -11,6 +11,10 @@
 {% block body %}
 
 <div class="page-title">
+  <div class="pull-right btn-group">
+    <a class="btn" data-toggle="modal" href="#formForceBuild"><i class="icon-play"></i></a>
+    <a class="btn btn-danger" data-toggle="modal" href="#formDelete"><i class="icon-minus"></i></a>
+  </div>
   <h1>{{ project }}</h1>
 </div>
 
@@ -36,13 +40,45 @@
       {% if b.revisions %}
         <h2><a href="#">{{ shortenrev(b.revisions[-1].revision) }}</a> <small>{{ b.revisions[-1].comments }}</small></h2>
       {% else %}
-        <h2><a href="#">{{ shortenrev(b.properties.got_revision[0])|default('HEAD') }}</a> <small>Manual build requested by {% if b.properties.owner and b.properties.owner[0] %}{{ b.properties.owner[0] }}{% else %}unknown{% endif %}{# at {#{ b.when }#}</small></h2>
+        <h2><a href="#">{{ shortenrev(b.properties.get('got_revision', ['??'])[0])|default('HEAD') }}</a> <small>Manual build requested by {% if b.properties.owner and b.properties.owner[0] %}{{ b.properties.owner[0] }}{% else %}unknown{% endif %}{# at {#{ b.when }#}</small></h2>
       {% endif %}
     </div>
 </div>
 {% endfor %}
 
 </div>
+
+
+<form action="{{ project }}/force" class="form-horizontal">
+<div id="formForceBuild" class="modal hide fade">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <h3>Force build</h3>
+  </div>
+  <div class="modal-body">
+    <p>One fine body…</p>
+  </div>
+  <div class="modal-footer">
+    <input type="submit" value="Submit" class="btn btn-primary" />
+  </div>
+</div>
+</form>
+
+
+<form action="{{ project }}/delete" class="form-horizontal">
+<div id="formDelete" class="modal hide fade">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <h3>Delete project</h3>
+  </div>
+  <div class="modal-body">
+    <p>Are you absolutely sure you want to remove this project from CI?</p>
+  </div>
+  <div class="modal-footer">
+    <input type="submit" value="Submit" class="btn btn-danger" />
+  </div>
+</div>
+</form>
 
 {% endblock %}
 

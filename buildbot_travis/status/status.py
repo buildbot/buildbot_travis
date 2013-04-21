@@ -23,6 +23,7 @@ class CiWebStatus(baseweb.WebStatus):
 
     def __init__(self, *args, **kwargs):
         self.dashboard = None
+
         if 'dashboard' in kwargs:
             self.dashboard = kwargs['dashboard']
             del kwargs['dashboard']
@@ -30,7 +31,6 @@ class CiWebStatus(baseweb.WebStatus):
         if 'vardir' in kwargs:
             self.vardir = kwargs['vardir']
             del kwargs['vardir']
-
 
         baseweb.WebStatus.__init__(self, *args, **kwargs)
 

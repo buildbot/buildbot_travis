@@ -18,6 +18,8 @@ from buildbot_travis.factories import TravisSpawnerFactory
 from buildbot_travis.travisyml import TravisYml, TravisYmlInvalid
 
 from .build import Build
+from .delete_project import DeleteProject
+
 
 class ProjectStatus(HtmlResource):
 
@@ -98,6 +100,8 @@ class ProjectStatus(HtmlResource):
         defer.returnValue(data)
 
     def getChild(self, path, request):
+        if path == "delete":
+            return DeleteProject(self.project)
         builder = self.getStatus(request).getBuilder(self.project)
         build = builder.getBuild(int(path))
         if build:
