@@ -147,10 +147,6 @@
   <tr><td class="left">Patch</td><td>YES</td></tr>
 {% endif %}
 
-{% if ss.changes %}
-  <tr><td class="left">Changes</td><td>see below</td></tr>
-{% endif %}
-
 {% if not ss.branch and not ss.revision and not ss.patch and not ss.changes %}
   <tr><td class="left" colspan="2">Build of most recent revision</td></tr>
 {% endif %}
@@ -163,7 +159,6 @@
       <h2>All Changes:</h2>
         {% for ss in sourcestamps %}
             {% if ss.changes %}
-            <h3 id="changes-{{ ss.codebase }}"> {{ ss.codebase }}:</h3>
             <ol>
                   {% for c in ss.changes %}
                     <li><h3>Change #{{ c.number }}</h3>
