@@ -5,7 +5,20 @@ from twisted.internet import defer
 
 from buildbot.status.web.base import HtmlResource, \
      css_classes, path_to_build, path_to_builder
+from buildbot.status.results import SUCCESS, WARNINGS, FAILURE, SKIPPED
+from buildbot.status.results import EXCEPTION, RETRY
 from buildbot import util
+
+
+css_classes = {
+    SUCCESS: "success",
+    WARNINGS: "warning",
+    FAILURE: "important",
+    SKIPPED: "",
+    EXCEPTION: "important",
+    RETRY: "important",
+    None: "",
+    }
 
 
 class Build(HtmlResource):

@@ -6,8 +6,13 @@
 
 {% block body %}
 
-<div class="page-header">
-  <h1>{{ buildername }} <small>(build #{{ b.getNumber() }})</small></h1>
+<div class="page-title">
+  <div class="pull-right btn-group">
+    <a class="btn" data-toggle="modal" href="#formRebuild" title="Rebuild"><i class="icon-repeat"></i></a>
+  </div>
+  <div class="page-header">
+    <h1>{{ buildername }} <small>(build #{{ b.getNumber() }})</small></h1>
+  </div>
 </div>
 
 <ul class="nav nav-tabs" id="build-tabs">
@@ -86,29 +91,37 @@
 <table class="table table-bordered">
   <thead>
     <tr>
+      <th></th>
       <th>Step</th>
       <th>Log</th>
       <th>Duration</th>
-      <th></th>
     </tr>
   </thead>
   <tbody>
     {% for s in b.steps if s.css_class != 'not_started' %}
     <tr>
-      <td>
+      <td><span class="label label-{{ s.css_class }}">
+        {% if s.css_class == 'success' %}
+          <i class="icon-ok icon-white"></i>
+        {% elif s.css_class == 'important' %}
+          <i class="icon-remove icon-white"></i>
+        {% else %}
+          <i class="icon-play icon-white"></i>
+        {% endif %}
+      </span></td>
+      <td style="width: 100%">
         {% if not s.name.startswith("travis_") %}
         {{ s.name }}
         {% else %}
         <code>{{ s.text }}</code>
         {% endif %}
       </td>
-      <td>
+      <td style="width: 100%; white-space: nowrap;">
         {% for l in s.logs %}
         <a href="{{ l.link }}">{{ l.name }}</a>
         {% endfor %}
       </td>
-      <td>{{ s.time_to_run if s.time_to_run else '-' }}</td>
-      <td><span class="badge badge-{{ s.css_class }}"></span></td>
+      <td style="width: 100%; white-space: nowrap;">{{ s.time_to_run if s.time_to_run else '-' }}</td>
     </tr>
     {% endfor %}
   </tbody>
