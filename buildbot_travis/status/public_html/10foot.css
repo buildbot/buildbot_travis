@@ -1,0 +1,121 @@
+body {
+  background-color: #000;
+  color: #fff;
+  font: normal normal 26px/120% Verdana, Geneva, sans-serif;
+}
+
+#ci-content {
+  font-size: 80px;
+  line-height: 140%;
+}
+
+#ci-content .medium-name {
+  font-size: 60px;
+  line-height: 130%;
+}
+
+#ci-content .long-name {
+  font-size: 50px;
+  line-height: 130%;
+}
+
+#ci-list {
+  margin: -30px 0 0 -40px;
+}
+
+#ci-list li {
+  float: left;
+  margin: 30px 0 0 40px;
+  width: 280px;
+  height: 250px;
+  border-radius: 15px;
+  text-align: center;
+  overflow: hidden;
+  background: #ccc url('') no-repeat right bottom;
+}
+
+#ci-list li a {
+  color: #000;
+  text-decoration: none;
+}
+
+#ci-list li.building {
+  background-color: #dd0;
+  color: #000;
+}
+
+#ci-list li.success {
+  background-color: #0b0;
+}
+
+#ci-list li.failure {
+  background-color: #c00;
+}
+#ci-list li.failure a, #ci-list li.exception a {
+  color: #fff;
+}
+
+#ci-list li.exception {
+  background-color: #808;
+}
+
+
+#ci-footer {
+  margin-top: 16px;
+  border-top: solid #ccc 2px;
+  overflow: hidden;
+}
+
+#ci-stats {
+  float: left;
+  position: relative;
+  left: 50%;
+}
+
+#ci-stats dt, #ci-stats dd {
+  float: left;
+  right: 50%;
+  position: relative;
+}
+
+#ci-stats dt {
+  padding-left: 4ex;
+}
+#ci-stats dd {
+  padding-left: 0.5ex;
+}
+
+
+.clearfix:after {
+  content: ".";
+  display: block;
+  height: 0;
+  clear: both;
+  visibility: hidden;
+}
+
+.clearfix {
+  display: inline-block;
+  clear: both;
+}
+/* Hides from IE-mac \*/
+* html .clearfix {height: 1%;}
+.clearfix {display: block;}
+/* End hide from IE-mac */
+
+.hide {
+    left: -9999px;
+    position: absolute;
+}
+
+.hidden-structure {
+    background:transparent none repeat scroll 0%;
+    border:medium none;
+    display:block;
+    height:1px;
+    margin:-1px 0pt 0pt -1px;
+    overflow:hidden;
+    padding:0pt;
+    width:1px;
+}
+

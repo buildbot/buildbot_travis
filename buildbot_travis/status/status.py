@@ -48,6 +48,9 @@ class CiWebStatus(baseweb.WebStatus):
             self.setupWebsocket(status)
             self.putChild("10footci", websocketstatus.WSBuildResource())
 
+        path = os.path.join(os.path.dirname(__file__), "public_html")
+        self.putChild("buildbot_travis_assets", baseweb.StaticFile(path))
+
         self.putChild("", Redirect("/projects"))
         self.putChild("projects", Projects())
         self.putChild("about", About())

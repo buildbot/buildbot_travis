@@ -3,7 +3,6 @@ import json, urlparse
 from twisted.application import strports
 from twisted.internet.protocol import Protocol, Factory
 from twisted.web import resource
-from twisted.web.static import File
 from twisted.internet import task
 
 from buildbot import interfaces, util

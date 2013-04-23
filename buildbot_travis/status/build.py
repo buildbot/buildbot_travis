@@ -118,10 +118,10 @@ class Build(HtmlResource):
                 step['time_to_run'] = util.formatInterval(end - start)
             elif s.isStarted():
                 if s.isWaitingForLocks():
-                    step['css_class'] = "waiting"
+                    step['css_class'] = "warning"
                     step['time_to_run'] = "waiting for locks"
                 else:
-                    step['css_class'] = "running"
+                    step['css_class'] = "warning"
                     step['time_to_run'] = "running"
             else:
                 step['css_class'] = "not_started"
