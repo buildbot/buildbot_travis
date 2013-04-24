@@ -75,7 +75,7 @@ class TravisTrigger(ConfigurableStep):
         ss = ss_for_trigger[self.build.builder.name]
 
         # Stop the build early if .travis.yml says we should ignore branch
-        if ss.branch and not config.can_build_branch(ss.branch):
+        if ss.get('branch', None) and not config.can_build_branch(ss['branch']):
             defer.returnValue(self.end(SUCCESS))
 
         # Find the master object
