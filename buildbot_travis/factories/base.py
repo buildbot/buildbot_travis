@@ -7,8 +7,17 @@ class BaseFactory(factory.BuildFactory):
     Generic factory that deals with SVN (or Git)
     """
 
-    def __init__(self, repository, vcs_type=None, branch=None, username=None, password=None):
+    def __init__(self, projectname, repository, vcs_type=None, branch=None, username=None, password=None, subrepos=None):
         factory.BuildFactory.__init__(self, [])
+        self.addRepository(projectname, repository, vcs_type, branch, username, password)
+        if subrepos:
+            for subrepo in subrepos:
+                self.addRepository(
+                    **subrepo
+                    )
+
+    def addRepository(self, project=None, repository=None, vcs_type=None, branch=None, username=None, password=None, **kwargs):
+        kwargs = dict(kwargs)
 
         if not repository.endswith("/"):
             repository += "/"
@@ -23,16 +32,22 @@ class BaseFactory(factory.BuildFactory):
             branch = dict(svn="trunk", git="master")[vcs_type]
 
         if vcs_type == "svn":
-            self.addStep(SVN(
+            kwargs.update(dict(
                 baseURL=repository,
                 defaultBranch=branch,
                 username=username,
                 password=password,
+                codebase=project,
                 ))
 
+            self.addStep(SVN(**kwargs))
+
         elif vcs_type == "git":
-            self.addStep(Git(
+            kwargs.update(dict(
                 repourl=repository,
                 branch=branch,
+                codebase=project,
                 ))
+
+            self.addStep(Git(**kwargs))
 

@@ -96,6 +96,8 @@ class Loader(object):
         self.properties = {}
         self.repositories = {}
 
+        config['codebaseGenerator'] = lambda chdict: chdict['project']
+
     def add_password(self, scheme, netloc, username, password):
         self.passwords[(scheme, netloc)] = (username, password)
 
@@ -120,24 +122,23 @@ class Loader(object):
         slaves = [s.slavename for s in self.config['slaves'] if isinstance(s, AbstractLatentBuildSlave)]
         return slaves
 
-    def define_travis_builder(self, name, repository, branch=None, vcs_type=None, username=None, password=None):
+    def define_travis_builder(self, name, repository, branch=None, vcs_type=None, username=None, password=None, subrepos=None):
         job_name = "%s-job" % name
         spawner_name = name
 
         if not repository.endswith("/"):
             repository = repository + "/"
 
-        if not vcs_type:
-            if repository.startswith("https://svn."):
-                vcs_type = "svn"
-            elif repository.startswith("git://github.com/"):
-                vcs_type = "git"
-
         if not username and not password:
             p = urlparse.urlparse(repository)
             k = (p.scheme, p.netloc)
             if k in self.passwords:
                 username, password = self.passwords[k]
+
+        codebases = {spawner_name: {'repository': repository}}
+        if subrepos:
+            for subrepo in subrepos:
+                codebases[subrepo['project']] = {'repository': subrepo['repository']}
 
         # Define the builder for the main job
         self.config['builders'].append(BuilderConfig(
@@ -155,15 +156,21 @@ class Loader(object):
                 LC_ALL = "en_GB.UTF-8",
                 ),
             factory = TravisFactory(
+                projectname = spawner_name,
                 repository = repository,
                 branch = branch,
                 vcs_type = vcs_type,
                 username = username,
                 password = password,
+                subrepos = subrepos,
                 ),
              ))
 
-        self.config['schedulers'].append(Triggerable(job_name, [job_name]))
+        self.config['schedulers'].append(Triggerable(
+            name=job_name, 
+            builderNames=[job_name],
+            codebases=codebases,
+            ))
 
 
         # Define the builder for a spawer
@@ -174,6 +181,7 @@ class Loader(object):
             properties = self.properties,
             category = "spawner",
             factory = TravisSpawnerFactory(
+                projectname = spawner_name,
                 repository = repository,
                 branch = branch,
                 scheduler = job_name,
@@ -191,11 +199,20 @@ class Loader(object):
             change_filter = ChangeFilter(project=name),
             onlyImportant = True,
             fileIsImportant = fileIsImportant,
+            codebases=codebases,
             ))
 
-        setup_poller = dict(git=self.setup_git_poller, svn=self.setup_svn_poller)[vcs_type]
-        setup_poller(repository, branch, name, username, password)
+        self.setup_poller(repository, vcs_type, branch, name, username, password)
 
+    def setup_poller(self, repository, vcs_type=None, branch=None, project=None, username=None, password=None):
+        if not vcs_type:
+            if repository.startswith("https://svn."):
+                vcs_type = "svn"
+            elif repository.startswith("git://github.com/"):
+                vcs_type = "git"
+
+        setup_poller = dict(git=self.setup_git_poller, svn=self.setup_svn_poller)[vcs_type]
+        setup_poller(repository, branch, project, username, password)
 
     def make_poller_dir(self, name):
         # Set up polling for the projects repository

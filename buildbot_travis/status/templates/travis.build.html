@@ -88,7 +88,8 @@
 <small>({% for k, v in b.environment.items() %}{{k}} = {{v}}{% if not loop.last %}, {% endif %}{% endfor %})</small>
 {% endif %}</h2>
 
-<table class="table table-bordered">
+<div style="min-width: 100%; max-width: 800px;">
+<table class="table table-bordered" style="width: 100%;">
   <thead>
     <tr>
       <th></th>
@@ -126,6 +127,7 @@
     {% endfor %}
   </tbody>
 </table>
+</div>
 
 </section>
 {% endfor %}
