@@ -14,6 +14,10 @@ class TravisTrigger(ConfigurableStep):
     haltOnFailure = True
     flunkOnFailure = True
 
+    sourceStamps = []
+    alwaysUseLatest = False
+    updateSourceStamp = True
+
     def __init__(self, scheduler, **kwargs):
         if not "name" in kwargs:
             kwargs['name'] = 'trigger'
@@ -36,14 +40,39 @@ class TravisTrigger(ConfigurableStep):
             self.ended = True
             return self.finished(result)
 
+    def prepareSourcestampListForTrigger(self):
+        if self.sourceStamps:
+            ss_for_trigger = {}
+            for ss in self.sourceStamps:
+                codebase = ss.get('codebase','')
+                assert codebase not in ss_for_trigger, "codebase specified multiple times"
+                ss_for_trigger[codebase] = ss
+            return ss_for_trigger
+
+        if self.alwaysUseLatest:
+            return {}
+
+        # start with the sourcestamps from current build
+        ss_for_trigger = {}
+        objs_from_build = self.build.getAllSourceStamps()
+        for ss in objs_from_build:
+            ss_for_trigger[ss.codebase] = ss.asDict()
+
+        # overrule revision in sourcestamps with got revision
+        if self.updateSourceStamp:
+            got = self.build.build_status.getAllGotRevisions()
+            for codebase in ss_for_trigger:
+                if codebase in got:
+                    ss_for_trigger[codebase]['revision'] = got[codebase]
+
+        return ss_for_trigger
+
     @defer.inlineCallbacks
     def start(self):
         config = yield self.getStepConfig()
 
-        ss = self.build.getSourceStamp('')
-        got = self.build.getProperty('got_revision')
-        if got:
-            ss = ss.getAbsoluteSourceStamp(got)
+        ss_for_trigger = self.prepareSourcestampListForTrigger()
+        ss = ss_for_trigger[self.build.builder.name]
 
         # Stop the build early if .travis.yml says we should ignore branch
         if ss.branch and not config.can_build_branch(ss.branch):
@@ -60,11 +89,6 @@ class TravisTrigger(ConfigurableStep):
         triggered = []
 
         self.running = True
-
-        ss_for_trigger = {}
-        objs_from_build = self.build.getAllSourceStamps()
-        for ss in objs_from_build:
-            ss_for_trigger[ss.codebase] = ss.asDict()
 
         for env in config.matrix:
             props_to_set = Properties()
