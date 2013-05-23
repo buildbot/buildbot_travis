@@ -1,16 +1,10 @@
 
-from twisted.web import static
-from twisted.web.util import Redirect
-from twisted.application import strports
-from twisted.internet.protocol import Factory
-from twisted.internet import defer
 from twisted.python import log
 from twisted.internet import reactor
-
-from buildbot.status.web import baseweb
 from buildbot.status.web.base import HtmlResource, ActionResource
 
 import os, shelve, re
+
 
 class AddProjectForm(HtmlResource):
 
