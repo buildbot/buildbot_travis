@@ -1,7 +1,8 @@
 import re
 from yaml import safe_load
 
-TRAVIS_HOOKS = ("before_install", "install", "after_install", "before_script", "script", "after_script")
+TRAVIS_HOOKS = ("before_install", "install", "after_install",
+                "before_script", "script", "after_script")
 
 
 class TravisYmlInvalid(Exception):
@@ -22,6 +23,7 @@ def parse_env_string(env):
 
 
 class TravisYml(object):
+
     """
     Loads a .travis.yml file and parses it.
     """
@@ -59,7 +61,6 @@ class TravisYml(object):
             self.language = self.config['language']
         except:
             raise TravisYmlInvalid("'language' parameter is missing")
-
 
     def parse_envs(self):
         env = self.config.get("env", None)
@@ -100,7 +101,8 @@ class TravisYml(object):
             self.branch_blacklist = branches['except']
             return
 
-        raise TravisYmlInvalid("'branches' parameter contains neither 'only' nor 'except'")
+        raise TravisYmlInvalid(
+            "'branches' parameter contains neither 'only' nor 'except'")
 
     def parse_matrix(self):
         matrix = []
@@ -109,9 +111,9 @@ class TravisYml(object):
         for lang in self.config.get("python", ["python2.6"]):
             for env in self.environments:
                 matrix.append(dict(
-                    python = lang,
-                    env = env,
-                    ))
+                    python=lang,
+                    env=env,
+                ))
 
         cfg = self.config.get("matrix", {})
 
@@ -123,7 +125,7 @@ class TravisYml(object):
 
         for env in cfg.get("include", []):
             e = env.copy()
-            e['env'] = parse_env_string(e.get('env',''))
+            e['env'] = parse_env_string(e.get('env', ''))
             matrix.append(e)
 
         self.matrix = matrix
@@ -147,11 +149,11 @@ class TravisYml(object):
         return False
 
     def can_build_branch(self, branch):
-        if not self.branch_whitelist is None:
+        if self.branch_whitelist is not None:
             if self._match_branch(branch, self.branch_whitelist):
                 return True
             return False
-        if not self.branch_blacklist is None:
+        if self.branch_blacklist is not None:
             if self._match_branch(branch, self.branch_blacklist):
                 return False
             return True
@@ -162,13 +164,15 @@ class _NotificationsMixin(object):
 
     def parse_failure_success(self, settings):
         self.success = settings.get("on_success", self.success)
-        if not self.success in ("always", "never", "change"):
-            raise TravisYmlInvalid("Invalid value '%s' for on_success" % self.success)
+        if self.success not in ("always", "never", "change"):
+            raise TravisYmlInvalid(
+                "Invalid value '%s' for on_success" % self.success)
 
         self.failure = settings.get("on_failure", self.failure)
-        if not self.failure in ("always", "never", "change"):
-            raise TravisYmlInvalid("Invalid value '%s' for on_failure" % self.failure)
-   
+        if self.failure not in ("always", "never", "change"):
+            raise TravisYmlInvalid(
+                "Invalid value '%s' for on_failure" % self.failure)
+
 
 class TravisYmlEmail(_NotificationsMixin):
 
@@ -179,7 +183,7 @@ class TravisYmlEmail(_NotificationsMixin):
         self.failure = "always"
 
     def parse(self, settings):
-        if settings == False:
+        if not settings:
             self.enabled = False
             return
 
@@ -188,7 +192,8 @@ class TravisYmlEmail(_NotificationsMixin):
             return
 
         if not isinstance(settings, dict):
-            raise TravisYmlInvalid("Exepected a False, a list of addresses or a dictionary at noficiations.email")
+            raise TravisYmlInvalid(
+                "Exepected a False, a list of addresses or a dictionary at noficiations.email")
 
         self.addresses = settings.get("recipients", self.addresses)
 
@@ -217,4 +222,3 @@ class TravisYmlIrc(_NotificationsMixin):
         self.join = not settings.get("skip_join", False)
 
         self.parse_failure_success(settings)
-

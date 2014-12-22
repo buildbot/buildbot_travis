@@ -26,14 +26,14 @@ class SVNPoller(svnpoller.SVNPoller):
         for el in new_logentries:
             revision = str(el.getAttribute("revision"))
 
-            revlink=''
+            revlink = ''
 
             if self.revlinktmpl:
                 if revision:
                     revlink = self.revlinktmpl % urllib.quote_plus(revision)
 
             log.msg("Adding change revision %s" % (revision,))
-            author   = self._get_text(el, "author")
+            author = self._get_text(el, "author")
             comments = self._get_text(el, "msg")
             # there is a "date" field, but it provides localtime in the
             # repository's timezone, whereas we care about buildmaster's
@@ -43,7 +43,7 @@ class SVNPoller(svnpoller.SVNPoller):
             branches = {}
             try:
                 pathlist = el.getElementsByTagName("paths")[0]
-            except IndexError: # weird, we got an empty revision
+            except IndexError:  # weird, we got an empty revision
                 log.msg("ignoring commit with no paths")
                 continue
 
@@ -64,7 +64,7 @@ class SVNPoller(svnpoller.SVNPoller):
                 if where:
                     key = (where.project, where.repository, where.branch)
                     if not key in branches:
-                        branches[key] = { 'files': []}
+                        branches[key] = {'files': []}
                     branches[key]['files'].append(where.path)
 
                     if not branches[key].has_key('action'):
@@ -73,23 +73,22 @@ class SVNPoller(svnpoller.SVNPoller):
             for key in branches.keys():
                 project, repository, branch = key
                 action = branches[key]['action']
-                files  = branches[key]['files']
+                files = branches[key]['files']
                 number_of_files_changed = len(files)
 
                 if action == u'D' and number_of_files_changed == 1 and files[0] == '':
                     log.msg("Ignoring deletion of branch '%s'" % branch)
                 else:
                     chdict = dict(
-                            author=author,
-                            files=files,
-                            comments=comments,
-                            revision=revision,
-                            branch=branch,
-                            revlink=revlink,
-                            category=self.category,
-                            repository=repository or self.svnurl,
-                            project=project or self.project)
+                        author=author,
+                        files=files,
+                        comments=comments,
+                        revision=revision,
+                        branch=branch,
+                        revlink=revlink,
+                        category=self.category,
+                        repository=repository or self.svnurl,
+                        project=project or self.project)
                     changes.append(chdict)
 
         return changes
-

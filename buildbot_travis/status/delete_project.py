@@ -2,7 +2,8 @@
 from twisted.python import log
 from twisted.internet import reactor
 from buildbot.status.web.base import ActionResource
-import os, shelve
+import os
+import shelve
 
 
 class DeleteProject(ActionResource):
@@ -28,4 +29,3 @@ class DeleteProject(ActionResource):
         reactor.callLater(0, req.site.buildbot_service.master.reconfig)
 
         return (("/projects", ""))
-

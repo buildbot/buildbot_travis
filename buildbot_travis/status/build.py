@@ -1,10 +1,11 @@
 
-import urllib, time
+import urllib
+import time
 from twisted.python import log
 from twisted.internet import defer
 
 from buildbot.status.web.base import HtmlResource, \
-     css_classes, path_to_build, path_to_builder
+    css_classes, path_to_build, path_to_builder
 from buildbot.status.results import SUCCESS, WARNINGS, FAILURE, SKIPPED
 from buildbot.status.results import EXCEPTION, RETRY
 from buildbot import util
@@ -18,7 +19,7 @@ css_classes = {
     EXCEPTION: "important",
     RETRY: "important",
     None: "",
-    }
+}
 
 
 class Build(HtmlResource):
@@ -32,14 +33,15 @@ class Build(HtmlResource):
         return "%s build #%d" % (
             self.build_status.getBuilder().getName(),
             self.build_status.getNumber(),
-            )
+        )
 
     @defer.inlineCallbacks
     def getPending(self, request):
         nr = self.build_status.getNumber()
 
         status = self.getStatus(request)
-        job = status.getBuilder(self.build_status.getBuilder().getName() + "-job")
+        job = status.getBuilder(
+            self.build_status.getBuilder().getName() + "-job")
 
         builds = []
         pending = yield job.getPendingBuildRequestStatuses()
@@ -67,7 +69,7 @@ class Build(HtmlResource):
 
             # How long has it been pending?
             info['start'] = time.strftime("%b %d %H:%M:%S",
-                                      time.localtime(submitTime))
+                                          time.localtime(submitTime))
             info['elapsed'] = util.formatInterval(util.now() - submitTime)
 
             info['result_css'] = "pending"
@@ -76,12 +78,12 @@ class Build(HtmlResource):
 
         defer.returnValue(builds)
 
-
     def getChildren(self, request):
         nr = self.build_status.getNumber()
 
         status = self.getStatus(request)
-        job = status.getBuilder(self.build_status.getBuilder().getName() + "-job")
+        job = status.getBuilder(
+            self.build_status.getBuilder().getName() + "-job")
 
         b = job.getBuild(-1)
         if not b:
@@ -94,7 +96,7 @@ class Build(HtmlResource):
             if spawned_by and spawned_by < nr:
                 break
             b = b.getPreviousBuild()
-    
+
     def getChildBuild(self, req, b):
         cxt = self.getCommonBuildInfo(req, b)
 
@@ -107,7 +109,7 @@ class Build(HtmlResource):
         cxt['steps'] = []
 
         for s in b.getSteps():
-            step = {'name': s.getName() }
+            step = {'name': s.getName()}
 
             if s.isFinished():
                 if s.isHidden():
@@ -129,17 +131,19 @@ class Build(HtmlResource):
 
             cxt['steps'].append(step)
 
-            link = step['link'] = path_to_build(req, b) + "/steps/%s" % urllib.quote(s.getName(), safe='')
+            link = step['link'] = path_to_build(
+                req, b) + "/steps/%s" % urllib.quote(s.getName(), safe='')
             step['text'] = " ".join(s.getText())
-            step['urls'] = map(lambda x:dict(url=x[1],logname=x[0]), s.getURLs().items())
+            step['urls'] = map(
+                lambda x: dict(url=x[1], logname=x[0]), s.getURLs().items())
 
-            step['logs']= []
+            step['logs'] = []
             for l in s.getLogs():
                 logname = l.getName()
                 step['logs'].append(dict(
-                    link = link + "/logs/%s" % urllib.quote(logname, safe=''),
-                    name = logname,
-                    ))
+                    link=link + "/logs/%s" % urllib.quote(logname, safe=''),
+                    name=logname,
+                ))
 
         return cxt
 
@@ -153,14 +157,15 @@ class Build(HtmlResource):
                 cxt['current_step'] = "[waiting for Lock]"
             else:
                 if step.isWaitingForLocks():
-                    cxt['current_step'] = "%s [waiting for Lock]" % step.getName()
+                    cxt['current_step'] = "%s [waiting for Lock]" % step.getName(
+                    )
                 else:
                     cxt['current_step'] = step.getName()
             when = b.getETA()
             if when is not None:
                 cxt['when'] = util.formatInterval(when)
                 cxt['when_time'] = time.strftime("%H:%M:%S",
-                                                time.localtime(time.time() + when))
+                                                 time.localtime(time.time() + when))
 
             cxt['result_css'] = "building"
         else:
@@ -208,11 +213,11 @@ class Build(HtmlResource):
                 cxt_value = unicode(value)
             else:
                 cxt_value = value
-            p = { 'name': name, 'value': cxt_value, 'source': source}
+            p = {'name': name, 'value': cxt_value, 'source': source}
             if len(cxt_value) > 500:
                 p['short_value'] = cxt_value[:500]
             ps.append(p)
-        
+
         cxt['responsible_users'] = list(b.getResponsibleUsers())
 
         exactly = True
@@ -227,6 +232,6 @@ class Build(HtmlResource):
 
         cxt['shutting_down'] = status.shuttingDown
 
-        template = req.site.buildbot_service.templates.get_template("travis.build.html")
+        template = req.site.buildbot_service.templates.get_template(
+            "travis.build.html")
         defer.returnValue(template.render(**cxt))
-

@@ -1,8 +1,11 @@
 from collections import defaultdict
 
+
 class EnvTree(defaultdict):
+
     def __init__(self):
         super(EnvTree, self).__init__(EnvTree)
+
 
 class EnvMap:
 
@@ -62,6 +65,3 @@ class EnvMap:
     def iter_all_depths(self):
         for i, label in enumerate(self.labels, start=1):
             yield dict(label=label, children=self.iter_at_depth(i))
-
-
-

@@ -14,7 +14,7 @@ from buildbot.changes import changes
 from buildbot.status.web.base import path_to_build
 from buildbot.status.results import SUCCESS
 
-from buildbot_travis.factories import TravisSpawnerFactory 
+from buildbot_travis.factories import TravisSpawnerFactory
 from buildbot_travis.travisyml import TravisYml, TravisYmlInvalid
 
 from .build import Build
@@ -36,10 +36,10 @@ class ProjectStatus(HtmlResource):
 
     def getBuild(self, req, build):
         result = dict(
-            revisions = build.getChanges(),
-            properties = build.getProperties().asDict(),
-            number = build.number,
-            )
+            revisions=build.getChanges(),
+            properties=build.getProperties().asDict(),
+            number=build.number,
+        )
 
         if not build.isFinished():
             result['color'] = 'building'
@@ -72,14 +72,14 @@ class ProjectStatus(HtmlResource):
             if source.changes:
                 last = source.changes[-1]
                 info = dict(
-                    revision = last.revision,
-                    comments = last.comments,
-                    )
+                    revision=last.revision,
+                    comments=last.comments,
+                )
             else:
                 info = dict(
-                    revision = "HEAD",
-                    comments = "Pending manual build",
-                    )
+                    revision="HEAD",
+                    comments="Pending manual build",
+                )
             builds.append(info)
         defer.returnValue(builds)
 
@@ -164,4 +164,3 @@ class About(HtmlResource):
         templates = req.site.buildbot_service.templates
         template = templates.get_template("about.html")
         return template.render(cxt)
-

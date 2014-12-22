@@ -9,6 +9,7 @@ import StringIO
 
 from .base import ConfigurableStep
 
+
 class TravisTrigger(ConfigurableStep):
 
     haltOnFailure = True
@@ -21,7 +22,7 @@ class TravisTrigger(ConfigurableStep):
     def __init__(self, scheduler, **kwargs):
         if not "name" in kwargs:
             kwargs['name'] = 'trigger'
-        #if not "description" in kwargs:
+        # if not "description" in kwargs:
         #    kwargs['description'] = kwargs['name']
         LoggingBuildStep.__init__(self, **kwargs)
         self.addFactoryArguments(scheduler=scheduler)
@@ -44,7 +45,7 @@ class TravisTrigger(ConfigurableStep):
         if self.sourceStamps:
             ss_for_trigger = {}
             for ss in self.sourceStamps:
-                codebase = ss.get('codebase','')
+                codebase = ss.get('codebase', '')
                 assert codebase not in ss_for_trigger, "codebase specified multiple times"
                 ss_for_trigger[codebase] = ss
             return ss_for_trigger
@@ -94,9 +95,11 @@ class TravisTrigger(ConfigurableStep):
             props_to_set = Properties()
             props_to_set.updateFromProperties(self.build.getProperties())
             props_to_set.update(env["env"], ".travis.yml")
-            props_to_set.setProperty("spawned_by",  self.build.build_status.number, "Scheduler")
+            props_to_set.setProperty(
+                "spawned_by",  self.build.build_status.number, "Scheduler")
 
-            triggered.append(sch.trigger(ss_for_trigger, set_props=props_to_set))
+            triggered.append(
+                sch.trigger(ss_for_trigger, set_props=props_to_set))
 
         results = yield defer.DeferredList(triggered, consumeErrors=1)
 
@@ -124,7 +127,7 @@ class TravisTrigger(ConfigurableStep):
             result = SUCCESS
 
         if brids:
-            brid_to_bn = dict((_brid,_bn) for _bn,_brid in brids.iteritems())
+            brid_to_bn = dict((_brid, _bn) for _bn, _brid in brids.iteritems())
             res = yield defer.DeferredList([master.db.builds.getBuildsForRequest(br) for br in brids.values()], consumeErrors=1)
             for was_cb, builddicts in res:
                 if was_cb:
@@ -133,7 +136,6 @@ class TravisTrigger(ConfigurableStep):
                         num = build['number']
 
                         url = master.status.getURLForBuild(bn, num)
-                        self.step_status.addURL("%s #%d" % (bn,num), url)
+                        self.step_status.addURL("%s #%d" % (bn, num), url)
 
         defer.returnValue(self.end(result))
-

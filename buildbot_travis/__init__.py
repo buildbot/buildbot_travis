@@ -8,4 +8,3 @@ from .loader import Loader
 from .monkeypatches import patch_all
 patch_all()
 del patch_all
-

@@ -1,4 +1,5 @@
-import json, urlparse
+import json
+import urlparse
 
 from twisted.application import strports
 from twisted.internet.protocol import Protocol, Factory
@@ -12,11 +13,12 @@ from buildbot.status.web.base import HtmlResource
 try:
     from buildbot.status.results import FAILURE, SUCCESS, EXCEPTION, Results
 except ImportError:
-    from buildbot.status.builder import FAILURE,SUCCESS, EXCEPTION, Results
+    from buildbot.status.builder import FAILURE, SUCCESS, EXCEPTION, Results
 
 from twisted.python import log
 
 from twisted.internet.protocol import Protocol
+
 
 class WSBuildHandler(Protocol, base.StatusReceiver):
 
@@ -63,7 +65,8 @@ class WSBuildHandler(Protocol, base.StatusReceiver):
 
     def getBuildMetadata(self, build):
         builder = build.getBuilder()
-        builder_conf = filter(lambda n: n.name == builder.getName(), builder.master.config.builders)[0]
+        builder_conf = filter(
+            lambda n: n.name == builder.getName(), builder.master.config.builders)[0]
 
         if builder_conf.properties.get('classification', None) != "ci":
             return
@@ -81,21 +84,21 @@ class WSBuildHandler(Protocol, base.StatusReceiver):
             status = Results[build.getResults()]
 
         attrs = {
-          'id': "%s-%s" % (builder.getName(), build.getNumber()),
-          'builder': builder.getName(),
-          'status': status,
-          #'buildURL': self.status.getURLForThing(build),
-          #'buildbotURL': self.status.getBuildbotURL(),
-          'buildText': build.getText(),
-          'buildProperties': dict(((x, y or '') for (x,y,z) in build.getProperties().asList())),
-          'slavename': build.getSlavename(),
-          'reason':  build.getReason(),
-          'responsibleUsers': build.getResponsibleUsers(),
-          'branch': "",
-          'revision': "",
-          'patch': "",
-          'changes': [],
-          }
+            'id': "%s-%s" % (builder.getName(), build.getNumber()),
+            'builder': builder.getName(),
+            'status': status,
+            #'buildURL': self.status.getURLForThing(build),
+            #'buildbotURL': self.status.getBuildbotURL(),
+            'buildText': build.getText(),
+            'buildProperties': dict(((x, y or '') for (x, y, z) in build.getProperties().asList())),
+            'slavename': build.getSlavename(),
+            'reason':  build.getReason(),
+            'responsibleUsers': build.getResponsibleUsers(),
+            'branch': "",
+            'revision': "",
+            'patch': "",
+            'changes': [],
+        }
 
         if build.finished:
             attrs['finished'] = build.finished
@@ -103,7 +106,7 @@ class WSBuildHandler(Protocol, base.StatusReceiver):
             attrs['started'] = build.started
 
         #ss = build.getSourceStamp()
-        #if ss:
+        # if ss:
         #    attrs['branch'] = ss.branch
         #    attrs['revision'] = ss.revision
         #    attrs['patch'] = ss.patch
@@ -141,8 +144,8 @@ class WSBuildResource(HtmlResource):
         netloc = bb_url.hostname + ":8087"
         path = "/ws/build"
 
-        cxt['ws_url'] = urlparse.urlunparse((scheme, netloc, path, '', '',''))
+        cxt['ws_url'] = urlparse.urlunparse((scheme, netloc, path, '', '', ''))
 
-        template = req.site.buildbot_service.templates.get_template("10foot.html")
+        template = req.site.buildbot_service.templates.get_template(
+            "10foot.html")
         return template.render(**cxt)
-

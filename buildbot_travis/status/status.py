@@ -14,7 +14,8 @@ from . import websocketstatus
 from .add_project import AddProjectForm, AddProject
 from .project import Projects, ProjectStatus, About
 
-import os, re
+import os
+import re
 
 
 class CiWebStatus(baseweb.WebStatus):
@@ -56,7 +57,7 @@ class CiWebStatus(baseweb.WebStatus):
         self.putChild("about", About())
 
         self.putChild("add_form", AddProjectForm())
-        self.putChild("add", AddProject(self, os.path.join(self.vardir, "travis")))
+        self.putChild(
+            "add", AddProject(self, os.path.join(self.vardir, "travis")))
 
         baseweb.WebStatus.setupSite(self)
-

@@ -2,19 +2,22 @@
 from buildbot.process import factory
 from buildbot.steps.source import SVN, Git
 
+
 class BaseFactory(factory.BuildFactory):
+
     """
     Generic factory that deals with SVN (or Git)
     """
 
     def __init__(self, projectname, repository, vcs_type=None, branch=None, username=None, password=None, subrepos=None):
         factory.BuildFactory.__init__(self, [])
-        self.addRepository(projectname, repository, vcs_type, branch, username, password)
+        self.addRepository(
+            projectname, repository, vcs_type, branch, username, password)
         if subrepos:
             for subrepo in subrepos:
                 self.addRepository(
                     **subrepo
-                    )
+                )
 
     def addRepository(self, project=None, repository=None, vcs_type=None, branch=None, username=None, password=None, **kwargs):
         kwargs = dict(kwargs)
@@ -38,7 +41,7 @@ class BaseFactory(factory.BuildFactory):
                 username=username,
                 password=password,
                 codebase=project,
-                ))
+            ))
 
             self.addStep(SVN(**kwargs))
 
@@ -47,7 +50,6 @@ class BaseFactory(factory.BuildFactory):
                 repourl=repository,
                 branch=branch,
                 codebase=project,
-                ))
+            ))
 
             self.addStep(Git(**kwargs))
-

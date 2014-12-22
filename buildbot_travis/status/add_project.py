@@ -3,14 +3,17 @@ from twisted.python import log
 from twisted.internet import reactor
 from buildbot.status.web.base import HtmlResource, ActionResource
 
-import os, shelve, re
+import os
+import shelve
+import re
 
 
 class AddProjectForm(HtmlResource):
 
     def content(self, req, cxt):
-        template = req.site.buildbot_service.templates.get_template("travis.add.html")
-        #return (template.render(**cxt))
+        template = req.site.buildbot_service.templates.get_template(
+            "travis.add.html")
+        # return (template.render(**cxt))
         return template.render(cxt)
 
 
@@ -38,11 +41,12 @@ class AddProject(ActionResource):
             if repository.startswith(prefix):
                 break
         else:
-            return ((CAME_FROM, "Only repos at these locations are supported at present: %s" % ",".join(self.status.allowed_projects_prefix))) 
+            return ((CAME_FROM, "Only repos at these locations are supported at present: %s" % ",".join(self.status.allowed_projects_prefix)))
 
         branch = req.args.get("branch", [""])[0].strip()
-        #if not branch:
-        #    return ((CAME_FROM, "You must specify an SVN repository or GitHub repo"))
+        # if not branch:
+        # return ((CAME_FROM, "You must specify an SVN repository or GitHub
+        # repo"))
 
         shelf = shelve.open(self.path, writeback=False)
 
@@ -58,9 +62,9 @@ class AddProject(ActionResource):
                     return ((CAME_FROM, "Repository/branch pair already defined for project '%s'" % details["name"]))
 
         payload = dict(
-            name = name,
-            repository = repository,
-            )
+            name=name,
+            repository=repository,
+        )
         if branch:
             payload['branch'] = branch
 
@@ -72,5 +76,3 @@ class AddProject(ActionResource):
         reactor.callLater(0, req.site.buildbot_service.master.reconfig)
 
         return (("/projects", ""))
-
-

@@ -1,7 +1,9 @@
 from twisted.python import log
 
+
 class Sadface:
     brdict = None
+
 
 def nextBuild(builder, requests):
     """
@@ -10,7 +12,8 @@ def nextBuild(builder, requests):
     """
 
     if not builder.builder_status:
-        log.msg("nextBuild: Builder %s does not have a builder_status" % builder)
+        log.msg("nextBuild: Builder %s does not have a builder_status" %
+                builder)
         return Sadface()
 
     job = builder.master.getStatus().getBuilder("%s-job" % builder.name)
@@ -24,6 +27,6 @@ def nextBuild(builder, requests):
         # it looks like the job builder might have some slots available
         return requests[0]
 
-    log.msg("nextBuild: Tried to start spawner '%s' but not jobs slots available" % builder.name)
+    log.msg(
+        "nextBuild: Tried to start spawner '%s' but not jobs slots available" % builder.name)
     return Sadface()
-
