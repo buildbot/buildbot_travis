@@ -1,12 +1,13 @@
 from buildbot.process import buildstep
 from buildbot.process.buildstep import SUCCESS, FAILURE, EXCEPTION
 from buildbot.process.properties import Properties
+from buildbot.steps.slave import CompositeStepMixin
 from twisted.internet import defer
 
 from ..travisyml import TravisYml
 
 
-class ConfigurableStep(buildstep.LoggingBuildStep):
+class ConfigurableStepMixin(CompositeStepMixin):
 
     """
     Base class for a step which can be tuned by changing settings in .travis.yml
@@ -14,16 +15,14 @@ class ConfigurableStep(buildstep.LoggingBuildStep):
 
     @defer.inlineCallbacks
     def getStepConfig(self):
-        log = self.addLog(".travis.yml")
-        cmd = self.cmd = buildstep.RemoteShellCommand(
-            workdir="build", command=["cat", ".travis.yml"])
-        cmd.useLog(log, False, "stdio")
-        yield self.runCommand(cmd)
-        self.cmd = None
-        if cmd.rc != 0:
-            raise buildstep.BuildStepFailed()
+        travis_yml = yield self.getFileContentFromSlave(".travis.yml", abandonOnFailure=True)
+        self.addCompleteLog(".travis.yml", travis_yml)
 
         config = TravisYml()
-        config.parse(log.getText())
+        config.parse(travis_yml)
 
         defer.returnValue(config)
+
+
+class ConfigurableStep(buildstep.LoggingBuildStep, ConfigurableStepMixin):
+    pass

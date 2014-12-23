@@ -17,7 +17,7 @@ class EnvMap:
         if not self.labels:
             return
         for l in self.labels:
-            if not l in data:
+            if l not in data:
                 return
         d = self.data
         for l in self.labels[:-1]:
@@ -48,7 +48,7 @@ class EnvMap:
             k = c[:depth]
             v = c[depth:]
 
-            if not k in map:
+            if k not in map:
                 i = map[k] = dict(label=k[-1], children=[])
                 ordered.append(i)
 

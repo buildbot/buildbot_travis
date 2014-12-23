@@ -1,6 +1,6 @@
 
 from .mergereq import mergeRequests
-from .loader import Loader
+from .configurator import TravisConfigurator
 
 # We sometimes monkey patch older buildbots to work like newer buildbots
 # That's because at present buildbot doesn't try to maintain any API compat at

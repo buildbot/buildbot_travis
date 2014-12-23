@@ -22,10 +22,18 @@ class ShellCommand(shell.ShellCommand):
         env = {}
         for k, v in self.build.getProperties().properties.items():
             env[str(k)] = str(v[0])
+        if cmd.args['env'] is None:
+            cmd.args['env'] = {}
         cmd.args['env'].update(env)
 
     def createSummary(self, stdio):
         self.updateStats(stdio)
+
+    def setStatistics(self, key, value):
+        pass
+
+    def getStatistics(self, key, default):
+        pass
 
     def updateStats(self, log):
         """
@@ -105,19 +113,19 @@ class ShellCommand(shell.ShellCommand):
 
         # Update the step statistics with out shiny new totals
         if hastests:
-            self.step_status.setStatistic('total', total)
-            self.step_status.setStatistic('fails', fails)
-            self.step_status.setStatistic('errors', errors)
-            self.step_status.setStatistic('warnings', warnings)
-            self.step_status.setStatistic('skipped', skipped)
-            self.step_status.setStatistic('passed', passed)
+            self.setStatistic('total', total)
+            self.setStatistic('fails', fails)
+            self.setStatistic('errors', errors)
+            self.setStatistic('warnings', warnings)
+            self.setStatistic('skipped', skipped)
+            self.setStatistic('passed', passed)
 
     def describe(self, done=False):
         description = shell.ShellCommand.describe(self, done)
 
-        if done and self.step_status.hasStatistic('total'):
+        if done and self.hasStatistic('total'):
             def append(stat, fmtstring):
-                val = self.step_status.getStatistic(stat, 0)
+                val = self.getStatistic(stat, 0)
                 if val:
                     description.append(fmtstring % val)
 
@@ -155,11 +163,6 @@ class TravisSetupSteps(ConfigurableStep):
         step.setBuildSlave(b.slavebuilder.slave)
         step.setDefaultWorkdir(self.workdir)
         b.steps.append(step)
-
-        step_status = b.build_status.addStepWithName(step.name)
-        step.setStepStatus(step_status)
-
-        # TODO: Workout BuildProgress / expectations stuff
 
     @defer.inlineCallbacks
     def start(self):

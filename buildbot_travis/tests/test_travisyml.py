@@ -152,7 +152,7 @@ class TestMailNotifications(TravisYmlTestCase):
 
     def test_nomail(self):
         self.t.parse_notifications_email()
-        self.assertEqual(self.t.email.enabled, True)
+        self.assertEqual(self.t.email.enabled, False)
         self.assertEqual(self.t.email.success, "change")
         self.assertEqual(self.t.email.failure, "always")
 

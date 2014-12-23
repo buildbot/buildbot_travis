@@ -63,7 +63,7 @@ class SVNPoller(svnpoller.SVNPoller):
                 # we care about and we should ignore it
                 if where:
                     key = (where.project, where.repository, where.branch)
-                    if not key in branches:
+                    if key in branches:
                         branches[key] = {'files': []}
                     branches[key]['files'].append(where.path)
 

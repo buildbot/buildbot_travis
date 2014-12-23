@@ -1,6 +1,7 @@
 
 from buildbot.process import factory
-from buildbot.steps.source import SVN, Git
+from buildbot.steps.source.svn import SVN
+from buildbot.steps.source.git import Git
 
 
 class BaseFactory(factory.BuildFactory):
@@ -21,9 +22,6 @@ class BaseFactory(factory.BuildFactory):
 
     def addRepository(self, project=None, repository=None, vcs_type=None, branch=None, username=None, password=None, **kwargs):
         kwargs = dict(kwargs)
-
-        if not repository.endswith("/"):
-            repository += "/"
 
         if not vcs_type:
             if repository.startswith("https://svn."):
