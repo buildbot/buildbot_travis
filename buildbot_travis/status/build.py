@@ -1,3 +1,16 @@
+# Copyright 2012-2013 Isotoma Limited
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import urllib, time
 from twisted.python import log
@@ -94,7 +107,7 @@ class Build(HtmlResource):
             if spawned_by and spawned_by < nr:
                 break
             b = b.getPreviousBuild()
-    
+
     def getChildBuild(self, req, b):
         cxt = self.getCommonBuildInfo(req, b)
 
@@ -212,7 +225,7 @@ class Build(HtmlResource):
             if len(cxt_value) > 500:
                 p['short_value'] = cxt_value[:500]
             ps.append(p)
-        
+
         cxt['responsible_users'] = list(b.getResponsibleUsers())
 
         exactly = True
@@ -229,4 +242,3 @@ class Build(HtmlResource):
 
         template = req.site.buildbot_service.templates.get_template("travis.build.html")
         defer.returnValue(template.render(**cxt))
-
