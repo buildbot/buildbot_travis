@@ -25,7 +25,6 @@ class TravisConfigurator(PollersMixin):
     def __init__(self, config, vardir):
         self.config = config
         self.vardir = vardir
-        print config, vardir
         self.passwords = {}
         self.properties = {}
         self.repositories = {}

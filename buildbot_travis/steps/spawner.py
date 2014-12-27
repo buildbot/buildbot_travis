@@ -43,9 +43,11 @@ class TravisTrigger(Trigger, ConfigurableStepMixin):
 
         for env in self.config.matrix:
             props_to_set = Properties()
-            props_to_set.updateFromProperties(self.build.getProperties())
-            props_to_set.update(env["env"], ".travis.yml")
-            props_to_set.setProperty("spawned_by",  self.build.number, "Scheduler")
+            for k, v in env.items():
+                if k == "env":
+                    props_to_set.update(v, ".travis.yml")
+                else:
+                    props_to_set.setProperty(k, v, ".travis.yml")
 
             triggered_schedulers.append((sch, props_to_set))
         return triggered_schedulers, []

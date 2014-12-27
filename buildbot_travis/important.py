@@ -14,7 +14,6 @@ class ImportantManager(object):
 
     def fileIsImportant(self, change):
         # Ignore "branch created"
-        print change
         if len(change.files) == 1 and change.files[0] == '':
             return False
 

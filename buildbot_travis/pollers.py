@@ -16,7 +16,6 @@ class SVNChangeSplitter(object):
         assert repository.startswith(self.repository)
         repository = repository[len(self.repository):]
         self.roots.append((repository, branch, project))
-        print self.repository, repository, branch, project
 
     def split_file(self, path):
         pieces = path.split("/")

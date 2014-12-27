@@ -21,6 +21,7 @@ from subprocess import check_call
 from buildbot.buildslave import BuildSlave
 from buildbot.buildslave import AbstractLatentBuildSlave
 from buildbot import util
+import statprof
 
 # This integration test creates a master and slave environment,
 # with one builder and a custom step
@@ -29,7 +30,6 @@ from buildbot import util
 
 
 class TravisMaster(RunMasterBase):
-
     @defer.inlineCallbacks
     def test_travis(self):
         change = dict(branch="master",
@@ -46,9 +46,43 @@ class TravisMaster(RunMasterBase):
                          ", ".join(["buildbot_travis-job"] * 6))
         builds = yield self.master.data.get(("builds",))
         self.assertEqual(len(builds), 7)
+        props = {}
+        for build in builds:
+            build['properties'] = yield self.master.data.get(("builds", build['buildid'], 'properties'))
+            build['buildid']
+            p = props[build['buildid']] = {
+                k: v[0]
+                for k, v in build['properties'].items()
+                if v[1] == '.travis.yml'
+            }
+        self.assertEqual(props, {
+            1: {},
+            2: {u'SQLALCHEMY': u'latest',
+                u'SQLALCHEMY_MIGRATE': u'0.7.1',
+                u'TWISTED': u'11.1.0',
+                u'python': u'2.6'},
+            3: {u'SQLALCHEMY': u'latest',
+                u'SQLALCHEMY_MIGRATE': u'latest',
+                u'TWISTED': u'latest',
+                u'python': u'2.6'},
+            4: {u'SQLALCHEMY': u'latest',
+                u'SQLALCHEMY_MIGRATE': u'0.7.1',
+                u'TWISTED': u'11.1.0',
+                u'python': u'2.7'},
+            5: {u'SQLALCHEMY': u'latest',
+                u'SQLALCHEMY_MIGRATE': u'latest',
+                u'TWISTED': u'latest',
+                u'python': u'2.7'},
+            6: {u'SQLALCHEMY': u'0.6.0',
+                u'SQLALCHEMY_MIGRATE': u'0.7.1',
+                u'TWISTED': u'12.0.0',
+                u'python': u'2.7'},
+            7: {u'SQLALCHEMY': u'0.6.8',
+                u'SQLALCHEMY_MIGRATE': u'0.7.1',
+                u'TWISTED': u'12.0.0',
+                u'python': u'2.7'}})
 
 # master configuration
-
 sample_yml = """
 projects:
   - name: buildbot_travis
@@ -63,6 +97,8 @@ def masterConfig():
     with open("sample.yml", "w") as f:
         f.write(sample_yml % dict(path_to_git_bundle=path_to_git_bundle))
     c = {}
-    c['slaves'] = [BuildSlave("local1", "p"), AbstractLatentBuildSlave("local1", "p")]
+    # XXX: This shall be address with capabilities on slaves
+    c['slaves'] = [BuildSlave("local" + str(i + 1), "p"),
+                   AbstractLatentBuildSlave("local" + str(i + 1), "p")]
     TravisConfigurator(c, os.getcwd()).fromYaml("sample.yml")
     return c
