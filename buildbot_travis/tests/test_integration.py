@@ -21,12 +21,39 @@ from subprocess import check_call
 from buildbot.buildslave import BuildSlave
 from buildbot.buildslave import AbstractLatentBuildSlave
 from buildbot import util
-import statprof
 
 # This integration test creates a master and slave environment,
 # with one builder and a custom step
-# The custom step is using a CustomService, in order to calculate its result
-# we make sure that we can reconfigure the master while build is running
+# It uses a git bundle to store sample git repository for the integration test
+# inside the git is present the following '.travis.yml' file
+travis_yml = """
+language: python
+python:
+  - "2.6"
+  - "2.7"
+env:
+  - TWISTED=11.1.0 SQLALCHEMY=latest SQLALCHEMY_MIGRATE=0.7.1
+  - TWISTED=latest SQLALCHEMY=latest SQLALCHEMY_MIGRATE=latest
+matrix:
+  include:
+    # Test different versions of SQLAlchemy
+    - python: "2.7"
+      env: TWISTED=12.0.0 SQLALCHEMY=0.6.0 SQLALCHEMY_MIGRATE=0.7.1
+    - python: "2.7"
+      env: TWISTED=12.0.0 SQLALCHEMY=0.6.8 SQLALCHEMY_MIGRATE=0.7.1
+
+before_install:
+  - echo doing before install
+  - echo doing before install 2nd command
+install:
+  - echo doing install
+script:
+  - echo doing scripts
+after_success:
+  - echo doing after success
+notifications:
+  email: false
+"""
 
 
 class TravisMaster(RunMasterBase):
@@ -42,12 +69,18 @@ class TravisMaster(RunMasterBase):
         build = yield self.doForceBuild(wantSteps=True, useChange=change, wantLogs=True)
 
         self.assertEqual(build['steps'][0]['state_string'], 'update buildbot_travis')
+        self.assertEqual(build['steps'][0]['name'], 'git-buildbot_travis')
         self.assertEqual(build['steps'][1]['state_string'], 'triggered ' +
                          ", ".join(["buildbot_travis-job"] * 6))
+        self.assertIn({u'url': u'http://localhost:8080/#builders/1/builds/3',
+                       u'name': u'success: buildbot_travis-job #3'},
+                      build['steps'][1]['urls'])
+        self.assertEqual(build['steps'][1]['logs'][0]['contents']['content'], travis_yml)
         builds = yield self.master.data.get(("builds",))
         self.assertEqual(len(builds), 7)
         props = {}
         for build in builds:
+            yield self.printBuild(build)
             build['properties'] = yield self.master.data.get(("builds", build['buildid'], 'properties'))
             build['buildid']
             p = props[build['buildid']] = {
@@ -98,7 +131,7 @@ def masterConfig():
         f.write(sample_yml % dict(path_to_git_bundle=path_to_git_bundle))
     c = {}
     # XXX: This shall be address with capabilities on slaves
-    c['slaves'] = [BuildSlave("local" + str(i + 1), "p"),
-                   AbstractLatentBuildSlave("local" + str(i + 1), "p")]
+    c['slaves'] = [BuildSlave("local1", "p"),
+                   AbstractLatentBuildSlave("local1", "p")]
     TravisConfigurator(c, os.getcwd()).fromYaml("sample.yml")
     return c

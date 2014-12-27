@@ -18,12 +18,18 @@ Registering a project
 
 This is still buildbot. Whilst we can move the build definition out of the way,
 we still need to register a builder and set up change sources. There is a
-travis.yay in the CI codebase::
+travis.yml in the CI codebase::
 
     projects:
       - name: project1
         repository: https://svn.example.com/svn/customer/project
 
+Additional config
+=================
+Some additional configs are available in the master.cfg's travis.yml:
+
+* env: default environment variables for your builder VMs
+* not_important_files: configuration for not important files (list of fnmatch). Files matching those configs will not generate builds.
 
 The config file
 ===============
@@ -50,6 +56,7 @@ We only really support python and mandate that you set the ``language`` to
 ``python``. However right now there is nothing python specific going on: your
 install/script steps can do anything needed.
 
+A future improvement will be to select a different VM image according to langage
 
 Build Steps
 -----------
@@ -180,35 +187,12 @@ uses ruby.
 WebStatus
 =========
 
-This repository contains a set of ``HtmlResource`` classes for implementing a
-UI that works somewhat like the ``/console`` view.
-
-The root resource is ``Projects``. It provides a simple list of registered
-projects which are colour coded to indicate the state of the build.
-
-.. image:: https://raw.github.com/Jc2k/buildbot_travis/master/docs/images/status.projects.png
-   :align: center
-
-When a user drills down in to a particular project they see a ``ProjectStatus``
-view. This is basically a list of commits with colour coding to indicate
-whether the corresponding build was successful or not.
-
-.. image:: https://raw.github.com/Jc2k/buildbot_travis/master/docs/images/status.commits.png
-   :align: center
-
-Drilling down to a particular revision reveals a ``Build`` view. Of particular
-interest here is the build matrix which shows a summary of all the builds this
-commit triggered. A detail view of each build follows on he same page.
-
-.. image:: https://raw.github.com/Jc2k/buildbot_travis/master/docs/images/status.build.png
-   :align: center
+Previous version of buildbot_travis had a specific UI. Now the buildbot nine UI has
+enough features to be usable for buildbot_travis
 
 
 How it works
 ============
-
-This is really not something djmitche has in mind when he fires up vim and
-starts hacking on buildbot :)
 
 The basic behaviour is:
 
@@ -224,9 +208,6 @@ The basic behaviour is:
  * 'spawner' triggers a build on a 'job' builder for each environment in the
    build matrix defined in ``.travis.yml``
 
- * A custom ``mergeRequests`` handler is provided that considers build
-   properties from ``.travis.yml`` when decided if builds can be merged.
-
  * 'job' builder does a single build in a clean VM
 
  * ``setup-steps`` step dynamically appends ShellCommand steps based on
@@ -239,13 +220,40 @@ The basic behaviour is:
 
  * MailNotifier subclass uses ``.travis.yml`` found in build history so that
    recipients list and whether or not to mail can be adapted accordingly.
+   XXX: this needs to be adapted for nine
 
+TODO
+====
+
+This special branch is the nine port of buildbot_travis.
+Compared to previous version following features are not yet available
+
+* Custom UI. This is a supported feature in Nine, so it is easy make a buildbot_travis specific dashboard.
+* Configuration UI. An quick&dirty way of doing it would be to use he 'objects' table to store a the
+  configuration state, instead of a yaml.
+* Custom MailNotifier needs to be adapted for nine data api, in order to get the .travis.yml configuration
+* mergerequest should be adapted to the new collapseRequest api
+* SVN shall be validated (only git has been tested so far)
+* metrics facility is not really specific to travis, and should be available in buildbot master directly
+* nextBuild feature shall be reimplemented: allowed to avoid running a spawner when no '-job' slave is available
+
+Compared to original Travis format, here is a non-exaustive list of features known not to be supported
+
+* after_success, after_failure. Not implemented, but easy to add.
+* deploy. Deployment step would have to happen after all the matrix subbuilds are succeed
+
+Other nice to have features and easy to do with buildbot includes:
+
+* select automatically a docker or VM image based on the language.
+    easy to do when this lands in buildbot: http://trac.buildbot.net/ticket/3120
 
 Deploying
 =========
 
-Don't. She's not ready.
+You need two files in your master directory
 
-.. image:: http://alex-holmes.com/b/soon.jpg
-   :align: center
+* master.cfg: needs to contain slave configuration, and call TravisConfigurator for building the appropriate builders (see sample.cfg)
 
+* travis.yml: Configuration file for TravisConfigurator (see sample.yml)
+
+You need to configure your slaves inside the master.cfg. See sample.cfg for example and details.
