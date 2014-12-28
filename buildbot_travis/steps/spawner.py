@@ -45,13 +45,11 @@ class TravisTrigger(Trigger, ConfigurableStepMixin):
         rv = yield Trigger.run(self)
         defer.returnValue(rv)
 
-    def getSchedulers(self):
-        (triggered_schedulers, invalid_schedulers) = Trigger.getSchedulers(self)
-        # baseclass should return one scheduler
-        if invalid_schedulers:
-            return ([], invalid_schedulers)
+    def createTriggerProperties(self, props):
+        return props
 
-        sch = triggered_schedulers[0]
+    def getSchedulersAndProperties(self):
+        sch = self.schedulerNames[0]
         triggered_schedulers = []
 
         for env in self.config.matrix:
@@ -63,4 +61,4 @@ class TravisTrigger(Trigger, ConfigurableStepMixin):
                     props_to_set.setProperty(k, v, ".travis.yml")
 
             triggered_schedulers.append((sch, props_to_set))
-        return triggered_schedulers, []
+        return triggered_schedulers
