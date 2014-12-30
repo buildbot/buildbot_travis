@@ -52,6 +52,8 @@ class BaseFactory(factory.BuildFactory):
                 username=username,
                 password=password,
                 codebase=project,
+                haltOnFailure=True,
+                flunkOnFailure=True,
             ))
 
             self.addStep(SVN(**kwargs))
@@ -61,6 +63,8 @@ class BaseFactory(factory.BuildFactory):
                 repourl=repository,
                 branch=branch,
                 codebase=project,
+                haltOnFailure=True,
+                flunkOnFailure=True,
             ))
 
             self.addStep(Git(**kwargs))

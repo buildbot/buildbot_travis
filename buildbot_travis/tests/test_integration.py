@@ -80,7 +80,6 @@ class TravisMaster(RunMasterBase):
         self.assertEqual(len(builds), 7)
         props = {}
         for build in builds:
-            yield self.printBuild(build)
             build['properties'] = yield self.master.data.get(("builds", build['buildid'], 'properties'))
             build['buildid']
             p = props[build['buildid']] = {

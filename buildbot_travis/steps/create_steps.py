@@ -99,7 +99,7 @@ class ShellCommand(shell.ShellCommand):
                         k, v = stat.split("=")
                         data[k] = int(v)
 
-                    if not "successes" in data:
+                    if "successes" not in data:
                         total = 0
                         for number in re.findall("Ran (?P<count>[\d]+) tests in ", stdio):
                             total += int(number)
@@ -158,11 +158,6 @@ class TravisSetupSteps(ConfigurableStep):
     name = "setup-steps"
     haltOnFailure = True
     flunkOnFailure = True
-    workdir = ''
-
-    def setDefaultWorkdir(self, workdir):
-        ConfigurableStep.setDefaultWorkdir(self, workdir)
-        self.workdir = workdir
 
     def addShellCommand(self, name, command):
         b = self.build
@@ -175,11 +170,10 @@ class TravisSetupSteps(ConfigurableStep):
 
         step.setBuild(b)
         step.setBuildSlave(b.slavebuilder.slave)
-        step.setDefaultWorkdir(self.workdir)
         b.steps.append(step)
 
     @defer.inlineCallbacks
-    def start(self):
+    def run(self):
         config = yield self.getStepConfig()
 
         for k in TRAVIS_HOOKS:
@@ -189,5 +183,4 @@ class TravisSetupSteps(ConfigurableStep):
                     command=command,
                 )
 
-        self.finished(SUCCESS)
-        defer.returnValue(None)
+        defer.returnValue(SUCCESS)
