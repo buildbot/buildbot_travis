@@ -119,7 +119,7 @@ sample_yml = """
 projects:
   - name: buildbot_travis
     repository: %(path_to_git_bundle)s
-    vcs_type: git
+    vcs_type: git+poller
 """
 
 

@@ -1,9 +1,23 @@
-import os
+# Copyright 2014-2013 Isotoma Limited
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-from twisted.python import log
+from .base import VCSBase, PollerMixin
+from buildbot_travis.changes import svnpoller
+import subprocess
+from buildbot.steps.source.svn import SVN
 
-from buildbot.changes import svnpoller, gitpoller
-from .changes import svnpoller
+# XXX untested code!
 
 
 class SVNChangeSplitter(object):
@@ -52,44 +66,44 @@ class SVNChangeSplitter(object):
         log.msg(self.roots)
 
 
-class PollersMixin(object):
+class SVNPoller(VCSBase, PollerMixin):
+    repositories = {}  # class variable!
+    username = None
+    password = None
+    subrepos = None
 
-    def setup_poller(self, repository, vcs_type=None, branch=None, project=None,
-                     username=None, password=None):
-        if not vcs_type:
-            if repository.startswith("https://svn."):
-                vcs_type = "svn"
-            elif repository.startswith("git://github.com/"):
-                vcs_type = "git"
+    def addRepository(self, factory, project=None, repository=None, branch=None, **kwargs):
+        kwargs = dict(kwargs)
 
-        setup_poller = dict(git=self.setup_git_poller, svn=self.setup_svn_poller)[vcs_type]
-        setup_poller(repository, branch, project, username, password)
+        branch = branch or "trunk"
 
-    def make_poller_dir(self, name):
-        # Set up polling for the projects repository
-        # Each poller will get its own directory to store state in
-        pollerdir = os.path.join(self.vardir, "pollers", name)
-        if not os.path.exists(pollerdir):
-            log.msg("Creating pollerdir '%s'" % pollerdir)
-            os.makedirs(pollerdir)
-        return pollerdir
+        kwargs.update(dict(
+            baseURL=repository,
+            defaultBranch=branch,
+            username=self.username,
+            password=self.password,
+            codebase=project,
+            haltOnFailure=True,
+            flunkOnFailure=True,
+        ))
 
-    def setup_git_poller(self, repository, branch, project, username=None, password=None):
-        pollerdir = self.make_poller_dir(project)
-        self.config['change_source'].append(gitpoller.GitPoller(
-            repourl=repository,
+        factory.addStep(SVN(**kwargs))
+
+    def setupChangeSource(self, changeSources):
+        pollerdir = self.makePollerDir(self.name)
+        changeSources.append(gitpoller.GitPoller(
+            repourl=self.repository,
             workdir=pollerdir,
-            project=project
+            project=self.name
             ))
 
-    def get_repository_root(self, repository, username=None, password=None):
-        import subprocess
+    def getRepositoryRoot(self):
         options = {}
-        cmd = ["svn", "info", repository, "--non-interactive"]
+        cmd = ["svn", "info", self.repository, "--non-interactive"]
         if username:
-            cmd.extend(["--username", username])
+            cmd.extend(["--username", self.username])
         if password:
-            cmd.extend(["--password", password])
+            cmd.extend(["--password", self.password])
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, env={'LC_MESSAGES': 'C'})
         s, e = p.communicate()
         for line in s.split("\n"):
@@ -100,27 +114,27 @@ class PollersMixin(object):
                 options[k] = v
         return options["repository-root"] + "/"
 
-    def setup_svn_poller(self, repository, branch, project, username=None, password=None):
+    def setupChangeSource(self, changeSources):
         for repo in self.repositories:
-            if repository.startswith(repo):
+            if self.repository.startswith(repo):
                 splitter = self.repositories[repo]
                 break
         else:
-            repo = self.get_repository_root(repository, username, password)
+            repo = self.getRepositoryRoot()
 
             scheme, netloc, path, params, query, fragment = urlparse.urlparse(repo)
             name = "%s-%s-%s" % (scheme, netloc.replace(".", "-"), path.rstrip("/").lstrip("/").replace("/", "-"))
-            pollerdir = self.make_poller_dir(name)
+            pollerdir = self.makePollerDir(name)
 
             splitter = self.repositories[repo] = SVNChangeSplitter(repo)
 
-            self.config['change_source'].append(svnpoller.SVNPoller(
+            changeSources.append(svnpoller.SVNPoller(
                 svnurl=repo,
                 cachepath=os.path.join(pollerdir, "pollerstate"),
                 project=None,
                 split_file=splitter,
-                svnuser=username,
-                svnpasswd=password,
+                svnuser=self.username,
+                svnpasswd=self.password,
                 ))
 
-        splitter.add(repository, branch, project)
+        splitter.add(self.repository, self.branch, self.project)

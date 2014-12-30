@@ -14,6 +14,15 @@ setup(
     packages=find_packages(exclude=['ez_setup']),
     include_package_data=True,
     zip_safe=False,
+    entry_points={
+        'buildbot.travis': [
+            'git+poller = buildbot_travis.vcs.git:GitPoller',
+            'svn+poller = buildbot_travis.vcs.svn:SVNPoller'
+            # TBD
+            # 'git+pbhook = buildbot_travis.vcs.git:GitPb',
+            # 'git+githubhook = buildbot_travis.vcs.git:Github'
+            ]
+    },
     install_requires=[
         'setuptools',
         'buildbot',

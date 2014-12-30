@@ -12,11 +12,13 @@ from buildbot.schedulers.filter import ChangeFilter
 from buildbot.buildslave import BuildSlave
 from buildbot.buildslave import AbstractLatentBuildSlave
 
-from .factories import TravisFactory, TravisSpawnerFactory
+from buildbot.process import factory
 from .mergereq import mergeRequests
 from .important import ImportantManager
 from .pollers import PollersMixin
-
+from .vcs import addRepository
+from .steps import TravisSetupSteps
+from .steps import TravisTrigger
 from yaml import safe_load
 
 
@@ -60,38 +62,36 @@ class TravisConfigurator(PollersMixin):
         slaves = [s.slavename for s in self.config['slaves'] if isinstance(s, AbstractLatentBuildSlave)]
         return slaves
 
-    def define_travis_builder(self, name, repository, branch=None, vcs_type=None, username=None,
-                              password=None, subrepos=None):
+    def define_travis_builder(self, name, repository, **kwargs):
         job_name = "%s-job" % name
         spawner_name = name
 
-        if not username and not password:
+        if 'username' not in kwargs and 'password' not in kwargs:
             p = urlparse.urlparse(repository)
             k = (p.scheme, p.netloc)
             if k in self.passwords:
-                username, password = self.passwords[k]
+                kwargs['username'], kwargs['password'] = self.passwords[k]
 
         codebases = {spawner_name: {'repository': repository}}
-        if subrepos:
-            for subrepo in subrepos:
+        if 'subrepos' in kwargs:
+            for subrepo in kwargs['subrepos']:
                 codebases[subrepo['project']] = {'repository': subrepo['repository']}
 
+        vcsManager = addRepository(name, dict(name=name, repository=repository, **kwargs))
+        vcsManager.vardir = self.vardir
+
         # Define the builder for the main job
+        f = factory.BuildFactory()
+        vcsManager.addSourceSteps(f)
+        f.addStep(TravisSetupSteps())
+
         self.config['builders'].append(BuilderConfig(
             name=job_name,
             slavenames=self.get_runner_slaves(),
             properties=self.properties,
             collapseRequests=False,
             env=self.defaultEnv,
-            factory=TravisFactory(
-                projectname=spawner_name,
-                repository=repository,
-                branch=branch,
-                vcs_type=vcs_type,
-                username=username,
-                password=password,
-                subrepos=subrepos,
-                )
+            factory=f
             ))
 
         self.config['schedulers'].append(Triggerable(
@@ -101,22 +101,20 @@ class TravisConfigurator(PollersMixin):
             ))
 
         # Define the builder for a spawer
+        f = factory.BuildFactory()
+        vcsManager.addSourceSteps(f)
+        f.addStep(TravisTrigger(
+            scheduler=job_name,
+        ))
+
         self.config['builders'].append(BuilderConfig(
             name=spawner_name,
             slavenames=self.get_spawner_slaves(),
             properties=self.properties,
             category="spawner",
-            factory=TravisSpawnerFactory(
-                projectname=spawner_name,
-                repository=repository,
-                branch=branch,
-                scheduler=job_name,
-                vcs_type=vcs_type,
-                username=username,
-                password=password,
-                ),
+            factory=f
             ))
-
+        branch = kwargs.get("branch")
         SchedulerKlass = {True: SingleBranchScheduler, False: AnyBranchScheduler}[bool(branch)]
 
         self.config['schedulers'].append(SchedulerKlass(
@@ -128,4 +126,4 @@ class TravisConfigurator(PollersMixin):
             codebases=codebases,
             ))
 
-        self.setup_poller(repository, vcs_type, branch, name, username, password)
+        vcsManager.setupChangeSource(self.config['change_source'])
