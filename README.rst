@@ -56,7 +56,7 @@ We only really support python and mandate that you set the ``language`` to
 ``python``. However right now there is nothing python specific going on: your
 install/script steps can do anything needed.
 
-A future improvement will be to select a different VM image according to langage
+A future improvement will be to select a different VM image according to language
 
 Build Steps
 -----------

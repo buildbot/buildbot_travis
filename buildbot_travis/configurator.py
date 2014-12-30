@@ -73,9 +73,8 @@ class TravisConfigurator(PollersMixin):
                 kwargs['username'], kwargs['password'] = self.passwords[k]
 
         codebases = {spawner_name: {'repository': repository}}
-        if 'subrepos' in kwargs:
-            for subrepo in kwargs['subrepos']:
-                codebases[subrepo['project']] = {'repository': subrepo['repository']}
+        for subrepo in kwargs.get('subrepos', []):
+            codebases[subrepo['project']] = {'repository': subrepo['repository']}
 
         vcsManager = addRepository(name, dict(name=name, repository=repository, **kwargs))
         vcsManager.vardir = self.vardir
