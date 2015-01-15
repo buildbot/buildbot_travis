@@ -6,3 +6,6 @@ distribute-*.tar.gz
 include/
 lib/
 .tox
+static
+libs
+node_modules

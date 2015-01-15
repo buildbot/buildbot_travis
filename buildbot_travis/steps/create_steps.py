@@ -158,6 +158,7 @@ class TravisSetupSteps(ConfigurableStep):
     name = "setup-steps"
     haltOnFailure = True
     flunkOnFailure = True
+    MAX_NAME_LENGTH = 20
 
     def addShellCommand(self, name, command):
         b = self.build
@@ -172,6 +173,11 @@ class TravisSetupSteps(ConfigurableStep):
         step.setBuildSlave(b.slavebuilder.slave)
         b.steps.append(step)
 
+    def truncateName(self, name):
+        if len(name) > self.MAX_NAME_LENGTH:
+            name = name[:self.MAX_NAME_LENGTH-3] + "..."
+        return name
+
     @defer.inlineCallbacks
     def run(self):
         config = yield self.getStepConfig()
@@ -179,7 +185,7 @@ class TravisSetupSteps(ConfigurableStep):
         for k in TRAVIS_HOOKS:
             for i, command in enumerate(getattr(config, k)):
                 self.addShellCommand(
-                    name="travis_" + k + str(i),
+                    name=self.truncateName(command),
                     command=command,
                 )
 

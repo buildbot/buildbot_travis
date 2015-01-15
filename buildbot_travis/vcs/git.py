@@ -33,18 +33,19 @@ class GitBase(VCSBase):
 
 
 class GitPoller(GitBase, PollerMixin):
-
+    description = "Source code hosted on git, with detection of changes using poll method"
     def setupChangeSource(self, changeSources):
         pollerdir = self.makePollerDir(self.name)
         changeSources.append(gitpoller.GitPoller(
             repourl=self.repository,
             workdir=pollerdir,
-            project=self.name
+            project=self.name,
+            branch=self.branch
             ))
 
 
 class GitPb(GitBase):
-
+    description = "Source code hosted on git, with detection of changes using git hooks method"
     def setupChangeSource(self, changeSources):
         pass
 

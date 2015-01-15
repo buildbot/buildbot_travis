@@ -1,0 +1,14 @@
+config-page
+    .form-group
+        .row(ng-repeat="file in cfg.not_important_files")
+            .col-sm-12
+                .input-group
+                    input.form-control(type="text", ng-model="file")
+                    .input-group-btn
+                        .btn.btn-danger(ng-click="important_file_remove(file)") x
+        .row
+            .col-sm-12
+                .input-group.filelist
+                    input.form-control(type="text", ng-model="new_file", placeholder="file whose change dont generate a build")
+                    .input-group-btn
+                        .btn.btn-default(ng-click="important_file_add()") +

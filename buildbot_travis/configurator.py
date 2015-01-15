@@ -4,11 +4,13 @@ import shelve
 
 from twisted.python import log
 
+from buildbot import config
 from buildbot.config import BuilderConfig
 from buildbot.schedulers.triggerable import Triggerable
 from buildbot.schedulers.basic import SingleBranchScheduler
 from buildbot.schedulers.basic import AnyBranchScheduler
 from buildbot.schedulers.filter import ChangeFilter
+from buildbot.schedulers.forcesched import ForceScheduler, CodebaseParameter
 from buildbot.buildslave import BuildSlave
 from buildbot.buildslave import AbstractLatentBuildSlave
 
@@ -16,10 +18,12 @@ from buildbot.process import factory
 from .mergereq import mergeRequests
 from .important import ImportantManager
 from .pollers import PollersMixin
-from .vcs import addRepository
+from .vcs import addRepository, getSupportedVCSTypes
 from .steps import TravisSetupSteps
 from .steps import TravisTrigger
 from yaml import safe_load
+
+import buildbot_travis
 
 
 class TravisConfigurator(PollersMixin):
@@ -40,10 +44,15 @@ class TravisConfigurator(PollersMixin):
         self.passwords[(scheme, netloc)] = (username, password)
 
     def fromYaml(self, path):
+        buildbot_travis.api.setYamlPath(path)
         with open(path) as f:
             y = safe_load(f)
+        self.yamlcfg = y
         self.importantManager = ImportantManager(y.get("not_important_files", []))
         self.defaultEnv = y.get("env", {})
+        for k, v in self.defaultEnv.items():
+            if not (isinstance(v, list) or isinstance(v, str)):
+                config.error("'env' values must be strings or lists; key %s is incorrect: %s" % (k, type(v)))
         for p in y.get("projects", []):
             self.define_travis_builder(**p)
 
@@ -72,9 +81,18 @@ class TravisConfigurator(PollersMixin):
             if k in self.passwords:
                 kwargs['username'], kwargs['password'] = self.passwords[k]
 
+        branch = kwargs.get("branch")
         codebases = {spawner_name: {'repository': repository}}
+        codebases_params = [CodebaseParameter(spawner_name, project="", repository=repository,
+                                              branch=branch, revision=None)]
         for subrepo in kwargs.get('subrepos', []):
             codebases[subrepo['project']] = {'repository': subrepo['repository']}
+            codebases_params.append(CodebaseParameter(subrepo['project'],
+                                                      project="",
+                                                      repository=subrepo['repository'],
+                                                      branch=subrepo.get('branch', branch),
+                                                      revision=None,
+                                                      ))
 
         vcsManager = addRepository(name, dict(name=name, repository=repository, **kwargs))
         vcsManager.vardir = self.vardir
@@ -113,8 +131,16 @@ class TravisConfigurator(PollersMixin):
             category="spawner",
             factory=f
             ))
-        branch = kwargs.get("branch")
         SchedulerKlass = {True: SingleBranchScheduler, False: AnyBranchScheduler}[bool(branch)]
+
+        self.config['title'] = os.environ.get('buildbotTitle', "buildbot travis")
+        PORT = int(os.environ.get('PORT', 8020))
+        self.config['buildbotURL'] = os.environ.get('buildbotURL', "http://localhost:%d/" % (PORT, ))
+
+        # minimalistic config to activate new web UI
+        self.config['www'] = dict(port=PORT, allowed_origins=["*"],
+                                  plugins=dict(buildbot_travis={'cfg': self.yamlcfg,
+                                                                'supported_vcs': getSupportedVCSTypes()}))
 
         self.config['schedulers'].append(SchedulerKlass(
             name=spawner_name,
@@ -124,5 +150,9 @@ class TravisConfigurator(PollersMixin):
             fileIsImportant=self.importantManager.fileIsImportant,
             codebases=codebases,
             ))
+        self.config['schedulers'].append(ForceScheduler(
+            name="force" + spawner_name,
+            builderNames=[spawner_name],
+            codebases=codebases_params))
 
         vcsManager.setupChangeSource(self.config['change_source'])

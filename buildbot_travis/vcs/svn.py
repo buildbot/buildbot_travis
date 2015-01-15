@@ -67,6 +67,7 @@ class SVNChangeSplitter(object):
 
 
 class SVNPoller(VCSBase, PollerMixin):
+    description = "Source code hosted on svn, with detection of changes using poll method"
     repositories = {}  # class variable!
     username = None
     password = None

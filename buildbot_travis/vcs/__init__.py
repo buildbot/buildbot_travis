@@ -12,4 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .base import getVCSManagerForRepository, addRepository
+from .base import getVCSManagerForRepository, addRepository, getSupportedVCSTypes

@@ -1,0 +1,35 @@
+config-page
+    .panel.panel-default(ng-repeat="project in cfg.projects")
+        .panel-heading
+            h3.panel-title
+                | {{ project.name }}
+                .btn.btn-xs.btn-danger.pull-right(ng-click="project_remove(project)")
+                    i.fa.fa-times
+            .clearfix
+        .panel-body
+            ng-form.form-horizontal(name="form")
+                .form-group(show-errors)
+                    label.col-sm-2.control-label Project name:
+                    .col-sm-10
+                        input.form-control(type="text", ng-model="project.name", name="name"
+                                           placeholder="Project Name", required)
+                        p.help-block(ng-if="form.name.$error.required") The projects's name is required
+                .form-group
+                    label.col-sm-2.control-label VCS type:
+                    .col-sm-2
+                        select.form-control(ng-model="project.vcs_type",
+                            ng-options="key as key for (key, value) in buildbot_travis.supported_vcs")
+                    span.col-sm-8.control-label
+                        | {{buildbot_travis.supported_vcs[project.vcs_type]}} 
+                .form-group
+                    label.col-sm-2.control-label branch:
+                    .col-sm-10
+                        input.form-control(type="text", ng-model="project.branch",
+                                           placeholder="Branches to watch (empty means all branches, several branches can be specified, separated by spaces)")
+                .form-group(show-errors)
+                    label.col-sm-2.control-label repository:
+                    .col-sm-10
+                        input.form-control(name="repository", type="text", ng-model="project.repository",
+                                           placeholder="git://url/to/repo.git", required)
+                        p.help-block(ng-if="form.repository.$error.required") The projects's name is required
+    .btn.btn-default.pull-right(ng-click="new_project()") New Project

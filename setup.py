@@ -1,10 +1,13 @@
-from setuptools import setup, find_packages
+try:
+    from buildbot_pkg import setup_www_plugin
+except ImportError:
+    import sys
+    print >> sys.stderr, "Please install buildbot_pkg module in order to install that package, or use the pre-build .whl modules available on pypi"
+    sys.exit(1)
+from setuptools import find_packages
 
-version = '0.0.19.dev0'
-
-setup(
+setup_www_plugin(
     name='buildbot_travis',
-    version=version,
     description="Adapt buildbot to work a little more like Travis.",
     keywords="buildbot travis ci",
     url="http://github.com/Jc2k/buildbot_travis",
@@ -21,11 +24,18 @@ setup(
             # TBD
             # 'git+pbhook = buildbot_travis.vcs.git:GitPb',
             # 'git+githubhook = buildbot_travis.vcs.git:Github'
-            ]
+            ],
+        'buildbot.www': [
+            'buildbot_travis = buildbot_travis:ep'
+        ],
+        'console_scripts': [
+            'bbtravis=buildbot_travis.cmdline:bbtravis',
+        ]
     },
     install_requires=[
         'setuptools',
         'buildbot',
+        'klein',
         'PyYAML',
     ],
 )

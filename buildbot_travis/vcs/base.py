@@ -76,6 +76,11 @@ def getVCSManagerForRepository(name):
     return repository_db[name]
 
 
+def getSupportedVCSTypes():
+    plugins = get_plugins("travis", IVCSManager, load_now=False)
+    return {vcs_type: plugins.get(vcs_type).description for vcs_type in plugins.names}
+
+
 def addRepository(name, config):
     global repository_db
     vcs_type = config['vcs_type']

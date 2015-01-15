@@ -1,0 +1,72 @@
+.container
+    .row
+        .col-sm-12
+            .panel.panel-default
+                .panel-heading
+                    h3.panel-title
+                        | Buildbot Travis configuration editor
+                .panel-body
+                    form
+                        .form-group
+                            label Projects repositories
+                            .row(ng-repeat="project in cfg.projects")
+                                .col-sm-2
+                                    input.form-control(type="text", ng-model="project.name")
+                                .col-sm-2
+                                    input.form-control(type="text", ng-model="project.vcs_type")
+                                .col-sm-4
+                                    input.form-control(type="text", ng-model="project.branch")
+                                .col-sm-12
+                                    .input-group
+                                        input.form-control(type="text", ng-model="project.repository")
+                                        .input-group-btn
+                                            .btn.btn-danger(ng-click="project_remove(project)") x
+                            .row
+                                .col-sm-2
+                                    input.form-control(type="text", ng-model="new_project.name", placeholder="project name")
+                                .col-sm-2
+                                    input.form-control(type="text", ng-model="new_project.vcs_type", placeholder="project type")
+                                .col-sm-4
+                                    input.form-control(type="text", ng-model="new_project.branch", placeholder="project branch")
+                                .col-sm-12
+                                    .input-group
+                                        input.form-control(type="url", ng-model="new_project.repository", placeholder="repository url")
+                                        .input-group-btn
+                                            .btn.btn-default(ng-click="project_add()") +
+                        .form-group
+                            label Default Environment Variables
+                            .row(ng-repeat="(key, value) in cfg.env")
+                                .col-sm-6
+                                    input.form-control(type="text", ng-model="key")
+                                .col-sm-6
+                                    .input-group
+                                        input.form-control(type="text", ng-model="value")
+                                        .input-group-btn
+                                            .btn.btn-danger(ng-click="env_remove(key)") x
+                            .row
+                                .col-sm-6
+                                    input.form-control(type="text", ng-model="new_env_key", placeholder="variable name")
+                                .col-sm-6
+                                    .input-group
+                                        input.form-control(type="text", ng-model="new_env_value", placeholder="variable value")
+                                        .input-group-btn
+                                            .btn.btn-default(ng-click="env_add(key)") +
+                        .form-group
+                            label Not Important Files
+                            .row(ng-repeat="file in cfg.not_important_files")
+                                .col-sm-12
+                                    .input-group
+                                        input.form-control(type="text", ng-model="file")
+                                        .input-group-btn
+                                            .btn.btn-danger(ng-click="important_file_remove(file)") x
+                            .row
+                                .col-sm-12
+                                    .input-group.filelist
+                                        input.form-control(type="text", ng-model="new_file", placeholder="file whose change dont generate a build")
+                                        .input-group-btn
+                                            .btn.btn-default(ng-click="important_file_add()") +
+                .panel-footer
+                    .btn.btn-default(ng-click="cancel()")
+                        | Dismiss changes
+                    .btn.btn-default.pull-right(ng-click="save()")
+                        | Save

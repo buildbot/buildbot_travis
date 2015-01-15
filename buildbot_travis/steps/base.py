@@ -27,9 +27,19 @@ class ConfigurableStepMixin(CompositeStepMixin):
     Base class for a step which can be tuned by changing settings in .travis.yml
     """
 
+    def getResultSummary(self):
+        if self.descriptionDone is not None:
+            return {u'step': self.descriptionDone}
+        else:
+            super(ConfigurableStepMixin, self).getResultSummary()
+
     @defer.inlineCallbacks
     def getStepConfig(self):
-        travis_yml = yield self.getFileContentFromSlave(".travis.yml", abandonOnFailure=True)
+        try:
+            travis_yml = yield self.getFileContentFromSlave(".travis.yml", abandonOnFailure=True)
+        except buildstep.BuildStepFailed:
+                self.descriptionDone = u"unable to fetch .travis.yml"
+                raise
         self.addCompleteLog(".travis.yml", travis_yml)
 
         config = TravisYml()
