@@ -2,13 +2,12 @@
 class State extends Config
     constructor: ($stateProvider, glMenuServiceProvider) ->
 
-        # Name of the state
-        name = 'travis_config'
+        groupName = 'settings'
 
         # Configuration
         glMenuServiceProvider.addGroup
-            name: name
-            caption: 'BuildbotTravis Config'
+            name: groupName
+            caption: 'Settings'
             icon: 'wrench'
             order: 150
 
@@ -20,7 +19,7 @@ class State extends Config
             name: "travis_config_projects"
             url: "/bbtravis/config/projects"
             data:
-                group: name
+                group: groupName
                 caption: 'Projects'
 
         # Register new state
@@ -30,7 +29,7 @@ class State extends Config
             name: "travis_config_env"
             url: "/bbtravis/config/env"
             data:
-                group: name
+                group: groupName
                 caption: 'Environment variables'
 
         # Register new state
@@ -40,5 +39,5 @@ class State extends Config
             name: "not_important_files"
             url: "/bbtravis/config/not_important_files"
             data:
-                group: name
+                group: groupName
                 caption: 'Not Important Files'
