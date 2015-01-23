@@ -17,6 +17,9 @@ import os
 from buildbot.interfaces import IPlugin
 from zope.interface import implements
 from buildbot.plugins.db import get_plugins
+from buildbot.plugins import schedulers
+from buildbot.plugins import util
+from buildbot.schedulers.forcesched import CodebaseParameter
 
 from twisted.python import log
 
@@ -38,7 +41,7 @@ class IVCSManager(IPlugin):
 
 class VCSBase(object):
     implements(IVCSManager)
-
+    supportsTry = False  # supports try branches, and change filter
     scm_type = None
     subrepos = []
     branch = None
@@ -49,6 +52,9 @@ class VCSBase(object):
         for k, v in kw.items():
             setattr(self, k, v)
 
+    def addRepository(self, factory, name, repository, branch):
+        raise NotImplemented()
+
     def addSourceSteps(self, factory):
         self.addRepository(factory, self.name, self.repository, self.branch)
         for subrepo in self.subrepos:
@@ -56,6 +62,32 @@ class VCSBase(object):
                 factory,
                 **subrepo
             )
+    def createCodebaseParams(self, codebases):
+        codebases_params = []
+        for name, codebase in codebases.items():
+            codebases_params.append(CodebaseParameter(name,
+                                                      project="",
+                                                      repository=codebase['repository'],
+                                                      branch=codebase.get('branch'),
+                                                      revision=None,
+                                                      ))
+        return codebases_params
+
+    def setupSchedulers(self, _schedulers, spawner_name, try_name, importantManager, codebases):
+
+        _schedulers.append(schedulers.AnyBranchScheduler(
+            name=spawner_name,
+            builderNames=[spawner_name],
+            change_filter=util.ChangeFilter(repository=self.repository, branch=self.branch),
+            onlyImportant=True,
+            fileIsImportant=importantManager.fileIsImportant,
+            codebases=codebases,
+            ))
+        _schedulers.append(schedulers.ForceScheduler(
+            name="force" + spawner_name,
+            builderNames=[spawner_name],
+            codebases=self.createCodebaseParams(codebases)))
+
 
 
 class PollerMixin(object):

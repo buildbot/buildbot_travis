@@ -13,9 +13,26 @@
 # limitations under the License.
 
 from .base import VCSBase, PollerMixin
-from buildbot.changes import gitpoller
+from buildbot.plugins import changes
 from buildbot.steps.source.git import Git
+from urlparse import urlparse
+from buildbot import config
 
+class ParsedGitUrl(object):
+    def __init__(self, url):
+        parsed = urlparse(url)
+        self.netloc = parsed.netloc
+        self.path = parsed.path
+        self.scheme = parsed.scheme
+        self.user = None
+        self.port = None
+        if "@" in self.netloc:
+            self.user, self.netloc = self.netloc.split("@")
+            if ":" in self.user:
+                self.user, self.passwd = self.user.split(":", 1)
+        if ":" in self.netloc:
+            self.netloc, self.port = self.netloc.rsplit(":", 1)
+            self.port = int(self.port)
 
 class GitBase(VCSBase):
 
@@ -34,18 +51,20 @@ class GitBase(VCSBase):
 
 class GitPoller(GitBase, PollerMixin):
     description = "Source code hosted on git, with detection of changes using poll method"
+
     def setupChangeSource(self, changeSources):
         pollerdir = self.makePollerDir(self.name)
-        changeSources.append(gitpoller.GitPoller(
+        changeSources.append(changes.GitPoller(
             repourl=self.repository,
             workdir=pollerdir,
             project=self.name,
             branch=self.branch
-            ))
+        ))
 
 
 class GitPb(GitBase):
     description = "Source code hosted on git, with detection of changes using git hooks method"
+
     def setupChangeSource(self, changeSources):
         pass
 

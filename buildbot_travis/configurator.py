@@ -2,20 +2,13 @@ import urlparse
 import os
 import shelve
 
-from twisted.python import log
-
 from buildbot import config
 from buildbot.config import BuilderConfig
 from buildbot.schedulers.triggerable import Triggerable
-from buildbot.schedulers.basic import SingleBranchScheduler
-from buildbot.schedulers.basic import AnyBranchScheduler
-from buildbot.schedulers.filter import ChangeFilter
-from buildbot.schedulers.forcesched import ForceScheduler, CodebaseParameter
 from buildbot.buildslave import BuildSlave
 from buildbot.buildslave import AbstractLatentBuildSlave
 
 from buildbot.process import factory
-from .mergereq import mergeRequests
 from .important import ImportantManager
 from .pollers import PollersMixin
 from .vcs import addRepository, getSupportedVCSTypes
@@ -73,6 +66,7 @@ class TravisConfigurator(PollersMixin):
 
     def define_travis_builder(self, name, repository, **kwargs):
         job_name = "%s-job" % name
+        try_name = "%s-try" % name
         spawner_name = name
 
         if 'username' not in kwargs and 'password' not in kwargs:
@@ -83,16 +77,8 @@ class TravisConfigurator(PollersMixin):
 
         branch = kwargs.get("branch")
         codebases = {spawner_name: {'repository': repository}}
-        codebases_params = [CodebaseParameter(spawner_name, project="", repository=repository,
-                                              branch=branch, revision=None)]
         for subrepo in kwargs.get('subrepos', []):
             codebases[subrepo['project']] = {'repository': subrepo['repository']}
-            codebases_params.append(CodebaseParameter(subrepo['project'],
-                                                      project="",
-                                                      repository=subrepo['repository'],
-                                                      branch=subrepo.get('branch', branch),
-                                                      revision=None,
-                                                      ))
 
         vcsManager = addRepository(name, dict(name=name, repository=repository, **kwargs))
         vcsManager.vardir = self.vardir
@@ -117,7 +103,7 @@ class TravisConfigurator(PollersMixin):
             codebases=codebases,
             ))
 
-        # Define the builder for a spawer
+        # Define the builder for a spawner
         f = factory.BuildFactory()
         vcsManager.addSourceSteps(f)
         f.addStep(TravisTrigger(
@@ -131,7 +117,22 @@ class TravisConfigurator(PollersMixin):
             category="spawner",
             factory=f
             ))
-        SchedulerKlass = {True: SingleBranchScheduler, False: AnyBranchScheduler}[bool(branch)]
+
+        if vcsManager.supportsTry:
+            # Define the builder for try job
+            f = factory.BuildFactory()
+            vcsManager.addSourceSteps(f)
+            f.addStep(TravisTrigger(
+                scheduler=job_name,
+            ))
+
+            self.config['builders'].append(BuilderConfig(
+                name=try_name,
+                slavenames=self.get_spawner_slaves(),
+                properties=self.properties,
+                category="try",
+                factory=f
+                ))
 
         self.config['title'] = os.environ.get('buildbotTitle', "buildbot travis")
         PORT = int(os.environ.get('PORT', 8020))
@@ -142,17 +143,6 @@ class TravisConfigurator(PollersMixin):
                                   plugins=dict(buildbot_travis={'cfg': self.yamlcfg,
                                                                 'supported_vcs': getSupportedVCSTypes()}))
 
-        self.config['schedulers'].append(SchedulerKlass(
-            name=spawner_name,
-            builderNames=[spawner_name],
-            change_filter=ChangeFilter(project=name),
-            onlyImportant=True,
-            fileIsImportant=self.importantManager.fileIsImportant,
-            codebases=codebases,
-            ))
-        self.config['schedulers'].append(ForceScheduler(
-            name="force" + spawner_name,
-            builderNames=[spawner_name],
-            codebases=codebases_params))
-
+        vcsManager.setupSchedulers(self.config['schedulers'], spawner_name, try_name,
+                                   self.importantManager, codebases)
         vcsManager.setupChangeSource(self.config['change_source'])
