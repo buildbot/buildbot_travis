@@ -1,0 +1,7 @@
+http://ftp.buildbot.net/pub/latest/buildbot-1latest.tar.gz
+http://ftp.buildbot.net/pub/latest/buildbot-pkg-1latest.tar.gz
+http://ftp.buildbot.net/pub/latest/buildbot-slave-1latest.tar.gz
+http://ftp.buildbot.net/pub/latest/buildbot_codeparameter-1latest-py2-none-any.whl
+http://ftp.buildbot.net/pub/latest/buildbot_console_view-1latest-py2-none-any.whl
+http://ftp.buildbot.net/pub/latest/buildbot_waterfall_view-1latest-py2-none-any.whl
+http://ftp.buildbot.net/pub/latest/buildbot_www-1latest-py2-none-any.whl

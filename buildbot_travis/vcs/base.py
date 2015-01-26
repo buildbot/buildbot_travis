@@ -74,11 +74,13 @@ class VCSBase(object):
         return codebases_params
 
     def setupSchedulers(self, _schedulers, spawner_name, try_name, importantManager, codebases):
-
+        filt = dict(repository=self.repository)
+        if self.branch is not None:
+            filt['branch'] = self.branch
         _schedulers.append(schedulers.AnyBranchScheduler(
             name=spawner_name,
             builderNames=[spawner_name],
-            change_filter=util.ChangeFilter(repository=self.repository, branch=self.branch),
+            change_filter=util.ChangeFilter(**filt),
             onlyImportant=True,
             fileIsImportant=importantManager.fileIsImportant,
             codebases=codebases,

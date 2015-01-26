@@ -20,16 +20,16 @@ import buildbot_travis
 
 class TravisConfigurator(object):
 
-    def __init__(self, config, vardir):
+    def __init__(self, config, vardir, latentRunners=False):
         self.config = config
         self.vardir = vardir
+        self.latentRunners = latentRunners
         self.passwords = {}
         self.properties = {}
         self.repositories = {}
         config.setdefault("builders", [])
         config.setdefault("schedulers", [])
         config.setdefault("change_source", [])
-
         config['codebaseGenerator'] = lambda chdict: chdict['project']
 
     def add_password(self, scheme, netloc, username, password):
@@ -60,7 +60,11 @@ class TravisConfigurator(object):
         return slaves
 
     def get_runner_slaves(self):
-        slaves = [s.slavename for s in self.config['slaves'] if isinstance(s, AbstractLatentBuildSlave)]
+        if self.latentRunners:
+            BuildSlaveClass = AbstractLatentBuildSlave
+        else:
+            BuildSlaveClass = BuildSlave
+        slaves = [s.slavename for s in self.config['slaves'] if isinstance(s, BuildSlaveClass)]
         return slaves
 
     def define_travis_builder(self, name, repository, **kwargs):

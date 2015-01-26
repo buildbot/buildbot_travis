@@ -1,0 +1,9 @@
+buildbot_travis-job/
+buildbot_travis/
+http.log
+master.cfg.sample
+sandbox/
+slave/
+state.sqlite
+state.sqlite-shm
+state.sqlite-wal

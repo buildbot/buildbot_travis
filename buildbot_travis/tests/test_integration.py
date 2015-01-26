@@ -17,10 +17,7 @@ import os
 
 from buildbot.test.util.integration import RunMasterBase
 from twisted.internet import defer
-from subprocess import check_call
 from buildbot.buildslave import BuildSlave
-from buildbot.buildslave import AbstractLatentBuildSlave
-from buildbot import util
 
 # This integration test creates a master and slave environment,
 # with one builder and a custom step
@@ -64,6 +61,7 @@ class TravisMaster(RunMasterBase):
                       author="me@foo.com",
                       comments="good stuff",
                       revision="HEAD",
+                      repository=path_to_git_bundle,
                       project="buildbot_travis"
                       )
         build = yield self.doForceBuild(wantSteps=True, useChange=change, wantLogs=True)
@@ -72,7 +70,7 @@ class TravisMaster(RunMasterBase):
         self.assertEqual(build['steps'][0]['name'], 'git-buildbot_travis')
         self.assertEqual(build['steps'][1]['state_string'], 'triggered ' +
                          ", ".join(["buildbot_travis-job"] * 6))
-        self.assertIn({u'url': u'http://localhost:8080/#builders/1/builds/3',
+        self.assertIn({u'url': u'http://localhost:8020/#builders/1/builds/3',
                        u'name': u'success: buildbot_travis-job #3'},
                       build['steps'][1]['urls'])
         self.assertEqual(build['steps'][1]['logs'][0]['contents']['content'], travis_yml)
@@ -122,15 +120,14 @@ projects:
     vcs_type: git+poller
 """
 
-
+path_to_git_bundle = None
 def masterConfig():
+    global path_to_git_bundle
     from buildbot_travis import TravisConfigurator
     path_to_git_bundle = os.path.abspath(os.path.join(os.path.dirname(__file__), "test.git.bundle"))
     with open("sample.yml", "w") as f:
         f.write(sample_yml % dict(path_to_git_bundle=path_to_git_bundle))
     c = {}
-    # XXX: This shall be address with capabilities on slaves
-    c['slaves'] = [BuildSlave("local1", "p"),
-                   AbstractLatentBuildSlave("local1", "p")]
+    c['slaves'] = [BuildSlave("local1", "p")]
     TravisConfigurator(c, os.getcwd()).fromYaml("sample.yml")
     return c

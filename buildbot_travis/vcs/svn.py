@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import urlparse
+import os
+
 from .base import VCSBase, PollerMixin
 from buildbot_travis.changes import svnpoller
 import subprocess
 from buildbot.steps.source.svn import SVN
-
 # XXX untested code!
 
 
@@ -101,9 +103,9 @@ class SVNPoller(VCSBase, PollerMixin):
     def getRepositoryRoot(self):
         options = {}
         cmd = ["svn", "info", self.repository, "--non-interactive"]
-        if username:
+        if self.username:
             cmd.extend(["--username", self.username])
-        if password:
+        if self.password:
             cmd.extend(["--password", self.password])
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, env={'LC_MESSAGES': 'C'})
         s, e = p.communicate()
@@ -138,4 +140,4 @@ class SVNPoller(VCSBase, PollerMixin):
                 svnpasswd=self.password,
                 ))
 
-        splitter.add(self.repository, self.branch, self.project)
+        splitter.add(self.repository, self.branch, self.name)

@@ -8,8 +8,9 @@ not_important_files:
     - .badger.yml
 
 env:
-    CI: true
+    CI: 'true'
 
 projects:
   - name: buildbot_travis
-    repository: git://github.com/Jc2k/buildbot_travis
+    repository: git://github.com/tardyp/buildbot_travis
+    vcs_type: git+poller
