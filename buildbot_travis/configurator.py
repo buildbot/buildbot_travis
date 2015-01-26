@@ -10,7 +10,6 @@ from buildbot.buildslave import AbstractLatentBuildSlave
 
 from buildbot.process import factory
 from .important import ImportantManager
-from .pollers import PollersMixin
 from .vcs import addRepository, getSupportedVCSTypes
 from .steps import TravisSetupSteps
 from .steps import TravisTrigger
@@ -19,7 +18,7 @@ from yaml import safe_load
 import buildbot_travis
 
 
-class TravisConfigurator(PollersMixin):
+class TravisConfigurator(object):
 
     def __init__(self, config, vardir):
         self.config = config
