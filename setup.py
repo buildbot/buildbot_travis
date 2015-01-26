@@ -33,6 +33,7 @@ setup_www_plugin(
     install_requires=[
         'setuptools',
         'buildbot',
+        'buildbot-pkg',
         'klein',
         'PyYAML',
     ],

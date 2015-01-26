@@ -190,6 +190,7 @@ WebStatus
 Previous version of buildbot_travis had a specific UI. Now the buildbot nine UI has
 enough features to be usable for buildbot_travis
 
+Configuration UI has been implemented to have a UI for editing the global yaml file.
 
 How it works
 ============
@@ -228,9 +229,6 @@ TODO
 This special branch is the nine port of buildbot_travis.
 Compared to previous version following features are not yet available
 
-* Custom UI. This is a supported feature in Nine, so it is easy make a buildbot_travis specific dashboard.
-* Configuration UI. An quick&dirty way of doing it would be to use he 'objects' table to store a the
-  configuration state, instead of a yaml.
 * Custom MailNotifier needs to be adapted for nine data api, in order to get the .travis.yml configuration
 * mergerequest should be adapted to the new collapseRequest api
 * SVN shall be validated (only git has been tested so far)
@@ -250,10 +248,4 @@ Other nice to have features and easy to do with buildbot includes:
 Deploying
 =========
 
-You need two files in your master directory
-
-* master.cfg: needs to contain slave configuration, and call TravisConfigurator for building the appropriate builders (see sample.cfg)
-
-* travis.yml: Configuration file for TravisConfigurator (see sample.yml)
-
-You need to configure your slaves inside the master.cfg. See sample.cfg for example and details.
+"example" directory is available for easy to use example.
