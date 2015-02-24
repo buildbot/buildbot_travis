@@ -14,30 +14,12 @@
 
 from .configurator import TravisConfigurator
 from buildbot.www.plugin import Application
-from klein import Klein
-import yaml
-import json
-from buildbot.util.eventual import eventually
+from .api import Api
 
 # create the interface for the setuptools entry point
 ep = Application(__name__, "Buildbot travis custom ui")
-
-
-class Api(object):
-    app = Klein()
-
-    def setYamlPath(self, path):
-        self.yamlPath = path
-
-    @app.route("/config", methods=['PUT'])
-    def saveYaml(self, request):
-        request.setHeader('Content-Type', 'application/json')
-        body = json.loads(request.content.read())
-        body = yaml.safe_dump(body, default_flow_style=False, indent=4)
-        with open(self.yamlPath, "w") as f:
-            f.write(body)
-        eventually(ep.master.reconfig)
-        return json.dumps({'success': True})
-
-api = Api()
+api = Api(ep)
 ep.resource.putChild("api", api.app.resource())
+
+
+__all__ = ['TravisConfigurator', 'ep']

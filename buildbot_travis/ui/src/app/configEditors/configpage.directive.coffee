@@ -14,11 +14,22 @@ class _ConfigPage extends Controller
         self = this
         @$scope.cfg = angular.copy(config.plugins.buildbot_travis.cfg)
         @$scope.buildbot_travis = config.plugins.buildbot_travis
+        @$scope.errors = []
+        @$scope.saving = false
         @$scope.save = ->
             self.$scope.$broadcast('show-errors-check-validity')
             if not self.$scope.hasInvalids()
+                config.plugins.buildbot_travis.cfg
                 config.plugins.buildbot_travis.cfg = angular.copy(self.$scope.cfg)
-                $http.put("buildbot_travis/api/config", config.plugins.buildbot_travis.cfg)
+                self.$scope.saving = true
+                $http.put("buildbot_travis/api/config", config.plugins.buildbot_travis.cfg).then (res) ->
+                    if res.data.success
+                        location.reload(true)  # reload the application to take in account new builders
+                    else
+                        self.$scope.saving = false
+                        self.$scope.errors = res.data.errors
+
+
         @$scope.cancel = ->
             @$scope.cfg = angular.copy(config.plugins.buildbot_travis.cfg)
 

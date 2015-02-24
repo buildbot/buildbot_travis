@@ -1,14 +1,17 @@
 import urlparse
 import os
-import shelve
 
 from buildbot import config
+
+# TBD use plugins!
 from buildbot.config import BuilderConfig
 from buildbot.schedulers.triggerable import Triggerable
 from buildbot.buildslave import BuildSlave
 from buildbot.buildslave import AbstractLatentBuildSlave
-
 from buildbot.process import factory
+
+from buildbot.plugins import util
+
 from .important import ImportantManager
 from .vcs import addRepository, getSupportedVCSTypes
 from .steps import TravisSetupSteps
@@ -30,7 +33,10 @@ class TravisConfigurator(object):
         config.setdefault("builders", [])
         config.setdefault("schedulers", [])
         config.setdefault("change_source", [])
+        config.setdefault("multiMaster", True)  # we are not really multimaster, but this remove some checks
         config['codebaseGenerator'] = lambda chdict: chdict['project']
+        self.config['title'] = os.environ.get('buildbotTitle', "buildbot travis")
+
 
     def add_password(self, scheme, netloc, username, password):
         self.passwords[(scheme, netloc)] = (username, password)
@@ -39,7 +45,13 @@ class TravisConfigurator(object):
         buildbot_travis.api.setYamlPath(path)
         with open(path) as f:
             y = safe_load(f)
-        self.yamlcfg = y
+
+        return self.fromDict(y)
+
+    def fromDict(self, y):
+        buildbot_travis.api.setCfg(y)
+        self.cfgdict = y
+        print y
         self.importantManager = ImportantManager(y.get("not_important_files", []))
         self.defaultEnv = y.get("env", {})
         for k, v in self.defaultEnv.items():
@@ -48,12 +60,17 @@ class TravisConfigurator(object):
         for p in y.get("projects", []):
             self.define_travis_builder(**p)
 
-    def fromShelve(self, path):
-        shelf = shelve.open(path)
-        for project in shelf.keys():
-            definition = shelf[project]
-            self.define_travis_builder(**definition)
-        shelf.close()
+        PORT = int(os.environ.get('PORT', 8020))
+        self.config['buildbotURL'] = os.environ.get('buildbotURL', "http://localhost:%d/" % (PORT, ))
+        # minimalistic config to activate new web UI
+        self.config['www'] = dict(port=PORT,
+                                  plugins=dict(buildbot_travis={'cfg': self.cfgdict,
+                                                                'supported_vcs': getSupportedVCSTypes()}))
+
+    def fromDb(self):
+        buildbot_travis.api.useDbConfig()
+        dbConfig = util.DbConfig(self.config, self.vardir)
+        return self.fromDict(dbConfig.get("travis", {}))
 
     def get_spawner_slaves(self):
         slaves = [s.slavename for s in self.config['slaves'] if isinstance(s, BuildSlave)]
@@ -68,6 +85,8 @@ class TravisConfigurator(object):
         return slaves
 
     def define_travis_builder(self, name, repository, **kwargs):
+        name = str(name)
+        repository = str(repository)
         job_name = "%s-job" % name
         try_name = "%s-try" % name
         spawner_name = name
@@ -136,15 +155,6 @@ class TravisConfigurator(object):
                 category="try",
                 factory=f
                 ))
-
-        self.config['title'] = os.environ.get('buildbotTitle', "buildbot travis")
-        PORT = int(os.environ.get('PORT', 8020))
-        self.config['buildbotURL'] = os.environ.get('buildbotURL', "http://localhost:%d/" % (PORT, ))
-
-        # minimalistic config to activate new web UI
-        self.config['www'] = dict(port=PORT, allowed_origins=["*"],
-                                  plugins=dict(buildbot_travis={'cfg': self.yamlcfg,
-                                                                'supported_vcs': getSupportedVCSTypes()}))
 
         vcsManager.setupSchedulers(self.config['schedulers'], spawner_name, try_name,
                                    self.importantManager, codebases)

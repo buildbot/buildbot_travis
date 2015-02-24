@@ -1,5 +1,9 @@
 .container
     .row
+        .alert.alert-danger(role="alert" ng-repeat="error in errors")
+            | {{ error }}
+
+    .row
         .col-sm-12
             .panel.panel-default
                 .panel-heading
@@ -10,5 +14,7 @@
                 .panel-footer
                     .btn.btn-default(ng-click="cancel()")
                         | Dismiss changes
-                    .btn.btn-default.pull-right(ng-class="{disabled: hasInvalids()}", ng-click="save()")
-                        | Save
+                    .btn.btn-default.pull-right(ng-class="{disabled: hasInvalids() || saving}", ng-click="save()")
+                        i.fa.fa-check(ng-hide='saving')
+                        i.fa.fa-circle-o-notch.fa-spin(ng-show='saving')
+                        | &nbsp;Save

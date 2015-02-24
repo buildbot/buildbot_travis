@@ -7,6 +7,7 @@ class ProjectsConfig extends Controller
             _.remove self.$scope.cfg.projects, (i) -> i == project
 
         @$scope.new_project = ->
+            self.$scope.cfg.projects ?= []
             $scope.cfg.projects.push
                 vcs_type: _.keys(config.plugins.buildbot_travis.supported_vcs)[0]
 
@@ -16,11 +17,12 @@ class EnvConfig extends Controller
     constructor: (@$scope, config, $state) ->
         self = this
         @$scope.title = "Default Environment Variables"
-        $scope.new_env = {}
+        @$scope.new_env = {}
         @$scope.env_remove = (key) ->
             delete $scope.cfg.env[key]
 
         @$scope.env_add = ->
+            self.$scope.cfg.env ?= {}
             self.$scope.cfg.env[self.$scope.new_env.key] = self.$scope.new_env.value
             $scope.new_env = {}
 
@@ -36,5 +38,6 @@ class NotImportantFilesConfig extends Controller
 
         @$scope.important_file_add = ->
             if self.$scope.new_file
+                self.$scope.cfg.not_important_files ?= []
                 self.$scope.cfg.not_important_files.push(self.$scope.new_file)
                 self.$scope.new_file = ""

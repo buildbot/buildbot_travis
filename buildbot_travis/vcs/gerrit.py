@@ -84,7 +84,7 @@ class Gerrit(GitBase):
 
         cs = manager.makeGerritChangeSource(self.name, parsed.netloc,
                                             parsed.port, parsed.user, parsed.path, self.branch)
-        if cs:
+        if cs and cs not in changeSources:
             changeSources.append(cs)
 
     def setupSchedulers(self, _schedulers, spawner_name, try_name, importantManager, codebases):
