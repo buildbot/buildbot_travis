@@ -9,11 +9,12 @@ from buildbot.schedulers.triggerable import Triggerable
 from buildbot.buildslave import BuildSlave
 from buildbot.buildslave import AbstractLatentBuildSlave
 from buildbot.process import factory
-
 from buildbot.plugins import util
+from buildbot.plugins import status
 
 from .important import ImportantManager
 from .vcs import addRepository, getSupportedVCSTypes
+from .vcs.gerrit import manager as gerritManager
 from .steps import TravisSetupSteps
 from .steps import TravisTrigger
 from yaml import safe_load
@@ -33,6 +34,7 @@ class TravisConfigurator(object):
         config.setdefault("builders", [])
         config.setdefault("schedulers", [])
         config.setdefault("change_source", [])
+        config.setdefault("status", [])
         config.setdefault("multiMaster", True)  # we are not really multimaster, but this remove some checks
         config['codebaseGenerator'] = lambda chdict: chdict['project']
         self.config['title'] = os.environ.get('buildbotTitle', "buildbot travis")
@@ -55,7 +57,7 @@ class TravisConfigurator(object):
         self.importantManager = ImportantManager(y.get("not_important_files", []))
         self.defaultEnv = y.get("env", {})
         for k, v in self.defaultEnv.items():
-            if not (isinstance(v, list) or isinstance(v, str)):
+            if not (isinstance(v, list) or isinstance(v, basestring)):
                 config.error("'env' values must be strings or lists; key %s is incorrect: %s" % (k, type(v)))
         for p in y.get("projects", []):
             self.define_travis_builder(**p)
@@ -66,6 +68,10 @@ class TravisConfigurator(object):
         self.config['www'] = dict(port=PORT,
                                   plugins=dict(buildbot_travis={'cfg': self.cfgdict,
                                                                 'supported_vcs': getSupportedVCSTypes()}))
+        for cs in gerritManager.sources.values():
+            self.config["status"].append(
+                status.GerritStatusPush(server=cs.gerritserver, user=cs.gerritport, username=cs.username)
+            )
 
     def fromDb(self):
         buildbot_travis.api.useDbConfig()
@@ -116,6 +122,7 @@ class TravisConfigurator(object):
             properties=self.properties,
             collapseRequests=False,
             env=self.defaultEnv,
+            tags=["job", name],
             factory=f
             ))
 
@@ -131,16 +138,19 @@ class TravisConfigurator(object):
         f.addStep(TravisTrigger(
             scheduler=job_name,
         ))
-
+        properties = dict(TRAVIS_PULL_REQUEST=False)
+        properties.update(self.properties)
         self.config['builders'].append(BuilderConfig(
             name=spawner_name,
             slavenames=self.get_spawner_slaves(),
-            properties=self.properties,
-            category="spawner",
+            properties=properties,
+            tags=["trunk", name],
             factory=f
             ))
 
         if vcsManager.supportsTry:
+            properties = dict(TRAVIS_PULL_REQUEST=True)
+            properties.update(self.properties)
             # Define the builder for try job
             f = factory.BuildFactory()
             vcsManager.addSourceSteps(f)
@@ -151,8 +161,8 @@ class TravisConfigurator(object):
             self.config['builders'].append(BuilderConfig(
                 name=try_name,
                 slavenames=self.get_spawner_slaves(),
-                properties=self.properties,
-                category="try",
+                properties=properties,
+                tags=["try", name],
                 factory=f
                 ))
 

@@ -174,6 +174,9 @@ class TravisSetupSteps(ConfigurableStep):
         b.steps.append(step)
 
     def truncateName(self, name):
+        name = name.lstrip("#")
+        name = name.lstrip(" ")
+        name = name.split("\n")[0]
         if len(name) > self.MAX_NAME_LENGTH:
             name = name[:self.MAX_NAME_LENGTH-3] + "..."
         return name

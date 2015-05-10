@@ -31,9 +31,11 @@ class GerritChangeSource(changes.GerritChangeSource):
 
     def addChange(self, chdict):
         props = chdict['properties']
-        k = chdict.get('project', '') + ":" + props.get('event.change.branch', chdict.get('branch'))
+        branch = props.get('event.change.branch', chdict.get('branch'))
+        k = chdict.get('project', '') + ":" + branch
         if k in self.watchedRepos:
             chdict['project'] = self.watchedRepos[k]
+            props['event.change.branch'] = branch
             return changes.GerritChangeSource.addChange(self, chdict)
         return defer.succeed(None)
 
@@ -69,6 +71,7 @@ class Gerrit(GitBase):
             codebase=project,
             haltOnFailure=True,
             flunkOnFailure=True,
+            retryFetch=True
         ))
 
         factory.addStep(GerritStep(**kwargs))
