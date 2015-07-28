@@ -19,6 +19,8 @@ from .base import VCSBase, PollerMixin
 from buildbot_travis.changes import svnpoller
 import subprocess
 from buildbot.steps.source.svn import SVN
+from twisted.python import log
+
 # XXX untested code!
 
 
@@ -92,13 +94,6 @@ class SVNPoller(VCSBase, PollerMixin):
 
         factory.addStep(SVN(**kwargs))
 
-    def setupChangeSource(self, changeSources):
-        pollerdir = self.makePollerDir(self.name)
-        changeSources.append(gitpoller.GitPoller(
-            repourl=self.repository,
-            workdir=pollerdir,
-            project=self.name
-            ))
 
     def getRepositoryRoot(self):
         options = {}
@@ -132,7 +127,7 @@ class SVNPoller(VCSBase, PollerMixin):
             splitter = self.repositories[repo] = SVNChangeSplitter(repo)
 
             changeSources.append(svnpoller.SVNPoller(
-                svnurl=repo,
+                repourl=repo,
                 cachepath=os.path.join(pollerdir, "pollerstate"),
                 project=None,
                 split_file=splitter,

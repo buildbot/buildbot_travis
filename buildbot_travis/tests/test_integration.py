@@ -15,7 +15,11 @@
 
 import os
 
-from buildbot.test.util.integration import RunMasterBase
+try:
+    from buildbot.test.util.integration import RunMasterBase
+except ImportError:
+    # if buildbot installed with wheel, it does not include the test util :-(
+    RunMasterBase = object
 from twisted.internet import defer
 from buildbot.buildslave import BuildSlave
 

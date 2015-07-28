@@ -34,6 +34,8 @@ class VCSTestCase(unittest.TestCase):
 
 class VCSTestCaseSVNPoller(VCSTestCase):
     def setUp(self):
+        self.skipTest("svn is not integrated")
+        return
         check_call(["svnadmin", "create", "foo.svn"])
         repo = "file://" + os.getcwd() + "/foo.svn/"
         check_call(["svn", "co", repo, 'foo'], stdout=subprocess.PIPE)

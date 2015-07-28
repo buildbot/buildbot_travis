@@ -20,9 +20,9 @@ setup_www_plugin(
     entry_points={
         'buildbot.travis': [
             'git+poller = buildbot_travis.vcs.git:GitPoller',
-            'svn+poller = buildbot_travis.vcs.svn:SVNPoller',
             'gerrit = buildbot_travis.vcs.gerrit:Gerrit',
             'github = buildbot_travis.vcs.git:Github',
+            # untested 'svn+poller = buildbot_travis.vcs.svn:SVNPoller',
             ],
         'buildbot.www': [
             'buildbot_travis = buildbot_travis:ep'
