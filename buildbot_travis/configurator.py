@@ -10,7 +10,7 @@ from buildbot.buildslave import BuildSlave
 from buildbot.buildslave import AbstractLatentBuildSlave
 from buildbot.process import factory
 from buildbot.plugins import util
-from buildbot.plugins import status
+from buildbot.plugins import reporters
 
 from .important import ImportantManager
 from .vcs import addRepository, getSupportedVCSTypes
@@ -69,8 +69,8 @@ class TravisConfigurator(object):
                                   plugins=dict(buildbot_travis={'cfg': self.cfgdict,
                                                                 'supported_vcs': getSupportedVCSTypes()}))
         for cs in gerritManager.sources.values():
-            self.config["status"].append(
-                status.GerritStatusPush(server=cs.gerritserver, user=cs.gerritport, username=cs.username)
+            self.config.setdefault("services", []).append(
+                reporters.GerritStatusPush(server=cs.gerritserver, port=cs.gerritport, username=cs.username)
             )
 
     def fromDb(self):
