@@ -70,6 +70,7 @@ class GitPb(GitBase):
 
 
 class Github(GitBase):
+    description = "Source code hosted on github, with detection of changes using github web hooks"
 
     def setupChangeSource(self, changeSources):
-        pass
+        return {'github': True}

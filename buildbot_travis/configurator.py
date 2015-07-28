@@ -31,6 +31,7 @@ class TravisConfigurator(object):
         self.passwords = {}
         self.properties = {}
         self.repositories = {}
+        self.change_hook_dialects = {}
         config.setdefault("builders", [])
         config.setdefault("schedulers", [])
         config.setdefault("change_source", [])
@@ -66,6 +67,7 @@ class TravisConfigurator(object):
         self.config['buildbotURL'] = os.environ.get('buildbotURL', "http://localhost:%d/" % (PORT, ))
         # minimalistic config to activate new web UI
         self.config['www'] = dict(port=PORT,
+                                  change_hook_dialects=self.change_hook_dialects,
                                   plugins=dict(buildbot_travis={'cfg': self.cfgdict,
                                                                 'supported_vcs': getSupportedVCSTypes()}))
         for cs in gerritManager.sources.values():
@@ -169,3 +171,6 @@ class TravisConfigurator(object):
         vcsManager.setupSchedulers(self.config['schedulers'], spawner_name, try_name,
                                    self.importantManager, codebases)
         vcsManager.setupChangeSource(self.config['change_source'])
+        res = vcsManager.setupChangeSource(self.config['change_source'])
+        if res is not None:
+            self.change_hook_dialects.update(res)
