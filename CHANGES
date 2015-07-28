@@ -1,6 +1,17 @@
 Changelog
 =========
 
+0.1.1
+-----
+Release of buildbot_travis based on buildbot nine beta1
+
+Basic support for github
+
+0.1.0
+-----
+First release of buildbot_travis based on buildbot nine
+This version was hard to use as buildbot nine was not available in pip
+
 0.0.19 (unreleased)
 -------------------
 
