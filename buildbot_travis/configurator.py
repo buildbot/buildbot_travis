@@ -11,7 +11,7 @@ from buildbot.buildslave import AbstractLatentBuildSlave
 from buildbot.process import factory
 from buildbot.plugins import util
 from buildbot.plugins import reporters
-
+from buildbot import getVersion
 from .important import ImportantManager
 from .vcs import addRepository, getSupportedVCSTypes
 from .vcs.gerrit import manager as gerritManager
@@ -69,7 +69,8 @@ class TravisConfigurator(object):
         self.config['www'] = dict(port=PORT,
                                   change_hook_dialects=self.change_hook_dialects,
                                   plugins=dict(buildbot_travis={'cfg': self.cfgdict,
-                                                                'supported_vcs': getSupportedVCSTypes()}))
+                                                                'supported_vcs': getSupportedVCSTypes()}),
+                                  versions=[('buildbot_travis', getVersion(__file__))])
         for cs in gerritManager.sources.values():
             self.config.setdefault("services", []).append(
                 reporters.GerritStatusPush(server=cs.gerritserver, port=cs.gerritport, username=cs.username)
@@ -105,7 +106,6 @@ class TravisConfigurator(object):
             if k in self.passwords:
                 kwargs['username'], kwargs['password'] = self.passwords[k]
 
-        branch = kwargs.get("branch")
         codebases = {spawner_name: {'repository': repository}}
         for subrepo in kwargs.get('subrepos', []):
             codebases[subrepo['project']] = {'repository': subrepo['repository']}
