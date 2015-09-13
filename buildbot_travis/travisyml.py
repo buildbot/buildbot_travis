@@ -91,7 +91,7 @@ class TravisYml(object):
             global_env =  {}
             for e in env.get('global', []):
                 global_env.update(parse_env_string(e))
-            self.environments = [parse_env_string(e, global_env) for e in env.get('matrix', [])]
+            self.environments = [parse_env_string(e, global_env) for e in env.get('matrix', [''])]
         else:
             raise TravisYmlInvalid("'env' parameter is invalid")
 

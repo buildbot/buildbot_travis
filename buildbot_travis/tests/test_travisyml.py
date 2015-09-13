@@ -63,6 +63,17 @@ class TestEnv(TravisYmlTestCase):
             dict(python="python2.6", env=dict(FOOBAR='0', FOO='2', BAR='1')),
         ])
 
+    def test_emptymatrixlenv(self):
+        self.t.config["env"] = {'global': ["FOOBAR=0"]}
+        self.t.parse_envs()
+        self.failUnlessEqual(
+            self.t.environments, [dict(FOOBAR='0')])
+
+        self.t.parse_matrix()
+        self.failUnlessEqual(self.t.matrix, [
+            dict(python="python2.6", env=dict(FOOBAR='0')),
+        ])
+
 
 class TestMatrix(TravisYmlTestCase):
 
