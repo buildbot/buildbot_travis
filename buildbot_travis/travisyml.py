@@ -23,8 +23,10 @@ class TravisYmlInvalid(Exception):
     pass
 
 
-def parse_env_string(env):
+def parse_env_string(env, global_env=None):
     props = {}
+    if global_env:
+        props.update(global_env)
     if not env.strip():
         return props
 
@@ -44,6 +46,7 @@ class TravisYml(object):
 
     def __init__(self):
         self.language = None
+        self.image = None
         self.environments = [{}]
         self.matrix = []
         for hook in TRAVIS_HOOKS:
@@ -81,11 +84,14 @@ class TravisYml(object):
         if env is None:
             return
         elif isinstance(env, basestring):
-            self.environments_keys = []
             self.environments = [parse_env_string(env)]
         elif isinstance(env, list):
-            self.environments_keys = []
             self.environments = [parse_env_string(e) for e in env]
+        elif isinstance(env, dict):
+            global_env =  {}
+            for e in env.get('global', []):
+                global_env.update(parse_env_string(e))
+            self.environments = [parse_env_string(e, global_env) for e in env.get('matrix', [])]
         else:
             raise TravisYmlInvalid("'env' parameter is invalid")
 

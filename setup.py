@@ -33,8 +33,8 @@ setup_www_plugin(
     },
     install_requires=[
         'setuptools',
-        'buildbot >= 0.9.0b1',
-        'buildbot-www >= 0.9.0b1',
+        'buildbot',
+        'buildbot-www',
         'buildbot-slave',
         'klein',
         'PyYAML',

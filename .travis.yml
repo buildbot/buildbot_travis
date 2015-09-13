@@ -1,3 +1,6 @@
+env:
+   global:
+      - image="pythonnode_slave"
 language: python
 python:
   - "2.7"
