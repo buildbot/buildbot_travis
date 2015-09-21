@@ -10,11 +10,9 @@ from buildbot.buildslave import BuildSlave
 from buildbot.buildslave import AbstractLatentBuildSlave
 from buildbot.process import factory
 from buildbot.plugins import util
-from buildbot.plugins import reporters
 from buildbot import getVersion
 from .important import ImportantManager
 from .vcs import addRepository, getSupportedVCSTypes
-from .vcs.gerrit import manager as gerritManager
 from .steps import TravisSetupSteps
 from .steps import TravisTrigger
 from yaml import safe_load
@@ -35,11 +33,11 @@ class TravisConfigurator(object):
         config.setdefault("builders", [])
         config.setdefault("schedulers", [])
         config.setdefault("change_source", [])
+        config.setdefault("services", [])
         config.setdefault("status", [])
         config.setdefault("multiMaster", True)  # we are not really multimaster, but this remove some checks
         config['codebaseGenerator'] = lambda chdict: chdict['project']
         self.config['title'] = os.environ.get('buildbotTitle', "buildbot travis")
-
 
     def add_password(self, scheme, netloc, username, password):
         self.passwords[(scheme, netloc)] = (username, password)
@@ -54,7 +52,6 @@ class TravisConfigurator(object):
     def fromDict(self, y):
         buildbot_travis.api.setCfg(y)
         self.cfgdict = y
-        print y
         self.importantManager = ImportantManager(y.get("not_important_files", []))
         self.defaultEnv = y.get("env", {})
         for k, v in self.defaultEnv.items():
@@ -71,10 +68,6 @@ class TravisConfigurator(object):
                                   plugins=dict(buildbot_travis={'cfg': self.cfgdict,
                                                                 'supported_vcs': getSupportedVCSTypes()}),
                                   versions=[('buildbot_travis', getVersion(__file__))])
-        for cs in gerritManager.sources.values():
-            self.config.setdefault("services", []).append(
-                reporters.GerritStatusPush(server=cs.gerritserver, port=cs.gerritport, username=cs.username)
-            )
 
     def fromDb(self):
         buildbot_travis.api.useDbConfig()
@@ -170,7 +163,7 @@ class TravisConfigurator(object):
 
         vcsManager.setupSchedulers(self.config['schedulers'], spawner_name, try_name,
                                    self.importantManager, codebases)
-        vcsManager.setupChangeSource(self.config['change_source'])
+        vcsManager.setupReporters(self.config['services'],  spawner_name, try_name, codebases)
         res = vcsManager.setupChangeSource(self.config['change_source'])
         if res is not None:
             self.change_hook_dialects.update(res)

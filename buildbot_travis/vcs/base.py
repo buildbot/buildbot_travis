@@ -90,6 +90,9 @@ class VCSBase(object):
             builderNames=[spawner_name],
             codebases=self.createCodebaseParams(codebases)))
 
+    # for source control that have CI integration, this can setup reporters
+    def setupReporters(self, _reporters, spawner_name, try_name, codebases):
+        pass
 
 
 class PollerMixin(object):

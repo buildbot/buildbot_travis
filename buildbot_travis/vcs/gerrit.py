@@ -17,9 +17,27 @@ from buildbot.plugins import changes
 from buildbot.plugins import util
 from buildbot.plugins import schedulers
 from buildbot.steps.source.gerrit import Gerrit as GerritStep
+from buildbot.plugins import reporters
 
 from buildbot import config
 from twisted.internet import defer
+
+
+class FilteringGerritStatusPush(reporters.GerritStatusPush):
+    def reconfigService(self, server, username, port):
+        self.builders = []
+        return reporters.GerritStatusPush.reconfigService(server, username, port=port)
+
+    def addBuilder(self, b):
+        self.builders.append(b)
+
+    def isBuildReported(self, build):
+        return build.builder.name in self.builders
+
+    def sendBuildSetSummary(self, buildset, builds):
+        builds = filter(self.isBuildReported, builds)
+        if builds:
+            return reporters.GerritStatusPush.sendBuildSetSummary(buildset, builds)
 
 
 class GerritChangeSource(changes.GerritChangeSource):
@@ -28,6 +46,7 @@ class GerritChangeSource(changes.GerritChangeSource):
     def __init__(self, *args, **kw):
         changes.GerritChangeSource.__init__(self, *args, **kw)
         self.watchedRepos = {}
+        self.configureService()
 
     def addChange(self, chdict):
         props = chdict['properties']
@@ -76,7 +95,7 @@ class Gerrit(GitBase):
 
         factory.addStep(GerritStep(**kwargs))
 
-    def setupChangeSource(self, changeSources):
+    def parseServerURL(self):
         parsed = ParsedGitUrl(self.repository)
         if parsed.scheme not in ("ssh",):
             config.error("Only ssh:// repository urls are supported :%s" % (self.repository,))
@@ -84,7 +103,10 @@ class Gerrit(GitBase):
             config.error("Please define gerrit user in repository url :%s" % (self.repository,))
         if parsed.port is None:
             config.error("Please define gerrit port in repository url :%s" % (self.repository,))
+        return parsed
 
+    def setupChangeSource(self, changeSources):
+        parsed = self.parseServerURL()
         cs = manager.makeGerritChangeSource(self.name, parsed.netloc,
                                             parsed.port, parsed.user, parsed.path, self.branch)
         if cs and cs not in changeSources:
@@ -114,3 +136,14 @@ class Gerrit(GitBase):
             name="force" + spawner_name,
             builderNames=[spawner_name],
             codebases=self.createCodebaseParams(codebases)))
+
+    def setupReporters(self, _reporters, spawner_name, try_name, codebases):
+        return
+        parsed = self.ParsedGitUrl()
+        name = "GerritReporter(%s,%d,%s)" % (parsed.netloc, parsed.port, parsed.user)
+        reportersByName = dict([(r.name, r) for r in _reporters])
+        if name not in reportersByName:
+            reportersByName[name] = FilteringGerritStatusPush(server=parsed.netloc, port=parsed.port,
+                                                              username=parsed.user)
+            reportersByName[name].name = name
+        reportersByName[name].addBuilder(try_name)
