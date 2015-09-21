@@ -22,24 +22,6 @@ from buildbot.plugins import reporters
 from buildbot import config
 from twisted.internet import defer
 
-
-class FilteringGerritStatusPush(reporters.GerritStatusPush):
-    def reconfigService(self, server, username, port):
-        self.builders = []
-        return reporters.GerritStatusPush.reconfigService(server, username, port=port)
-
-    def addBuilder(self, b):
-        self.builders.append(b)
-
-    def isBuildReported(self, build):
-        return build.builder.name in self.builders
-
-    def sendBuildSetSummary(self, buildset, builds):
-        builds = filter(self.isBuildReported, builds)
-        if builds:
-            return reporters.GerritStatusPush.sendBuildSetSummary(buildset, builds)
-
-
 class GerritChangeSource(changes.GerritChangeSource):
     watchedRepos = None
 
@@ -138,12 +120,19 @@ class Gerrit(GitBase):
             codebases=self.createCodebaseParams(codebases)))
 
     def setupReporters(self, _reporters, spawner_name, try_name, codebases):
-        return
-        parsed = self.ParsedGitUrl()
+        parsed = self.parseServerURL()
         name = "GerritReporter(%s,%d,%s)" % (parsed.netloc, parsed.port, parsed.user)
         reportersByName = dict([(r.name, r) for r in _reporters])
         if name not in reportersByName:
-            reportersByName[name] = FilteringGerritStatusPush(server=parsed.netloc, port=parsed.port,
-                                                              username=parsed.user)
-            reportersByName[name].name = name
-        reportersByName[name].addBuilder(try_name)
+            builders = []
+            reporter = reporters.GerritStatusPush(server=parsed.netloc, port=parsed.port,
+                                                  username=parsed.user, builders=builders)
+            reporter.name = name
+            # the normal workflow is that builders attribute would be set at service configure stage
+            # not at service instanciation.
+            # but as we need to append the builders list during the config, this is important
+            # to modify the list we pass as configuration.
+            reporter.builders = builders
+            _reporters.append(reporter)
+            reportersByName[name] = reporter
+        reportersByName[name].builders.append(try_name)
