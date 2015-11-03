@@ -25,16 +25,18 @@ from twisted.python import log
 
 
 class IVCSManager(IPlugin):
+
     """
         Interface for VCS management
         Includes support for ChangeSource and Source step for a vcs type
 
         VCS registers to the python system via python endpoints in a plugin fashion
     """
-
+    @staticmethod
     def setupChangeSource(changeSources):
         pass
 
+    @staticmethod
     def addSourceSteps(factory):
         pass
 
@@ -53,7 +55,7 @@ class VCSBase(object):
             setattr(self, k, v)
 
     def addRepository(self, factory, name, repository, branch):
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def addSourceSteps(self, factory):
         self.addRepository(factory, self.name, self.repository, self.branch)
@@ -62,15 +64,19 @@ class VCSBase(object):
                 factory,
                 **subrepo
             )
+
     def createCodebaseParams(self, codebases):
         codebases_params = []
         for name, codebase in codebases.items():
             codebases_params.append(CodebaseParameter(name,
                                                       project="",
-                                                      repository=codebase['repository'],
-                                                      branch=codebase.get('branch'),
+                                                      repository=codebase[
+                                                          'repository'],
+                                                      branch=codebase.get(
+                                                          'branch'),
                                                       revision=None,
-                                                      ))
+                                                      )
+                                    )
         return codebases_params
 
     def setupSchedulers(self, _schedulers, spawner_name, try_name, importantManager, codebases):
@@ -84,7 +90,7 @@ class VCSBase(object):
             onlyImportant=True,
             fileIsImportant=importantManager.fileIsImportant,
             codebases=codebases,
-            ))
+        ))
         _schedulers.append(schedulers.ForceScheduler(
             name="force" + spawner_name,
             builderNames=[spawner_name],
@@ -96,6 +102,7 @@ class VCSBase(object):
 
 
 class PollerMixin(object):
+
     def makePollerDir(self, name):
         # Set up polling for the projects repository
         # Each poller will get its own directory to store state in
@@ -119,7 +126,6 @@ def getSupportedVCSTypes():
 
 
 def addRepository(name, config):
-    global repository_db
     vcs_type = config['vcs_type']
     plugins = get_plugins("travis", IVCSManager, load_now=False)
     if vcs_type in plugins.names:
@@ -127,4 +133,5 @@ def addRepository(name, config):
         r = repository_db[name] = plugin(**config)
         return r
 
-    raise KeyError("No VCS manager for %s, got %s" % (vcs_type, plugins.info_all()))
+    raise KeyError("No VCS manager for %s, got %s" %
+                   (vcs_type, plugins.info_all()))

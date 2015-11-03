@@ -22,6 +22,7 @@ from buildbot.plugins import reporters
 from buildbot import config
 from twisted.internet import defer
 
+
 class GerritChangeSource(changes.GerritChangeSource):
     watchedRepos = None
 

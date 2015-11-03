@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 def mergeRequests(builder, req1, req2):
     if not req1.source.canBeMergedWith(req2.source):
         return False

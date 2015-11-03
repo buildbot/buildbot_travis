@@ -9,3 +9,7 @@ lib/
 static
 libs
 node_modules
+VERSION
+sandbox
+wheelhouse
+dist

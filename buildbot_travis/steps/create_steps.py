@@ -15,9 +15,7 @@
 import re
 
 from twisted.internet import defer
-from twisted.python import log
-from buildbot.process import buildstep
-from buildbot.process.buildstep import SUCCESS, FAILURE
+from buildbot.process.buildstep import SUCCESS
 from buildbot.steps import shell
 
 from .base import ConfigurableStep
@@ -186,7 +184,7 @@ class TravisSetupSteps(ConfigurableStep):
         config = yield self.getStepConfig()
 
         for k in TRAVIS_HOOKS:
-            for i, command in enumerate(getattr(config, k)):
+            for command in getattr(config, k):
                 self.addShellCommand(
                     name=self.truncateName(command),
                     command=command,

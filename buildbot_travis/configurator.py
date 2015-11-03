@@ -1,7 +1,7 @@
 import urlparse
 import os
 
-from buildbot import config
+from buildbot.config import error as config_error
 
 # TBD use plugins!
 from buildbot.config import BuilderConfig
@@ -29,15 +29,20 @@ class TravisConfigurator(object):
         self.passwords = {}
         self.properties = {}
         self.repositories = {}
+        self.cfgdict = {}
+        self.importantManager = None
         self.change_hook_dialects = {}
         config.setdefault("builders", [])
         config.setdefault("schedulers", [])
         config.setdefault("change_source", [])
         config.setdefault("services", [])
         config.setdefault("status", [])
-        config.setdefault("multiMaster", True)  # we are not really multimaster, but this remove some checks
+        self.defaultEnv = {}
+        # we are not really multimaster, but this remove some checks
+        config.setdefault("multiMaster", True)
         config['codebaseGenerator'] = lambda chdict: chdict['project']
-        self.config['title'] = os.environ.get('buildbotTitle', "buildbot travis")
+        self.config['title'] = os.environ.get(
+            'buildbotTitle', "buildbot travis")
 
     def add_password(self, scheme, netloc, username, password):
         self.passwords[(scheme, netloc)] = (username, password)
@@ -52,16 +57,19 @@ class TravisConfigurator(object):
     def fromDict(self, y):
         buildbot_travis.api.setCfg(y)
         self.cfgdict = y
-        self.importantManager = ImportantManager(y.get("not_important_files", []))
+        self.importantManager = ImportantManager(
+            y.get("not_important_files", []))
         self.defaultEnv = y.get("env", {})
         for k, v in self.defaultEnv.items():
             if not (isinstance(v, list) or isinstance(v, basestring)):
-                config.error("'env' values must be strings or lists; key %s is incorrect: %s" % (k, type(v)))
+                config_error(
+                    "'env' values must be strings or lists; key %s is incorrect: %s" % (k, type(v)))
         for p in y.get("projects", []):
             self.define_travis_builder(**p)
 
         PORT = int(os.environ.get('PORT', 8020))
-        self.config['buildbotURL'] = os.environ.get('buildbotURL', "http://localhost:%d/" % (PORT, ))
+        self.config['buildbotURL'] = os.environ.get(
+            'buildbotURL', "http://localhost:%d/" % (PORT, ))
         # minimalistic config to activate new web UI
         self.config['www'] = dict(port=PORT,
                                   change_hook_dialects=self.change_hook_dialects,
@@ -75,7 +83,8 @@ class TravisConfigurator(object):
         return self.fromDict(dbConfig.get("travis", {}))
 
     def get_spawner_slaves(self):
-        slaves = [s.slavename for s in self.config['slaves'] if isinstance(s, BuildSlave)]
+        slaves = [s.slavename for s in self.config[
+            'slaves'] if isinstance(s, BuildSlave)]
         return slaves
 
     def get_runner_slaves(self):
@@ -83,7 +92,8 @@ class TravisConfigurator(object):
             BuildSlaveClass = AbstractLatentBuildSlave
         else:
             BuildSlaveClass = BuildSlave
-        slaves = [s.slavename for s in self.config['slaves'] if isinstance(s, BuildSlaveClass)]
+        slaves = [s.slavename for s in self.config[
+            'slaves'] if isinstance(s, BuildSlaveClass)]
         return slaves
 
     def define_travis_builder(self, name, repository, **kwargs):
@@ -101,9 +111,11 @@ class TravisConfigurator(object):
 
         codebases = {spawner_name: {'repository': repository}}
         for subrepo in kwargs.get('subrepos', []):
-            codebases[subrepo['project']] = {'repository': subrepo['repository']}
+            codebases[subrepo['project']] = {
+                'repository': subrepo['repository']}
 
-        vcsManager = addRepository(name, dict(name=name, repository=repository, **kwargs))
+        vcsManager = addRepository(
+            name, dict(name=name, repository=repository, **kwargs))
         vcsManager.vardir = self.vardir
 
         # Define the builder for the main job
@@ -119,13 +131,13 @@ class TravisConfigurator(object):
             env=self.defaultEnv,
             tags=["job", name],
             factory=f
-            ))
+        ))
 
         self.config['schedulers'].append(Triggerable(
             name=job_name,
             builderNames=[job_name],
             codebases=codebases,
-            ))
+        ))
 
         # Define the builder for a spawner
         f = factory.BuildFactory()
@@ -141,7 +153,7 @@ class TravisConfigurator(object):
             properties=properties,
             tags=["trunk", name],
             factory=f
-            ))
+        ))
 
         if vcsManager.supportsTry:
             properties = dict(TRAVIS_PULL_REQUEST=True)
@@ -159,11 +171,12 @@ class TravisConfigurator(object):
                 properties=properties,
                 tags=["try", name],
                 factory=f
-                ))
+            ))
 
         vcsManager.setupSchedulers(self.config['schedulers'], spawner_name, try_name,
                                    self.importantManager, codebases)
-        vcsManager.setupReporters(self.config['services'],  spawner_name, try_name, codebases)
+        vcsManager.setupReporters(
+            self.config['services'], spawner_name, try_name, codebases)
         res = vcsManager.setupChangeSource(self.config['change_source'])
         if res is not None:
             self.change_hook_dialects.update(res)

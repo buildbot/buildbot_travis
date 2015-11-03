@@ -148,7 +148,7 @@ class TestBranches(TravisYmlTestCase):
         self.failUnlessEqual(self.t.can_build_branch("master"), True)
 
     def test_whitelist(self):
-        b = self.t.config["branches"] = {"only": ['master']}
+        self.t.config["branches"] = {"only": ['master']}
         self.t.parse_branches()
         self.failUnlessEqual(self.t.branch_whitelist, ["master"])
         self.failUnlessEqual(self.t.branch_blacklist, None)
@@ -157,7 +157,7 @@ class TestBranches(TravisYmlTestCase):
             self.t.can_build_branch("feature-new-stuff"), False)
 
     def test_whitelist_regex(self):
-        b = self.t.config["branches"] = {"only": ['master', '/^deploy-.*$/']}
+        self.t.config["branches"] = {"only": ['master', '/^deploy-.*$/']}
         self.t.parse_branches()
         self.failUnlessEqual(self.t.can_build_branch("master"), True)
         self.failUnlessEqual(self.t.can_build_branch("wibble"), False)
@@ -165,7 +165,7 @@ class TestBranches(TravisYmlTestCase):
             self.t.can_build_branch("deploy-cool-regex"), True)
 
     def test_blacklist(self):
-        b = self.t.config["branches"] = {"except": ['master']}
+        self.t.config["branches"] = {"except": ['master']}
         self.t.parse_branches()
         self.failUnlessEqual(self.t.branch_whitelist, None)
         self.failUnlessEqual(self.t.branch_blacklist, ["master"])
@@ -175,7 +175,7 @@ class TestBranches(TravisYmlTestCase):
 
     def test_whitelist_and_blacklist(self):
         """ Test that blacklist is ignored when both whitelist and blacklist are present """
-        b = self.t.config["branches"] = {
+        self.t.config["branches"] = {
             "only": ['master'], "except": ['master']}
         self.t.parse_branches()
         self.failUnlessEqual(self.t.branch_whitelist, ["master"])

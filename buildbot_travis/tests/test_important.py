@@ -2,7 +2,7 @@ from twisted.trial import unittest
 from buildbot_travis.important import ImportantManager
 
 
-class fakeChange():
+class fakeChange(object):
     def __init__(self, files):
         self.files = files
 

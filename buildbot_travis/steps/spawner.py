@@ -12,14 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from buildbot.process import buildstep
 from buildbot.process.buildstep import LoggingBuildStep, SUCCESS, FAILURE, EXCEPTION
 from buildbot.process.properties import Properties
 from buildbot.steps.trigger import Trigger
-from twisted.spread import pb
 from twisted.internet import defer
-from twisted.python import log
-import StringIO
 
 from .base import ConfigurableStepMixin
 
@@ -36,6 +32,7 @@ class TravisTrigger(Trigger, ConfigurableStepMixin):
     def __init__(self, scheduler, **kwargs):
         if "name" not in kwargs:
             kwargs['name'] = 'trigger'
+        self.config = None
         Trigger.__init__(self, waitForFinish=True, schedulerNames=[scheduler], **kwargs)
 
     @defer.inlineCallbacks

@@ -30,8 +30,8 @@ def parse_env_string(env, global_env=None):
     if not env.strip():
         return props
 
-    vars = env.split(" ")
-    for v in vars:
+    _vars = env.split(" ")
+    for v in _vars:
         k, v = v.split("=")
         props[k] = v
 
@@ -55,6 +55,7 @@ class TravisYml(object):
         self.branch_blacklist = None
         self.email = TravisYmlEmail()
         self.irc = TravisYmlIrc()
+        self.config = None
 
     def parse(self, config_input):
         try:
@@ -88,10 +89,11 @@ class TravisYml(object):
         elif isinstance(env, list):
             self.environments = [parse_env_string(e) for e in env]
         elif isinstance(env, dict):
-            global_env =  {}
+            global_env = {}
             for e in env.get('global', []):
                 global_env.update(parse_env_string(e))
-            self.environments = [parse_env_string(e, global_env) for e in env.get('matrix', [''])]
+            self.environments = [
+                parse_env_string(e, global_env) for e in env.get('matrix', [''])]
         else:
             raise TravisYmlInvalid("'env' parameter is invalid")
 
@@ -181,6 +183,8 @@ class TravisYml(object):
 
 
 class _NotificationsMixin(object):
+    success = 'never'
+    failure = 'never'
 
     def parse_failure_success(self, settings):
         self.success = settings.get("on_success", self.success)

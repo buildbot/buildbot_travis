@@ -18,7 +18,6 @@ from twisted.internet import defer
 from twisted.internet import threads
 import yaml
 import json
-from buildbot.util.eventual import eventually
 
 
 def getDbConfigObjectId(master, name="config"):
@@ -33,6 +32,7 @@ class Api(object):
 
     def __init__(self, ep):
         self.ep = ep
+        self._cfg = None
 
     def setYamlPath(self, path):
         self._yamlPath = path
@@ -80,7 +80,7 @@ class Api(object):
             yield self.saveCfg(cfg)
             try:
                 err = yield threads.deferToThread(self.thdCheckConfig)
-            except Exception as e:
+            except Exception as e: # noqa
                 err = [repr(e)]
             if err is not None:
                 self._in_progress = False

@@ -29,7 +29,7 @@ def run(args):
 
         for k in TRAVIS_HOOKS:
             script += "# " + k + "\n"
-            for i, command in enumerate(getattr(config, k)):
+            for command in getattr(config, k):
                 script += command + "\n"
         print "running matrix", matrix
         subprocess.call(["bash", "-c", script])

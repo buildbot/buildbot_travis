@@ -55,9 +55,9 @@ class SVNChangeSplitter(object):
                 if not branch:
                     log.msg("Determining branch")
                     where = self.split_file(path)
-                    if not where:
+                    if where is None:
                         return None
-                    f.branch, f.path = where
+                    f.branch, f.path = where  # noqa
                 else:
                     log.msg("Trying to force branch")
                     if not path.startswith(branch):
@@ -94,7 +94,6 @@ class SVNPoller(VCSBase, PollerMixin):
 
         factory.addStep(SVN(**kwargs))
 
-
     def getRepositoryRoot(self):
         options = {}
         cmd = ["svn", "info", self.repository, "--non-interactive"]
@@ -103,7 +102,7 @@ class SVNPoller(VCSBase, PollerMixin):
         if self.password:
             cmd.extend(["--password", self.password])
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, env={'LC_MESSAGES': 'C'})
-        s, e = p.communicate()
+        s, _ = p.communicate()
         for line in s.split("\n"):
             if ":" in line:
                 k, v = line.split(": ")
@@ -120,7 +119,7 @@ class SVNPoller(VCSBase, PollerMixin):
         else:
             repo = self.getRepositoryRoot()
 
-            scheme, netloc, path, params, query, fragment = urlparse.urlparse(repo)
+            scheme, netloc, path, _, _, _ = urlparse.urlparse(repo)
             name = "%s-%s-%s" % (scheme, netloc.replace(".", "-"), path.rstrip("/").lstrip("/").replace("/", "-"))
             pollerdir = self.makePollerDir(name)
 

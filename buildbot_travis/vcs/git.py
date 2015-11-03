@@ -16,7 +16,7 @@ from .base import VCSBase, PollerMixin
 from buildbot.plugins import changes
 from buildbot.steps.source.git import Git
 from urlparse import urlparse
-from buildbot import config
+
 
 class ParsedGitUrl(object):
     def __init__(self, url):
@@ -33,6 +33,7 @@ class ParsedGitUrl(object):
         if ":" in self.netloc:
             self.netloc, self.port = self.netloc.rsplit(":", 1)
             self.port = int(self.port)
+
 
 class GitBase(VCSBase):
 

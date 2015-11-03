@@ -83,8 +83,7 @@ class TravisMaster(RunMasterBase):
         props = {}
         for build in builds:
             build['properties'] = yield self.master.data.get(("builds", build['buildid'], 'properties'))
-            build['buildid']
-            p = props[build['buildid']] = {
+            props[build['buildid']] = {
                 k: v[0]
                 for k, v in build['properties'].items()
                 if v[1] == '.travis.yml'
@@ -125,6 +124,8 @@ projects:
 """
 
 path_to_git_bundle = None
+
+
 def masterConfig():
     global path_to_git_bundle
     from buildbot_travis import TravisConfigurator
