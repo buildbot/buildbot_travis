@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import fnmatch
+
 from .git import GitBase, ParsedGitUrl
 from buildbot.plugins import changes
 from buildbot.plugins import util
@@ -23,6 +25,24 @@ from buildbot import config
 from twisted.internet import defer
 
 
+class RepoMatcher(object):
+    def __init__(self, path, branches, project):
+        self.path = path
+        self.branches = branches
+        self.project = project
+
+    def match(self, chdict):
+        props = chdict['properties']
+        branch = props.get('event.change.branch', chdict.get('branch'))
+        if chdict.get('project', '') != self.path:
+            return False
+        for b in self.branches:
+            if fnmatch.fnmatch(branch, b):
+                print "match", branch, b
+                return True
+        return False
+
+
 class GerritChangeSource(changes.GerritChangeSource):
     watchedRepos = None
 
@@ -32,31 +52,33 @@ class GerritChangeSource(changes.GerritChangeSource):
         self.configureService()
 
     def addChange(self, chdict):
+        project = chdict.get('project', '')
         props = chdict['properties']
         branch = props.get('event.change.branch', chdict.get('branch'))
-        k = chdict.get('project', '') + ":" + branch
-        if k in self.watchedRepos:
-            chdict['project'] = self.watchedRepos[k]
-            props['event.change.branch'] = branch
-            return changes.GerritChangeSource.addChange(self, chdict)
+        for m in self.watchedRepos.get(project, []):
+            if m.match(chdict):
+                chdict['project'] = m.project
+                props['event.change.branch'] = branch
+                return changes.GerritChangeSource.addChange(self, chdict)
         return defer.succeed(None)
 
-    def watchRepository(self, path, branch, projectName):
+    def watchRepository(self, path, branches, projectName):
         path = path.lstrip("/")
-        self.watchedRepos[path + ':' + branch] = projectName
+        self.watchedRepos.setdefault(path, [])
+        self.watchedRepos[path].append(RepoMatcher(path, branches, projectName))
 
 
 class GerritChangeSourceManager(object):
     sources = {}
 
-    def makeGerritChangeSource(self, projectName, server, port, user, path, branch):
+    def makeGerritChangeSource(self, projectName, server, port, user, path, branches):
         k = "%s:%d:%s" % (server, port, user)
         if k not in self.sources:
             cs = GerritChangeSource(gerritserver=server, gerritport=port, username=user)
             self.sources[k] = cs
         else:
             cs = self.sources[k]
-        cs.watchRepository(path, branch, projectName)
+        cs.watchRepository(path, branches, projectName)
         return cs
 manager = GerritChangeSourceManager()
 
@@ -65,11 +87,10 @@ class Gerrit(GitBase):
     description = "Source code hosted on Gerrit, with detection of changes using gerrit stream-events"
     supportsTry = True
 
-    def addRepository(self, factory, project=None, repository=None, branch=None, **kwargs):
-        branch = branch or "master"
+    def addRepository(self, factory, project=None, repository=None, branches=None, **kwargs):
         kwargs.update(dict(
             repourl=repository,
-            branch=branch,
+            branch=util.Property("branch"),
             codebase=project,
             haltOnFailure=True,
             flunkOnFailure=True,
@@ -91,17 +112,17 @@ class Gerrit(GitBase):
     def setupChangeSource(self, changeSources):
         parsed = self.parseServerURL()
         cs = manager.makeGerritChangeSource(self.name, parsed.netloc,
-                                            parsed.port, parsed.user, parsed.path, self.branch)
+                                            parsed.port, parsed.user, parsed.path, self.branches)
         if cs and cs not in changeSources:
             changeSources.append(cs)
 
     def setupSchedulers(self, _schedulers, spawner_name, try_name, importantManager, codebases):
-
+        # branch filtering is already made by the changesource
         _schedulers.append(schedulers.AnyBranchScheduler(
             name=spawner_name,
             builderNames=[spawner_name],
-            change_filter=util.GerritChangeFilter(branch=self.branch, project=self.name,
-                                                  eventtype="ref-updated"),
+            change_filter=util.GerritChangeFilter(project=self.name,
+                                                  eventtype_re="ref-updated"),
             onlyImportant=True,
             fileIsImportant=importantManager.fileIsImportant,
             codebases=codebases,
@@ -109,7 +130,7 @@ class Gerrit(GitBase):
         _schedulers.append(schedulers.AnyBranchScheduler(
             name=try_name,
             builderNames=[try_name],
-            change_filter=util.GerritChangeFilter(branch=self.branch, project=self.name,
+            change_filter=util.GerritChangeFilter(project=self.name,
                                                   eventtype="patchset-created"),
             onlyImportant=True,
             fileIsImportant=importantManager.fileIsImportant,

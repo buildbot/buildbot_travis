@@ -1,16 +1,44 @@
 class ProjectsConfig extends Controller
     self = null
-    constructor: (@$scope, config, $state) ->
+    constructor: ($scope, config, $state) ->
         self = this
-        @$scope.title = "Watched Projects"
-        @$scope.project_remove = (project) ->
-            _.remove self.$scope.cfg.projects, (i) -> i == project
+        self.$scope = $scope
+        $scope.title = "Watched Projects"
 
-        @$scope.new_project = ->
-            self.$scope.cfg.projects ?= []
+        $scope.project_remove = (project) ->
+            _.remove $scope.cfg.projects, (i) -> i == project
+
+        $scope.shows = {}
+        $scope.toggle_show = (i) ->
+            $scope.shows[i] ?= false
+            $scope.shows[i] = !$scope.shows[i]
+
+        $scope.new_project = ->
+            $scope.cfg.projects ?= []
+            $scope.shows[$scope.cfg.projects.length] = true
             $scope.cfg.projects.push
                 vcs_type: _.keys(config.plugins.buildbot_travis.supported_vcs)[0]
 
+        $scope.is_shown = (i) ->
+            return $scope.shows[i]
+
+        $scope.allTags = (query) ->
+            ret = []
+            for p in $scope.cfg.projects
+                if p.tags?
+                    for tag in p.tags
+                        if tag.indexOf(query) == 0 and ret.indexOf(tag) < 0
+                            ret.push(tag)
+            return ret
+
+        $scope.allBranches = (query) ->
+            ret = []
+            for p in $scope.cfg.projects
+                if p.branches?
+                    for b in p.branches
+                        if b.indexOf(query) == 0 and ret.indexOf(b) < 0
+                            ret.push(b)
+            return ret
 
 class EnvConfig extends Controller
     self = null

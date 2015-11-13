@@ -1,19 +1,31 @@
 config-page
-    .panel.panel-default(ng-repeat="project in cfg.projects")
+    .panel.panel-default(ng-repeat="(project_id, project) in cfg.projects")
         .panel-heading
-            h3.panel-title
-                | {{ project.name }}
-                .btn.btn-xs.btn-danger.pull-right(ng-click="project_remove(project)")
-                    i.fa.fa-times
-            .clearfix
-        .panel-body
+            .panel-title
+                | {{ project.name}}&nbsp;
+                span.label.label-default(title="{{ project.repository }} | {{ project.branch }}")
+                    | {{ project.vcs_type }}
+                .btn.btn-xs.btn-default.pull-right(ng-click="toggle_show(project_id)")
+                    i.fa.fa-sliders
+                | &nbsp;
+                span(ng-repeat="tag in project.tags")
+                    .label.label-success {{ tag }}
+                    | &nbsp;
+        .panel-body(ng-show="is_shown(project_id)")
             ng-form.form-horizontal(name="form")
                 .form-group(show-errors)
                     label.col-sm-2.control-label Project name:
-                    .col-sm-10
+                    .col-sm-8
                         input.form-control(type="text", ng-model="project.name", name="name"
                                            placeholder="Project Name", required)
                         p.help-block(ng-if="form.name.$error.required") The projects's name is required
+                    .col-sm-2
+                        .pull-right.btn.btn-danger(ng-click="project_remove(project)")
+                            | delete project
+                .form-group
+                    label.col-sm-2.control-label Tags:
+                    .col-sm-10
+                        input-tags(tags="project.tags", all-tags="allTags")
                 .form-group
                     label.col-sm-2.control-label VCS type:
                     .col-sm-2
@@ -22,10 +34,11 @@ config-page
                     span.col-sm-8.control-label
                         | {{buildbot_travis.supported_vcs[project.vcs_type]}} 
                 .form-group
-                    label.col-sm-2.control-label branch:
-                    .col-sm-10
-                        input.form-control(type="text", ng-model="project.branch",
-                                           placeholder="Branches to watch (empty means all branches, several branches can be specified, separated by spaces)")
+                    label.col-sm-2.control-label branch(es):
+                    .col-sm-6
+                        input-tags(tags="project.branches", all-tags="allBranches", placeholder="add a branch")
+                    span.col-sm-4.control-label
+                        | use '*' character for matching several branches
                 .form-group(show-errors)
                     label.col-sm-2.control-label repository:
                     .col-sm-10

@@ -32,12 +32,10 @@ class IVCSManager(IPlugin):
 
         VCS registers to the python system via python endpoints in a plugin fashion
     """
-    @staticmethod
-    def setupChangeSource(changeSources):
+    def setupChangeSource(changeSources):  # noqa
         pass
 
-    @staticmethod
-    def addSourceSteps(factory):
+    def addSourceSteps(factory):  # noqa
         pass
 
 
@@ -47,6 +45,7 @@ class VCSBase(object):
     scm_type = None
     subrepos = []
     branch = None
+    branches = None
     repository = None
 
     def __init__(self, **kw):
@@ -54,11 +53,21 @@ class VCSBase(object):
         for k, v in kw.items():
             setattr(self, k, v)
 
-    def addRepository(self, factory, name, repository, branch):
+        if self.branches is None:
+            self.branches = []
+            if self.branch is not None:
+                self.branches.append(self.branch)
+        if self.branches:
+            self.branch = self.branches[0]
+        else:
+            self.branch = "*"
+
+    def addRepository(self, factory, name, repository, branches=None):
         raise NotImplementedError()
 
     def addSourceSteps(self, factory):
-        self.addRepository(factory, self.name, self.repository, self.branch)
+
+        self.addRepository(factory, self.name, self.repository, self.branches)
         for subrepo in self.subrepos:
             self.addRepository(
                 factory,

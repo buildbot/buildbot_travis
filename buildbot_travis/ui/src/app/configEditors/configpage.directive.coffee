@@ -8,6 +8,7 @@ class ConfigPage extends Directive
             controller: '_ConfigPageController'
         }
 
+
 class _ConfigPage extends Controller
     self = null
     constructor: (@$scope, config, $state, $http) ->
@@ -16,6 +17,10 @@ class _ConfigPage extends Controller
         @$scope.buildbot_travis = config.plugins.buildbot_travis
         @$scope.errors = []
         @$scope.saving = false
+        for p in @$scope.cfg.projects
+            if p.branch
+                p.branches = p.branch.split(" ")
+                delete p.branch
         @$scope.save = ->
             self.$scope.$broadcast('show-errors-check-validity')
             if not self.$scope.hasInvalids()

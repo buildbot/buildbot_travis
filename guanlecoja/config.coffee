@@ -56,6 +56,9 @@ module.exports =
             "angular-bootstrap-show-errors":
                 version: "~2.2.0"
                 files: "src/showErrors.js"
+            "ng-tags-input":
+                version: "~3.0.0"
+                files: "ng-tags-input.js"
         testdeps:
             angular:
                 version: "~1.3.0"

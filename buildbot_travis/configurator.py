@@ -96,13 +96,21 @@ class TravisConfigurator(object):
             'slaves'] if isinstance(s, BuildSlaveClass)]
         return slaves
 
-    def define_travis_builder(self, name, repository, **kwargs):
+    def define_travis_builder(self, name, repository, tags=None, **kwargs):
         name = str(name)
         repository = str(repository)
         job_name = "%s-job" % name
         try_name = "%s-try" % name
         spawner_name = name
+        if tags is None:
+            tags = []
 
+        def formatTag(tag):
+            if isinstance(tag, basestring):
+                return tag
+            return str(tag['text'])
+
+        tags = map(formatTag, tags)
         if 'username' not in kwargs and 'password' not in kwargs:
             p = urlparse.urlparse(repository)
             k = (p.scheme, p.netloc)
@@ -129,7 +137,7 @@ class TravisConfigurator(object):
             properties=self.properties,
             collapseRequests=False,
             env=self.defaultEnv,
-            tags=["job", name],
+            tags=["job", name] + tags,
             factory=f
         ))
 
@@ -151,7 +159,7 @@ class TravisConfigurator(object):
             name=spawner_name,
             slavenames=self.get_spawner_slaves(),
             properties=properties,
-            tags=["trunk", name],
+            tags=["trunk", name] + tags,
             factory=f
         ))
 
@@ -169,7 +177,7 @@ class TravisConfigurator(object):
                 name=try_name,
                 slavenames=self.get_spawner_slaves(),
                 properties=properties,
-                tags=["try", name],
+                tags=["try", name] + tags,
                 factory=f
             ))
 
