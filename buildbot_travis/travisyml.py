@@ -32,7 +32,7 @@ def parse_env_string(env, global_env=None):
 
     _vars = env.split(" ")
     for v in _vars:
-        k, v = v.split("=")
+        k, v = v.split("=", 1)
         props[k] = v
 
     return props
