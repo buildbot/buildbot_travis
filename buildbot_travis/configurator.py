@@ -107,7 +107,7 @@ class TravisConfigurator(object):
 
         def formatTag(tag):
             if isinstance(tag, basestring):
-                return tag
+                return str(tag)
             return str(tag['text'])
 
         tags = map(formatTag, tags)
@@ -185,6 +185,6 @@ class TravisConfigurator(object):
                                    self.importantManager, codebases)
         vcsManager.setupReporters(
             self.config['services'], spawner_name, try_name, codebases)
-        res = vcsManager.setupChangeSource(self.config['change_source'])
+        res = vcsManager.setupChangeSource(self.config['services'])
         if res is not None:
             self.change_hook_dialects.update(res)

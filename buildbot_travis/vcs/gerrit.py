@@ -23,9 +23,12 @@ from buildbot.plugins import reporters
 
 from buildbot import config
 from twisted.internet import defer
+from buildbot.util import ComparableMixin
 
 
-class RepoMatcher(object):
+class RepoMatcher(ComparableMixin):
+    compare_attrs = ("path", "branches", "project")
+
     def __init__(self, path, branches, project):
         self.path = path
         self.branches = branches
@@ -45,11 +48,17 @@ class RepoMatcher(object):
 
 class GerritChangeSource(changes.GerritChangeSource):
     watchedRepos = None
+    compare_attrs = ("gerritserver", "gerritport", "watchedRepos")
 
     def __init__(self, *args, **kw):
         changes.GerritChangeSource.__init__(self, *args, **kw)
         self.watchedRepos = {}
         self.configureService()
+
+    def reconfigServiceWithSibling(self, sibling):
+        print "reconfiguring", self.name, sibling.watchedRepos
+        self.watchedRepos = sibling.watchedRepos
+        return changes.GerritChangeSource.reconfigServiceWithSibling(self, sibling)
 
     def addChange(self, chdict):
         project = chdict.get('project', '')
