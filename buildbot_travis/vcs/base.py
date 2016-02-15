@@ -60,7 +60,7 @@ class VCSBase(object):
         if self.branches:
             self.branch = self.branches[0]
         else:
-            self.branch = "*"
+            self.branch = None
 
     def addRepository(self, factory, name, repository, branches=None):
         raise NotImplementedError()

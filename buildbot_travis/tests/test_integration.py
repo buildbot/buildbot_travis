@@ -22,7 +22,8 @@ except ImportError:
     RunMasterBase = object
 from twisted.internet import defer
 from buildbot.buildslave import BuildSlave
-
+from buildslave.bot import LocalBuildSlave as RemoteLocalBuildSlave
+[RemoteLocalBuildSlave]
 # This integration test creates a master and slave environment,
 # with one builder and a custom step
 # It uses a git bundle to store sample git repository for the integration test
