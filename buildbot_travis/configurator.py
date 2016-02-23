@@ -6,8 +6,8 @@ from buildbot.config import error as config_error
 # TBD use plugins!
 from buildbot.config import BuilderConfig
 from buildbot.schedulers.triggerable import Triggerable
-from buildbot.buildslave import BuildSlave
-from buildbot.buildslave import AbstractLatentBuildSlave
+from buildbot.worker import Worker
+from buildbot.worker import AbstractLatentWorker
 from buildbot.process import factory
 from buildbot.plugins import util
 from buildbot import getVersion
@@ -82,19 +82,19 @@ class TravisConfigurator(object):
         dbConfig = util.DbConfig(self.config, self.vardir)
         return self.fromDict(dbConfig.get("travis", {}))
 
-    def get_spawner_slaves(self):
-        slaves = [s.slavename for s in self.config[
-            'slaves'] if isinstance(s, BuildSlave)]
-        return slaves
+    def get_spawner_workers(self):
+        workers = [s.workername for s in self.config[
+            'workers'] if isinstance(s, Worker)]
+        return workers
 
-    def get_runner_slaves(self):
+    def get_runner_workers(self):
         if self.latentRunners:
-            BuildSlaveClass = AbstractLatentBuildSlave
+            WorkerClass = AbstractLatentWorker
         else:
-            BuildSlaveClass = BuildSlave
-        slaves = [s.slavename for s in self.config[
-            'slaves'] if isinstance(s, BuildSlaveClass)]
-        return slaves
+            WorkerClass = Worker
+        workers = [s.workername for s in self.config[
+            'workers'] if isinstance(s, WorkerClass)]
+        return workers
 
     def define_travis_builder(self, name, repository, tags=None, **kwargs):
         name = str(name)
@@ -133,7 +133,7 @@ class TravisConfigurator(object):
 
         self.config['builders'].append(BuilderConfig(
             name=job_name,
-            slavenames=self.get_runner_slaves(),
+            workernames=self.get_runner_workers(),
             properties=self.properties,
             collapseRequests=False,
             env=self.defaultEnv,
@@ -157,7 +157,7 @@ class TravisConfigurator(object):
         properties.update(self.properties)
         self.config['builders'].append(BuilderConfig(
             name=spawner_name,
-            slavenames=self.get_spawner_slaves(),
+            workernames=self.get_spawner_workers(),
             properties=properties,
             tags=["trunk", name] + tags,
             factory=f
@@ -175,7 +175,7 @@ class TravisConfigurator(object):
 
             self.config['builders'].append(BuilderConfig(
                 name=try_name,
-                slavenames=self.get_spawner_slaves(),
+                workernames=self.get_spawner_workers(),
                 properties=properties,
                 tags=["try", name] + tags,
                 factory=f
