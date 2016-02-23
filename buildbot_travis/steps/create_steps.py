@@ -156,7 +156,7 @@ class TravisSetupSteps(ConfigurableStep):
     name = "setup-steps"
     haltOnFailure = True
     flunkOnFailure = True
-    MAX_NAME_LENGTH = 20
+    MAX_NAME_LENGTH = 50
 
     def addShellCommand(self, name, command):
         b = self.build
@@ -176,7 +176,7 @@ class TravisSetupSteps(ConfigurableStep):
         name = name.lstrip(" ")
         name = name.split("\n")[0]
         if len(name) > self.MAX_NAME_LENGTH:
-            name = name[:self.MAX_NAME_LENGTH-3] + "..."
+            name = name[:self.MAX_NAME_LENGTH - 3] + "..."
         return name
 
     @defer.inlineCallbacks
