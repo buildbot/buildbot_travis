@@ -168,7 +168,7 @@ class TravisSetupSteps(ConfigurableStep):
         )
 
         step.setBuild(b)
-        step.setBuildSlave(b.slavebuilder.slave)
+        step.setWorker(b.workerforbuilder.worker)
         b.steps.append(step)
 
     def truncateName(self, name):

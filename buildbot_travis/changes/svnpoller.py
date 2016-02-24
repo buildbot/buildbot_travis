@@ -65,7 +65,7 @@ class SVNPoller(svnpoller.SVNPoller):
                 path = "".join([t.data for t in p.childNodes])
                 # the rest of buildbot is certaily not yet ready to handle
                 # unicode filenames, because they get put in RemoteCommands
-                # which get sent via PB to the buildslave, and PB doesn't
+                # which get sent via PB to the worker, and PB doesn't
                 # handle unicode.
                 path = path.encode("ascii")
                 if path.startswith("/"):

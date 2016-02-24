@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from buildbot.process import buildstep
-from buildbot.steps.slave import CompositeStepMixin
+from buildbot.steps.worker import CompositeStepMixin
 from twisted.internet import defer
 
 from ..travisyml import TravisYml
@@ -47,7 +47,7 @@ class ConfigurableStepMixin(CompositeStepMixin):
     @defer.inlineCallbacks
     def getStepConfig(self):
         try:
-            travis_yml = yield self.getFileContentFromSlave(".travis.yml", abandonOnFailure=True)
+            travis_yml = yield self.getFileContentFromWorker(".travis.yml", abandonOnFailure=True)
         except buildstep.BuildStepFailed as e:
                 self.descriptionDone = u"unable to fetch .travis.yml"
                 self.addCompleteLog(

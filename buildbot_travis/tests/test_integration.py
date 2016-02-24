@@ -21,7 +21,7 @@ except ImportError:
     # if buildbot installed with wheel, it does not include the test util :-(
     RunMasterBase = object
 from twisted.internet import defer
-from buildbot.buildslave import BuildSlave
+from buildbot.worker import Worker
 from buildslave.bot import LocalBuildSlave as RemoteLocalBuildSlave
 [RemoteLocalBuildSlave]
 # This integration test creates a master and slave environment,
@@ -134,6 +134,6 @@ def masterConfig():
     with open("sample.yml", "w") as f:
         f.write(sample_yml % dict(path_to_git_bundle=path_to_git_bundle))
     c = {}
-    c['slaves'] = [BuildSlave("local1", "p")]
+    c['workers'] = [Worker("local1", "p")]
     TravisConfigurator(c, os.getcwd()).fromYaml("sample.yml")
     return c
