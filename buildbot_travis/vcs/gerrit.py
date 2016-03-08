@@ -103,7 +103,8 @@ class Gerrit(GitBase):
             codebase=project,
             haltOnFailure=True,
             flunkOnFailure=True,
-            retryFetch=True
+            retryFetch=True,
+            getDescription={'tags': True, 'always': True}
         ))
 
         factory.addStep(GerritStep(**kwargs))

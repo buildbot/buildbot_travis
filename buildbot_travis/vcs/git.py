@@ -45,6 +45,7 @@ class GitBase(VCSBase):
             codebase=project,
             haltOnFailure=True,
             flunkOnFailure=True,
+            getDescription={'tags': True, 'always': True}
         ))
 
         factory.addStep(Git(**kwargs))
@@ -59,7 +60,8 @@ class GitPoller(GitBase, PollerMixin):
             repourl=self.repository,
             workdir=pollerdir,
             project=self.name,
-            branch=self.branch
+            branch=self.branch,
+            getDescription={'tags': True, 'always': True}
         ))
 
 
