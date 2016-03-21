@@ -174,6 +174,12 @@ Deployment
 A Deploy section is available in the left side menu.
 A "deployment environment(s)" parameter is avalable in the Projects Settings section.
 TODO: add more description of this feature
+Deployment
+----------
+
+A new Deploy section has been added in the left side menu.
+A new "deployment environment(s)" parameter has been added in the Projects Settings section.
+
 
 How it works
 ============
@@ -205,6 +211,7 @@ The basic behaviour is:
  * MailNotifier subclass uses ``.travis.yml`` found in build history so that
    recipients list and whether or not to mail can be adapted accordingly.
    XXX: this needs to be adapted for nine
+
 
 
 TODO
