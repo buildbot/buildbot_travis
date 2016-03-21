@@ -32,11 +32,11 @@ config-page
                         select.form-control(ng-model="project.vcs_type",
                             ng-options="key as key for (key, value) in buildbot_travis.supported_vcs")
                     span.col-sm-8.control-label
-                        | {{buildbot_travis.supported_vcs[project.vcs_type]}} 
+                        | {{buildbot_travis.supported_vcs[project.vcs_type]}}
                 .form-group
                     label.col-sm-2.control-label branch(es):
                     .col-sm-6
-                        input-tags(tags="project.branches", all-tags="allBranches", placeholder="add a branch")
+                        input-tags(tags="project.branches", all-tags="allBranches", placeholder="Add a branch")
                     span.col-sm-4.control-label
                         | use '*' character for matching several branches
                 .form-group(show-errors)
@@ -45,4 +45,9 @@ config-page
                         input.form-control(name="repository", type="text", ng-model="project.repository",
                                            placeholder="git://url/to/repo.git", required)
                         p.help-block(ng-if="form.repository.$error.required") The projects's name is required
+                .form-group
+                    label.col-sm-2.control-label deployment environment(s):
+                    .col-sm-10
+                        input-tags(tags="project.deployment_environment", all-tags="allDepEnvs",
+                                   placeholder="Add a deployment env")
     .btn.btn-default.pull-right(ng-click="new_project()") New Project
