@@ -59,14 +59,6 @@ class Api(object):
     def getConfig(self, request):
         return json.dumps(self._cfg)
 
-    def thdCheckConfig(self):
-        # check the config in thread
-        try:
-            config.MasterConfig.loadConfig(self.ep.master.basedir, self.ep.master.configFileName)
-        except config.ConfigErrors, e:
-            return e.errors
-        return None
-
     @app.route("/config", methods=['PUT'])
     @defer.inlineCallbacks
     def saveConfig(self, request):
@@ -77,9 +69,8 @@ class Api(object):
         self._in_progress = True
         cfg = json.loads(request.content.read())
         if cfg != self._cfg:
-            yield self.saveCfg(cfg)
             try:
-                err = yield threads.deferToThread(self.thdCheckConfig)
+                err = yield self.saveCfg(cfg)
             except Exception as e: # noqa
                 err = [repr(e)]
             if err is not None:

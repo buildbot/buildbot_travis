@@ -1,0 +1,19 @@
+.modal-content
+    .modal-header
+        h4 Deploy
+    .modal-body
+        | Do you want to deploy&nbsp;
+        b {{ project }}&nbsp;
+        | version&nbsp;
+        b {{ commit }}&nbsp;
+        | in &nbsp;
+        .btn-group(uib-dropdown='', is-open='status.isopen')
+          button.btn.btn-primary(type='button', uib-dropdown-toggle='', ng-disabled='disabled')
+            | {{ projectsDict[project].stages[0] }}
+            span.caret
+          | &nbsp;
+          ul.dropdown-menu(uib-dropdown-menu='', role='menu', aria-labelledby='single-button')
+            li(ng-repeat='(stage_id, stage) in projectsDict[project].stages')
+              a(href='', ng-click='ok(stage)') {{ stage }}
+    .modal-footer
+      button.btn.btn-default(ng-click='cancel()') Cancel

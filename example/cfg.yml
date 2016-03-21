@@ -14,3 +14,9 @@ projects:
   - name: buildbot_travis
     repository: git://github.com/tardyp/buildbot_travis
     vcs_type: git+poller
+
+stages:
+- Commit
+- Acceptance
+- Staging
+- Production

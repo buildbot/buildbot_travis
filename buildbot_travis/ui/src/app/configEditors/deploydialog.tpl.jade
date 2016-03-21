@@ -1,0 +1,14 @@
+.modal-content
+    .modal-header
+        h4 Deploy
+    .modal-body
+        | Do you want to deploy&nbsp;
+        b {{ project }}&nbsp;
+        | version&nbsp;
+        b {{ tag }}&nbsp;
+        | in&nbsp;
+        b {{ stage }}&nbsp;
+        | stage ?&nbsp;
+    .modal-footer
+      button.btn.btn-default(ng-click='cancel()') Cancel
+      button.btn.btn-primary(ng-click='ok()') Ok

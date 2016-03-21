@@ -5,6 +5,7 @@ class ProjectsConfig extends Controller
         self.$scope = $scope
         $scope.title = "Watched Projects"
 
+
         $scope.project_remove = (project) ->
             _.remove $scope.cfg.projects, (i) -> i == project
 
@@ -31,6 +32,13 @@ class ProjectsConfig extends Controller
                             ret.push(tag)
             return ret
 
+         $scope.allStages = (query) ->
+            ret = []
+            for s in $scope.cfg.stages
+                if s.indexOf(query) == 0 and ret.indexOf(s) < 0
+                    ret.push(s)
+            return ret
+
         $scope.allBranches = (query) ->
             ret = []
             for p in $scope.cfg.projects
@@ -54,6 +62,22 @@ class EnvConfig extends Controller
             self.$scope.cfg.env[self.$scope.new_env.key] = self.$scope.new_env.value
             $scope.new_env = {}
 
+class DeploymentConfig extends Controller
+    self = null
+    constructor: (@$scope, config, $state) ->
+        self = this
+        @$scope.title = "Deployment Environments"
+        @$scope.new_stage = ""
+
+        @$scope.stage_remove = (stage) ->
+            if self.$scope.cfg.stages.indexOf(stage) != -1
+                self.$scope.cfg.stages.splice(self.$scope.cfg.stages.indexOf(stage), 1)
+
+        @$scope.stage_add = (stage) ->
+            if stage
+                self.$scope.cfg.stages ?= []
+                self.$scope.cfg.stages.push(stage)
+                stage = ""
 
 class NotImportantFilesConfig extends Controller
     self = null

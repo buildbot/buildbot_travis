@@ -88,7 +88,21 @@ class VCSBase(object):
                                     )
         return codebases_params
 
-    def setupSchedulers(self, _schedulers, spawner_name, try_name, importantManager, codebases):
+    def createCodebaseParamsForDeploy(self, codebases):
+        codebases_params = []
+        for name, codebase in codebases.items():
+            codebases_params.append(CodebaseParameter(name,
+                                                      project="",
+                                                      repository=codebase[
+                                                          'repository'],
+                                                      branch=codebase.get(
+                                                          'branch'),
+                                                      revision=codebase.get('revision')
+                                                      )
+                                    )
+        return codebases_params
+
+    def setupSchedulers(self, _schedulers, spawner_name, try_name, deploy_name, importantManager, codebases, dep_properties):
         filt = dict(repository=self.repository)
         if self.branch is not None:
             filt['branch'] = self.branch
@@ -104,6 +118,12 @@ class VCSBase(object):
             name="force" + spawner_name,
             builderNames=[spawner_name],
             codebases=self.createCodebaseParams(codebases)))
+
+        _schedulers.append(schedulers.ForceScheduler(
+            name=deploy_name,
+            builderNames=[deploy_name],
+            codebases=self.createCodebaseParamsForDeploy(codebases),
+            properties=dep_properties))
 
     # for source control that have CI integration, this can setup reporters
     def setupReporters(self, _reporters, spawner_name, try_name, codebases):

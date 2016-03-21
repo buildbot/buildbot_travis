@@ -2,6 +2,7 @@
 class BuildbotTravis extends App
     constructor: -> return [
         'common',
-        'ui.bootstrap.showErrors'
-        'ngTagsInput'
+        'ui.bootstrap.showErrors',
+        'ngTagsInput',
+        'bbData'
     ]

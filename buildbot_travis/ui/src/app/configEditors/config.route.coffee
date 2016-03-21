@@ -32,6 +32,15 @@ class State extends Config
             icon: 'wrench'
             order: 150
 
+        # Register new state for Deployment settings section
+        $stateProvider.state
+            controller: "deploymentConfigController"
+            templateUrl: "buildbot_travis/views/deployment.html"
+            name: "travis_config_deployment"
+            url: "/bbtravis/config/deployment"
+            data:
+                group: groupName
+                caption: 'Deployment'
 
         # Register new state
         $stateProvider.state
