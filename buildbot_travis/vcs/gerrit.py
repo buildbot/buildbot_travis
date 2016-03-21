@@ -126,7 +126,7 @@ class Gerrit(GitBase):
         if cs and cs not in changeSources:
             changeSources.append(cs)
 
-    def setupSchedulers(self, _schedulers, spawner_name, try_name, importantManager, codebases):
+    def setupSchedulers(self, _schedulers, spawner_name, try_name, deploy_name, importantManager, codebases, dep_properties):
         # branch filtering is already made by the changesource
         _schedulers.append(schedulers.AnyBranchScheduler(
             name=spawner_name,
@@ -150,6 +150,12 @@ class Gerrit(GitBase):
             name="force" + spawner_name,
             builderNames=[spawner_name],
             codebases=self.createCodebaseParams(codebases)))
+
+        _schedulers.append(schedulers.ForceScheduler(
+            name=deploy_name,
+            builderNames=[deploy_name],
+            codebases=self.createCodebaseParamsForDeploy(codebases),
+            properties=dep_properties))
 
     def setupReporters(self, _reporters, spawner_name, try_name, codebases):
         parsed = self.parseServerURL()

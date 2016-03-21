@@ -183,6 +183,12 @@ Names surrounded by ``/`` are treated as regular expressions. They will be
 handled by the python re module and might behave differently to travis, which
 uses ruby.
 
+Deployment
+----------
+
+A new Deploy section has been added in the left side menu.
+A new "deployment environment(s)" parameter has been added in the Projects Settings section.
+
 
 WebStatus
 =========
@@ -222,6 +228,7 @@ The basic behaviour is:
  * MailNotifier subclass uses ``.travis.yml`` found in build history so that
    recipients list and whether or not to mail can be adapted accordingly.
    XXX: this needs to be adapted for nine
+
 
 TODO
 ====

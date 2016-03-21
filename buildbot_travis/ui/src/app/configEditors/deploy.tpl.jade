@@ -1,0 +1,44 @@
+.container
+  .row
+    table.table.table-hover.table-striped.table-condensed
+      tr
+          th(rowspan='2') Deliverables
+          th(colspan='{{ cfg.stages.length + 1 }}').text-center Stages
+            span(ng-init='help=false', ng-click='help=!help')
+                i.fa.fa-question-circle(style='position:relative')
+                    .popover.bottom.anim-popover(ng-if='help',
+                       style='display:block;min-width:600px;left:-300px;top:30px')
+                        h5.popover-title
+                            | Stages filtering
+                        .popover-content
+                            p Environments you need to deploy to should be specified in the Settings/Deployment section.
+                            p BEWARE! These environments should be sorted following your development process definition.
+                            p Example : DEVELOPMENT | QA | PRODUCTION
+                            p BEWARE! The first column is reserved for COMMIT stage - ie merged developments in the MAINLINE
+                        .arrow
+      tr
+        th().text-center Commit
+        th(ng-repeat='(stage_id, stage) in cfg.stages').text-center {{ stage }}
+      tr(ng-repeat='project in projectsFiltered track by $index')
+        td(style='width:200px')
+          {{ project.name }}
+        td(style='width:200px').text-center {{ untaggedVersionsByProjectDict[project.name].versions[0] }}
+          | &nbsp;
+          .btn-group(uib-dropdown)
+            button.btn.btn-primary(type='button', uib-dropdown-toggle, ng-disabled='disabled')
+              | {{ untaggedVersionsByProjectDict[project.name].versions[0] }}
+              span.caret
+            | &nbsp;
+            ul.dropdown-menu(uib-dropdown-menu, role='menu', aria-labelledby='single-button')
+              li(ng-repeat='commit in untaggedVersionsByProjectDict[project.name].versions track by $index')
+                a(href='#', ng-click='deployLatest(commit, project.name)') {{ commit }}
+        td(ng-repeat='(stage_id, stage) in cfg.stages').text-center {{ latestDeployedVersionByProjectDict[project.name].stages_sorted[stage].versions[0] }}
+          | &nbsp;
+          .btn-group(uib-dropdown)
+            button.btn.btn-primary(type='button', uib-dropdown-toggle)
+              | {{ gitTagsByProjectDict[project.name].projectGitTags[0]  }}
+              span.caret
+            | &nbsp;
+            ul.dropdown-menu(uib-dropdown-menu, role='menu', aria-labelledby='single-button')
+              li(ng-repeat='git_tag in gitTagsByProjectDict[project.name].projectGitTags track by $index')
+                a(href='#', ng-click='deploy(git_tag, project.name, stage)') {{ git_tag }}

@@ -2,7 +2,7 @@ config-page
     .panel.panel-default(ng-repeat="(project_id, project) in cfg.projects")
         .panel-heading
             .panel-title
-                | {{ project.name}}&nbsp;
+                | {{ project.name }}&nbsp;
                 span.label.label-default(title="{{ project.repository }} | {{ project.branch }}")
                     | {{ project.vcs_type }}
                 .btn.btn-xs.btn-default.pull-right(ng-click="toggle_show(project_id)")
@@ -10,6 +10,9 @@ config-page
                 | &nbsp;
                 span(ng-repeat="tag in project.tags")
                     .label.label-success {{ tag }}
+                    | &nbsp;
+                span(ng-repeat="stage in project.stages")
+                    .label.label-default {{ stage }}
                     | &nbsp;
         .panel-body(ng-show="is_shown(project_id)")
             ng-form.form-horizontal(name="form")
@@ -27,20 +30,24 @@ config-page
                     .col-sm-10
                         input-tags(tags="project.tags", all-tags="allTags")
                 .form-group
+                    label.col-sm-2.control-label Stages:
+                    .col-sm-10
+                        input-tags(tags="project.stages", all-tags="allStages", placeholder="Add a stage")
+                .form-group
                     label.col-sm-2.control-label VCS type:
                     .col-sm-2
                         select.form-control(ng-model="project.vcs_type",
                             ng-options="key as key for (key, value) in buildbot_travis.supported_vcs")
                     span.col-sm-8.control-label
-                        | {{buildbot_travis.supported_vcs[project.vcs_type]}} 
+                        | {{buildbot_travis.supported_vcs[project.vcs_type]}}
                 .form-group
-                    label.col-sm-2.control-label branch(es):
+                    label.col-sm-2.control-label Branch(es):
                     .col-sm-6
-                        input-tags(tags="project.branches", all-tags="allBranches", placeholder="add a branch")
+                        input-tags(tags="project.branches", all-tags="allBranches", placeholder="Add a branch")
                     span.col-sm-4.control-label
                         | use '*' character for matching several branches
                 .form-group(show-errors)
-                    label.col-sm-2.control-label repository:
+                    label.col-sm-2.control-label Repository:
                     .col-sm-10
                         input.form-control(name="repository", type="text", ng-model="project.repository",
                                            placeholder="git://url/to/repo.git", required)

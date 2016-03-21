@@ -59,6 +59,9 @@ module.exports =
             "ng-tags-input":
                 version: "~3.0.0"
                 files: "ng-tags-input.js"
+            "buildbot-data":
+                version: '~1.0.14'
+                files: 'dist/buildbot-data.js'
         testdeps:
             angular:
                 version: "~1.3.0"
