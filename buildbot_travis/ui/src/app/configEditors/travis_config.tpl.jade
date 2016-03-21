@@ -8,6 +8,20 @@
                 .panel-body
                     form
                         .form-group
+                            label Deployment
+                            .row(ng-repeat="stage in cfg.stages")
+                                .col-sm-12
+                                    .input-group
+                                        input.form-control(type="text", ng-model="stage")
+                                        .input-group-btn
+                                            .btn.btn-danger(ng-click="stage_remove(stage)") x
+                            .row
+                                .col-sm-12
+                                    .input-group.filelist
+                                        input.form-control(type="text", ng-model="new_stage", placeholder="Deployment environment")
+                                        .input-group-btn
+                                            .btn.btn-default(ng-click="stage_add()") +
+                        .form-group
                             label Projects repositories
                             .row(ng-repeat="project in cfg.projects")
                                 .col-sm-2

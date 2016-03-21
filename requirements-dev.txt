@@ -1,0 +1,5 @@
+supervisor
+MySQL-python
+docker-py
+requests
+buildbot_pkg
