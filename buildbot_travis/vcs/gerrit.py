@@ -154,7 +154,7 @@ class Gerrit(GitBase):
         _schedulers.append(schedulers.ForceScheduler(
             name=deploy_name,
             builderNames=[deploy_name],
-            codebases=self.createCodebaseParams(codebases),
+            codebases=self.createCodebaseParamsForDeploy(codebases),
             properties=dep_properties))
 
     def setupReporters(self, _reporters, spawner_name, try_name, codebases):
