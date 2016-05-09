@@ -192,8 +192,6 @@ class TravisConfigurator(object):
             factory=f
         ))
 
-        ))
-
         if vcsManager.supportsTry:
             properties = dict(TRAVIS_PULL_REQUEST=True)
             properties.update(self.properties)
