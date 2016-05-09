@@ -38,7 +38,7 @@ class deployLatestDialog extends Controller
                     field.errors = ''
                     if field.fields?
                         gatherFields(field.fields)
-                    else                        
+                    else
                         if field.fullName.match(/revision/)
                             params[field.fullName] = commit
                         else if field.fullName == 'stage'
