@@ -30,7 +30,6 @@ class Deploy extends Controller
             for p in $scope.cfg.projects
                 if p.stages? and p.stages.length > 0
                     $scope.projectsFiltered.push(p)
-                    console.log p.stages[0]
 
 
         initVersions = ->
@@ -48,8 +47,6 @@ class Deploy extends Controller
                     depInfo.stage = s
                     latestDeployedVersion.stages.push(depInfo)
                 latestDeployedVersionByProject.push(latestDeployedVersion)
-                console.log 'Here is the Deployed versions stuff'
-                console.log latestDeployedVersionByProject
                 projGitTag = {}
                 projGitTag.projectName = p.name
                 projGitTag.projectGitTags = ['NA']
@@ -121,7 +118,7 @@ class Deploy extends Controller
                                                     $scope.gitTagsByProjectDict = gitTagsByProject.toDict('projectName')
 
                         else if name.match(/-deploy/)
-                            data.getBuilds(limit: 50, order: '-complete_at', builderid: builder.builderid, complete: 'true').onChange = (builds) ->
+                            data.getBuilds(limit: 50, order: '-complete_at', builderid: builder.builderid, complete: 'true', results: 0).onChange = (builds) ->
                                 console.log 'Retrieving the deploy builds...'
                                 for build in builds
                                     build.getProperties().onNew = (properties) ->
@@ -150,6 +147,7 @@ class Deploy extends Controller
 
 
                         else
+                            return
 
 
         filterProjects()

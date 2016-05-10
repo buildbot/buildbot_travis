@@ -5,7 +5,7 @@ from buildbot.config import error as config_error
 
 # TBD use plugins!
 from buildbot.config import BuilderConfig
-from buildbot.schedulers.forcesched import NestedParameter, StringParameter
+from buildbot.schedulers.forcesched import StringParameter, CodebaseParameter
 from buildbot.schedulers.triggerable import Triggerable
 from buildbot.worker import Worker
 from buildbot.worker import AbstractLatentWorker
@@ -172,14 +172,12 @@ class TravisConfigurator(object):
         ))
 
         # Define the builder for the deployment of the project
-        f.addStep(TravisTrigger(
-            scheduler=deploy_name,
-        ))
+        f = factory.BuildFactory()
+        vcsManager.addSourceSteps(f)
         f.addStep(TravisSetupSteps())
 
         # To manage deployment properly (with change traceability),
         # we need the version and the target deployment environment or "stage"
-
         version = StringParameter(name='version', label='GIT tag',
                                   hide=False, required=False, size=20)
         stage = StringParameter(name='stage', label='Stage',

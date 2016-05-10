@@ -97,8 +97,9 @@ class VCSBase(object):
                                                           'repository'],
                                                       branch=codebase.get(
                                                           'branch'),
-                                                      revision=codebase.get('revision')
-                                                      )
+                                                      revision=util.StringParameter(name='revision',
+                                                                                    hide=False,
+                                                                                    size=50))
                                     )
         return codebases_params
 
