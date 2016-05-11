@@ -7,29 +7,22 @@ give you the best of buildbot and the best of Travis CI:
 
  * Builder configuration that lives with the source code
  * Private builds
- * SVN and non-github Git support
-
-Basically we provide a compatibility shim in buildbot that allows it to consume
-a ``.travis.yml`` file.
+ * non-github SCM support (gerrit, gitlab, github, github enterpris)
+ * unlimitted build parallelization on your own infra
 
 
-Registering a project
-=====================
+Basically we provide a compatibility shim in buildbot that allows it to consume a ``.travis.yml`` file.
 
-This is still buildbot. Whilst we can move the build definition out of the way,
-we still need to register a builder and set up change sources. There is a
-travis.yml in the CI codebase::
+buildbot_travis does however not support the full .travis.yml format.
 
-    projects:
-      - name: project1
-        repository: https://svn.example.com/svn/customer/project
+Buildbot Nine UI Plugin
+=======================
 
-Additional config
-=================
-Some additional configs are available in the master.cfg's travis.yml:
+buildbot_travis is configurable via the web UI.
 
-* env: default environment variables for your builder VMs
-* not_important_files: configuration for not important files (list of fnmatch). Files matching those configs will not generate builds.
+You can edit the project list, environment variables, not_important files, deployment environments, all through the web UI.
+
+high level configuration is either stored in a yaml file or directly in the configured database.
 
 The config file
 ===============
@@ -52,11 +45,16 @@ But features not also mentioned on this page might not currently be supported.
 Supported languages
 -------------------
 
-We only really support python and mandate that you set the ``language`` to
-``python``. However right now there is nothing python specific going on: your
-install/script steps can do anything needed.
+The list of supported language is depending on your build worker configuration.
 
-A future improvement will be to select a different VM image according to language
+With the help of docker, you can create as many images as you need worker configuration.
+
+
+Actually the language parameter of the defacto travis format does not fully leverage the full possibilities of what you can do with buildbot.
+
+You could think of selecting a different docker image according to the version of software you want to check.
+This can avoid the time to setup the worker environment at the beginning of your travis.yml (as you would do in travis saas)
+
 
 Build Steps
 -----------
@@ -83,22 +81,32 @@ Or multiple commands like this::
       - ./configure
       - ./bin/buildout
 
+Each element of the list in the yaml will create a single step, which is named with the first characters of your command line.
+
+If you want to create a custom name, buildbot_travis supports following syntax::
+
+    script:
+      - |
+          # build
+          ./configure
+          make
+      - |
+          # tests
+          make tests
+
 
 Installing dependencies
 -----------------------
 
-Your code is built inside a VM and is thrown away after a build. Thus it is
-granted passwordless sudo. This is also true of Travis. Tempting as it was to
-add a new ``dependencies`` list to ``.travis.yml`` we stay compatible and
-suggest you add before_install steps::
+The docker image that is used is throw away, and will start from clean state for each build.
+
+You can create a docker image with passwordless sudo, as travis does, so that you can use apt-get::
 
     before_install:
       - sudo apt-get update
       - sudo apt-get install -y -q mydependency
 
-The update ensures that the package index is up to date - without it you may
-get "package missing" errors. You pass ``-y`` to the install command so that it
-doesn't prompt for human input.
+It is however a better practice and more optimized to just provide a prebuilt docker image which contain what you need.
 
 
 Environments
@@ -159,39 +167,6 @@ This will do an additional build of the ``banana`` build but only for python
 2.7. And it will turn off the build for the ``orange`` flavour, again only
 for python 2.7.
 
-
-Whitelisting and blacklisting branches
---------------------------------------
-
-If you want to black list a set of branches::
-
-    branches:
-      except:
-        - legacy
-        - experimental
-
-And if you want to white list a set of branches::
-
-    branches:
-      only:
-        - trunk
-        - /^deploy-.$/
-
-If you specify both then except will be ignored.
-
-Names surrounded by ``/`` are treated as regular expressions. They will be
-handled by the python re module and might behave differently to travis, which
-uses ruby.
-
-
-WebStatus
-=========
-
-Previous version of buildbot_travis had a specific UI. Now the buildbot nine UI has
-enough features to be usable for buildbot_travis
-
-Configuration UI has been implemented to have a UI for editing the global yaml file.
-
 How it works
 ============
 
@@ -209,12 +184,12 @@ The basic behaviour is:
  * 'spawner' triggers a build on a 'job' builder for each environment in the
    build matrix defined in ``.travis.yml``
 
- * 'job' builder does a single build in a clean VM
+ * 'job' builder does a single build in a clean latent buildslave (VM or docker)
 
  * ``setup-steps`` step dynamically appends ShellCommand steps based on
    contents of ``.travis.yml``
 
- * when job is over VM is thrown away.
+ * when job is over VM orcontainer is thrown away.
 
  * The 'spawner' build acts as a way of aggregating the build results in a
    single pass/fail status.
