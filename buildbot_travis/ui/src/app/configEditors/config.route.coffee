@@ -2,6 +2,27 @@
 class State extends Config
     constructor: ($stateProvider, glMenuServiceProvider) ->
 
+
+        groupName = 'deploy dashboard'
+
+        # Configuration
+        glMenuServiceProvider.addGroup
+            name: groupName
+            caption: 'Deploy'
+            icon: 'rocket'
+            order: 0
+
+
+        # Register new state
+        $stateProvider.state
+            controller: "deployController"
+            templateUrl: "buildbot_travis/views/deploy.html"
+            name: "travis_deploy"
+            url: "/bbtravis/deploy"
+            data:
+                group: groupName
+                caption: 'Deploy'
+
         groupName = 'settings'
 
         # Configuration
@@ -11,6 +32,15 @@ class State extends Config
             icon: 'wrench'
             order: 150
 
+        # Register new state for Deployment settings section
+        $stateProvider.state
+            controller: "deploymentConfigController"
+            templateUrl: "buildbot_travis/views/deployment.html"
+            name: "travis_config_deployment"
+            url: "/bbtravis/config/deployment"
+            data:
+                group: groupName
+                caption: 'Deployment'
 
         # Register new state
         $stateProvider.state
@@ -41,3 +71,5 @@ class State extends Config
             data:
                 group: groupName
                 caption: 'Not Important Files'
+
+

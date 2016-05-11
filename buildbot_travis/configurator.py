@@ -5,6 +5,7 @@ from buildbot.config import error as config_error
 
 # TBD use plugins!
 from buildbot.config import BuilderConfig
+from buildbot.schedulers.forcesched import StringParameter, CodebaseParameter
 from buildbot.schedulers.triggerable import Triggerable
 from buildbot.worker import Worker
 from buildbot.worker import AbstractLatentWorker
@@ -38,6 +39,7 @@ class TravisConfigurator(object):
         config.setdefault("services", [])
         config.setdefault("status", [])
         self.defaultEnv = {}
+        self.defaultStages = []
         # we are not really multimaster, but this remove some checks
         config.setdefault("multiMaster", True)
         config['codebaseGenerator'] = lambda chdict: chdict['project']
@@ -63,9 +65,14 @@ class TravisConfigurator(object):
         for k, v in self.defaultEnv.items():
             if not (isinstance(v, list) or isinstance(v, basestring)):
                 config_error(
-                    "'env' values must be strings or lists; key %s is incorrect: %s" % (k, type(v)))
+                    "'env' values must be strings or lists ; key %s is incorrect: %s" % (k, type(v)))
         for p in y.get("projects", []):
             self.define_travis_builder(**p)
+        self.defaultStages = y.get("stages", [])
+        for s in self.defaultStages:
+            if not isinstance(s, basestring):
+                config_error(
+                    "'stages' values must be strings ; stage %s is incorrect: %s" % (s, type(s)))
 
         PORT = int(os.environ.get('PORT', 8020))
         self.config['buildbotURL'] = os.environ.get(
@@ -101,6 +108,7 @@ class TravisConfigurator(object):
         repository = str(repository)
         job_name = "%s-job" % name
         try_name = "%s-try" % name
+        deploy_name = "%s-deploy" % name
         spawner_name = name
         if tags is None:
             tags = []
@@ -163,6 +171,28 @@ class TravisConfigurator(object):
             factory=f
         ))
 
+        # Define the builder for the deployment of the project
+        f = factory.BuildFactory()
+        vcsManager.addSourceSteps(f)
+        f.addStep(TravisSetupSteps())
+
+        # To manage deployment properly (with change traceability),
+        # we need the version and the target deployment environment or "stage"
+        version = StringParameter(name='version', label='GIT tag',
+                                  hide=False, required=False, size=20)
+        stage = StringParameter(name='stage', label='Stage',
+                                hide=False, required=False,size=20)
+
+        dep_properties = [version, stage]
+
+        self.config['builders'].append(BuilderConfig(
+            name=deploy_name,
+            workernames=self.get_runner_workers(),
+            env=self.defaultEnv,
+            tags=["deploy", name] + tags,
+            factory=f
+        ))
+
         if vcsManager.supportsTry:
             properties = dict(TRAVIS_PULL_REQUEST=True)
             properties.update(self.properties)
@@ -181,8 +211,8 @@ class TravisConfigurator(object):
                 factory=f
             ))
 
-        vcsManager.setupSchedulers(self.config['schedulers'], spawner_name, try_name,
-                                   self.importantManager, codebases)
+        vcsManager.setupSchedulers(self.config['schedulers'], spawner_name, try_name, deploy_name,
+                                   self.importantManager, codebases, dep_properties)
         vcsManager.setupReporters(
             self.config['services'], spawner_name, try_name, codebases)
         res = vcsManager.setupChangeSource(self.config['services'])

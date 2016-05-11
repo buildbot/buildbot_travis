@@ -167,6 +167,14 @@ This will do an additional build of the ``banana`` build but only for python
 2.7. And it will turn off the build for the ``orange`` flavour, again only
 for python 2.7.
 
+
+Deployment
+----------
+
+A Deploy section is available in the left side menu.
+A "deployment environment(s)" parameter is avalable in the Projects Settings section.
+TODO: add more description of this feature
+
 How it works
 ============
 
@@ -197,6 +205,7 @@ The basic behaviour is:
  * MailNotifier subclass uses ``.travis.yml`` found in build history so that
    recipients list and whether or not to mail can be adapted accordingly.
    XXX: this needs to be adapted for nine
+
 
 TODO
 ====

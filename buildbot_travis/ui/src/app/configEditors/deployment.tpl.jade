@@ -1,0 +1,14 @@
+config-page
+    .form-group
+        .row(ng-repeat="stage in buildbot_travis.cfg.stages")
+            .col-sm-12
+                .input-group
+                    input.form-control(type="text", ng-model="stage",  ng-disabled="true")
+                    .input-group-btn
+                        .btn.btn-danger(ng-click="stage_remove(stage)") x
+        .row
+            .col-sm-12
+                .input-group.filelist
+                    input.form-control(type="text", ng-model="new_stage", placeholder="New deployment environment")
+                    .input-group-btn
+                        .btn.btn-default(ng-disabled="form2.$invalid", ng-click="stage_add(new_stage)") +
