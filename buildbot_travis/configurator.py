@@ -188,6 +188,7 @@ class TravisConfigurator(object):
         self.config['builders'].append(BuilderConfig(
             name=deploy_name,
             workernames=self.get_runner_workers(),
+            env=self.defaultEnv,
             tags=["deploy", name] + tags,
             factory=f
         ))
