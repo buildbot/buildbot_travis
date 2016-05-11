@@ -8,7 +8,8 @@ from setuptools import find_packages
 
 setup_www_plugin(
     name='buildbot_travis',
-    description=open("README.rst").read(),
+    description="Travis CI implemented in Buildbot",
+    long_description=open("README.rst").read(),
     keywords="buildbot travis ci",
     url="http://github.com/buildbot/buildbot_travis",
     author="Buildbot community",
