@@ -22,8 +22,9 @@ except ImportError:
     RunMasterBase = object
 from twisted.internet import defer
 from buildbot.worker import Worker
-from buildslave.bot import LocalBuildSlave as RemoteLocalBuildSlave
+from buildbot.worker.local import LocalWorker as RemoteLocalBuildSlave
 [RemoteLocalBuildSlave]
+
 # This integration test creates a master and slave environment,
 # with one builder and a custom step
 # It uses a git bundle to store sample git repository for the integration test
@@ -61,6 +62,8 @@ notifications:
 class TravisMaster(RunMasterBase):
     @defer.inlineCallbacks
     def test_travis(self):
+        masterCnf = masterConfig()
+        self.setupConfig(masterCnf)
         change = dict(branch="master",
                       files=["foo.c"],
                       author="me@foo.com",
@@ -79,6 +82,7 @@ class TravisMaster(RunMasterBase):
                        u'name': u'success: buildbot_travis-job #3'},
                       build['steps'][1]['urls'])
         self.assertEqual(build['steps'][1]['logs'][0]['contents']['content'], travis_yml)
+
         builds = yield self.master.data.get(("builds",))
         self.assertEqual(len(builds), 7)
         props = {}
