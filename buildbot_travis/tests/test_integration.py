@@ -14,7 +14,6 @@
 # Copyright Buildbot Team Members
 
 import os
-
 try:
     from buildbot.test.util.integration import RunMasterBase
 except ImportError:
@@ -60,9 +59,10 @@ notifications:
 
 
 class TravisMaster(RunMasterBase):
+
     @defer.inlineCallbacks
     def test_travis(self):
-        masterCnf = masterConfig()
+        yield self.setupConfig(masterConfig())
         self.setupConfig(masterCnf)
         change = dict(branch="master",
                       files=["foo.c"],
