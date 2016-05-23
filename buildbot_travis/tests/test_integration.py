@@ -63,7 +63,6 @@ class TravisMaster(RunMasterBase):
     @defer.inlineCallbacks
     def test_travis(self):
         yield self.setupConfig(masterConfig())
-        self.setupConfig(masterCnf)
         change = dict(branch="master",
                       files=["foo.c"],
                       author="me@foo.com",
