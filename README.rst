@@ -167,13 +167,11 @@ This will do an additional build of the ``banana`` build but only for python
 2.7. And it will turn off the build for the ``orange`` flavour, again only
 for python 2.7.
 
-
 Deployment
 ----------
 
-A Deploy section is available in the left side menu.
-A "deployment environment(s)" parameter is avalable in the Projects Settings section.
-TODO: add more description of this feature
+A new Deploy section has been added in the left side menu.
+A new "deployment environment(s)" parameter has been added in the Projects Settings section.
 
 How it works
 ============
@@ -224,6 +222,10 @@ Compared to original Travis format, here is a non-exaustive list of features kno
 * after_success, after_failure. Not implemented, but easy to add.
 * deploy. Deployment step would have to happen after all the matrix subbuilds are succeed
 
+Other nice to have features and easy to do with buildbot includes:
+
+* select automatically a docker or VM image based on the language.
+    easy to do when this lands in buildbot: http://trac.buildbot.net/ticket/3120
 
 Deploying
 =========
