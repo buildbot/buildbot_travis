@@ -22,11 +22,11 @@
       tr(ng-repeat='project in projectsFiltered track by $index')
         td(style='width:200px')
           {{ project.name }}
-        td(style='width:200px').text-center {{ untaggedVersionsByProjectDict[project.name].versions[0] }}
+        td(style='width:200px').text-center {{ untaggedVersionsByProjectDict[project.name].versions[0] | limitTo:7 }}
           | &nbsp;
           .btn-group(uib-dropdown)
             button.btn.btn-primary(type='button', uib-dropdown-toggle, ng-disabled='disabled')
-              | {{ untaggedVersionsByProjectDict[project.name].versions[0] }}
+              | {{ untaggedVersionsByProjectDict[project.name].versions[0] | limitTo:7 }}
               span.caret
             | &nbsp;
             ul.dropdown-menu(uib-dropdown-menu, role='menu', aria-labelledby='single-button')
