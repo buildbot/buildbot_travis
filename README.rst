@@ -15,6 +15,13 @@ Basically we provide a compatibility shim in buildbot that allows it to consume 
 
 buildbot_travis does however not support the full .travis.yml format.
 
+
+.. |travis-badge| image:: https://travis-ci.org/buildbot/buildbot_travis.svg?branch=master
+.. _travis-badge: https://travis-ci.org/buildbot/buildbot_travis
+.. |codecov-badge| image:: http://codecov.io/github/buildbot/buildbot_travis/coverage.svg?branch=master
+.. _codecov-badge: http://codecov.io/github/buildbot/buildbot_travis?branch=master
+
+
 Buildbot Nine UI Plugin
 =======================
 
