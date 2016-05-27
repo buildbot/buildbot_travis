@@ -15,6 +15,8 @@ Basically we provide a compatibility shim in buildbot that allows it to consume 
 
 buildbot_travis does however not support the full .travis.yml format.
 
+|travis-badge|_ |codecov-badge|_
+
 
 .. |travis-badge| image:: https://travis-ci.org/buildbot/buildbot_travis.svg?branch=master
 .. _travis-badge: https://travis-ci.org/buildbot/buildbot_travis
