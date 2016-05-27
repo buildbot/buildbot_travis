@@ -8,11 +8,12 @@ python:
 install:
   - pip install -r example/requirements.txt
   - pip install --pre buildbot_pkg
-  - pip install --pre buildbot-slave==0.9.0b7
+  - pip install --pre buildbot==0.9.0b9
+  - pip install --pre buildbot-slave==0.9.0b9
   - pip install -e .
   - pip install mock
 
-script: trial buildbot_travis/tests 
+script: trial buildbot_travis/tests
 after_failure: "cat _trial_temp/test.log"
 
 

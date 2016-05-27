@@ -60,8 +60,7 @@ class GitPoller(GitBase, PollerMixin):
             repourl=self.repository,
             workdir=pollerdir,
             project=self.name,
-            branch=self.branch,
-            getDescription={'tags': True, 'always': True}
+            branch=self.branch
         ))
 
 
