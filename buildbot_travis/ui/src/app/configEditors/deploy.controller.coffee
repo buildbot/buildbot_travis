@@ -13,6 +13,8 @@ class Deploy extends Controller
         $scope.projectsFiltered = []
         latestDeployedVersionByProject = []
         gitTagsByProject = []
+        gitTagRevisionMap = []
+        gitTagRevisionMapDict = {}
         data = []
 
         # We need access to the deliverables names / stages / GIT tags / commit-description property
@@ -55,12 +57,21 @@ class Deploy extends Controller
                 projVersion.projectName = p.name
                 projVersion.versions = []
                 $scope.untaggedVersionsByProject.push(projVersion)
+                tagRev = {}
+                tagRev.projectName = p.name
+                tagRev.map = []
+                pair = {}
+                pair.tag = 'NA'
+                pair.rev = '0'
+                tagRev.map.push(pair)
+                gitTagRevisionMap.push(tagRev)
+
 
             $scope.latestDeployedVersionByProjectDict = latestDeployedVersionByProject.toDict('projectName')
             $scope.gitTagsByProjectDict = gitTagsByProject.toDict('projectName')
             $scope.untaggedVersionsByProjectDict = $scope.untaggedVersionsByProject.toDict('projectName')
             projectsDict = $scope.cfg.projects.toDict('name')
-
+            gitTagRevisionMapDict = gitTagRevisionMap.toDict('name')
 
         $scope.isStageUndefined = (project, stage)->
             if $scope.projectsDict[project].stages?
@@ -81,7 +92,6 @@ class Deploy extends Controller
                 name = builder.name
 
                 for p, k in $scope.projectsFiltered
-
                     if name.match(p.name)
                         if not name.match(/-deploy/) and not name.match(/-job/) and not name.match(/-try/)
                             data.getBuilds(limit: 50, order: '-complete_at', builderid: builder.builderid, complete: 'true', results: 0).onChange = (builds) ->
@@ -92,9 +102,7 @@ class Deploy extends Controller
                                             # NOT GIT tagged versions - 'post-commit' stages candidates
                                             if not properties['branch'][0].match(/tags/)
                                                 projectName = properties['codebase'][0]
-
                                                 if properties['revision']?
-
                                                     for version in $scope.untaggedVersionsByProject
                                                         if projectName == version.projectName
                                                             if properties['revision'][0] not in version.versions
@@ -115,7 +123,15 @@ class Deploy extends Controller
                                                                     g.projectGitTags = []
                                                                 if new_version[projectName] not in g.projectGitTags
                                                                     g.projectGitTags.push(new_version[projectName])
+                                                                for r in gitTagRevisionMap
+                                                                    if projectName == r.projectName
+                                                                        new_entry_map = {}
+                                                                        new_entry_map.tag = properties['commit-description'][0][projectName]
+                                                                        new_entry_map.rev = properties['got_revision'][0][projectName]
+                                                                        r.map.push(new_entry_map)
+                                                                gitTagRevisionMapDict = gitTagRevisionMap.toDict('projectName')
                                                     $scope.gitTagsByProjectDict = gitTagsByProject.toDict('projectName')
+
 
                         else if name.match(/-deploy/)
                             data.getBuilds(limit: 50, order: '-complete_at', builderid: builder.builderid, complete: 'true', results: 0).onChange = (builds) ->
@@ -124,7 +140,7 @@ class Deploy extends Controller
                                     build.getProperties().onNew = (properties) ->
                                         if properties?
                                             projectName = properties['codebase'][0]
-
+                                            # With a defined version property (ie commit has been GIT tagged)
                                             if properties['version'][0]? and properties['version'][0] != ''
                                                 if properties['stage'][0]? and properties['stage'][0] != ''
                                                     if latestDeployedVersionByProject != []
@@ -138,13 +154,32 @@ class Deploy extends Controller
                                                                         else
                                                                             new_version = properties['version'][0]
                                                                             if new_version not in s.versions
-                                                                                s.versions.push(properties['version'][0])
+                                                                                s.versions.push(new_version)
                                                                 stage_info = {}
                                                                 stage_info = p.stages.toDict('stage')
                                                                 p.stages_sorted = stage_info
                                                         $scope.latestDeployedVersionByProjectDict = latestDeployedVersionByProject.toDict('projectName')
-
-
+                                            # Without a defined version property (ie commit has not been GIT tagged yet, GIT tag is generated by the deploy build)
+                                            else if properties['revision'][0]? and properties['revision'][0] != '' and properties['version'][0] == ''
+                                                if properties['stage'][0]? and properties['stage'][0] != ''
+                                                    if latestDeployedVersionByProject != []
+                                                        for p in latestDeployedVersionByProject
+                                                            if p.projectName == projectName
+                                                                for x in gitTagRevisionMapDict[projectName].map
+                                                                    if x.rev == properties['revision'][0]
+                                                                        for s in p.stages
+                                                                            if s.stage == properties['stage'][0]
+                                                                                if s.versions[0] == 'NA'
+                                                                                    s.versions = []
+                                                                                    s.versions.push(x.tag)
+                                                                                else
+                                                                                    new_version = x.tag
+                                                                                    if new_version not in s.versions
+                                                                                        s.versions.push(new_version)
+                                                                        stage_info = {}
+                                                                        stage_info = p.stages.toDict('stage')
+                                                                        p.stages_sorted = stage_info
+                                                        $scope.latestDeployedVersionByProjectDict = latestDeployedVersionByProject.toDict('projectName')
 
                         else
                             return
