@@ -60,15 +60,15 @@ class TravisConfigurator(object):
         buildbot_travis.api.setCfg(y)
         self.cfgdict = y
         self.importantManager = ImportantManager(
-            y.get("not_important_files", []))
-        self.defaultEnv = y.get("env", {})
+            y.setdefault("not_important_files", []))
+        self.defaultEnv = y.setdefault("env", {})
         for k, v in self.defaultEnv.items():
             if not (isinstance(v, list) or isinstance(v, basestring)):
                 config_error(
                     "'env' values must be strings or lists ; key %s is incorrect: %s" % (k, type(v)))
-        for p in y.get("projects", []):
+        for p in y.setdefault("projects", []):
             self.define_travis_builder(**p)
-        self.defaultStages = y.get("stages", [])
+        self.defaultStages = y.setdefault("stages", [])
         for s in self.defaultStages:
             if not isinstance(s, basestring):
                 config_error(
