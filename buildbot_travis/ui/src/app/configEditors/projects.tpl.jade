@@ -52,4 +52,9 @@ config-page
                         input.form-control(name="repository", type="text", ng-model="project.repository",
                                            placeholder="git://url/to/repo.git", required)
                         p.help-block(ng-if="form.repository.$error.required") The projects's name is required
+                .form-group
+                    label.col-sm-2.control-label deployment environment(s):
+                    .col-sm-10
+                        input-tags(tags="project.deployment_environment", all-tags="allDepEnvs",
+                                   placeholder="Add a deployment env")
     .btn.btn-default.pull-right(ng-click="new_project()") New Project

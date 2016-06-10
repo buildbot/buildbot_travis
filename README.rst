@@ -15,15 +15,6 @@ Basically we provide a compatibility shim in buildbot that allows it to consume 
 
 buildbot_travis does however not support the full .travis.yml format.
 
-|travis-badge|_ |codecov-badge|_
-
-
-.. |travis-badge| image:: https://travis-ci.org/buildbot/buildbot_travis.svg?branch=master
-.. _travis-badge: https://travis-ci.org/buildbot/buildbot_travis
-.. |codecov-badge| image:: http://codecov.io/github/buildbot/buildbot_travis/coverage.svg?branch=master
-.. _codecov-badge: http://codecov.io/github/buildbot/buildbot_travis?branch=master
-
-
 Buildbot Nine UI Plugin
 =======================
 
@@ -176,13 +167,11 @@ This will do an additional build of the ``banana`` build but only for python
 2.7. And it will turn off the build for the ``orange`` flavour, again only
 for python 2.7.
 
-
 Deployment
 ----------
 
-A Deploy section is available in the left side menu.
-A "deployment environment(s)" parameter is avalable in the Projects Settings section.
-TODO: add more description of this feature
+A new Deploy section has been added in the left side menu.
+A new "deployment environment(s)" parameter has been added in the Projects Settings section.
 
 How it works
 ============
