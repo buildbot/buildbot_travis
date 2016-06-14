@@ -1,0 +1,41 @@
+config-page
+    .panel.panel-default(ng-repeat="worker in cfg.workers")
+        .panel-heading
+            .panel-title
+                | {{ worker.name }} ({{ worker.type }})
+                .btn.btn-xs.btn-default.pull-right(ng-click="toggle_show(worker.id)")
+                    i.fa.fa-sliders
+        .panel-body(ng-show="is_shown(worker.id)")
+            ng-form.form-horizontal(name="form")
+                .form-group(show-errors)
+                    label.col-sm-2.control-label Worker basename:
+                    .col-sm-8
+                        input.form-control(type="text", ng-model="worker.name", name="name"
+                                           placeholder="Worker Name", required)
+                        p.help-block(ng-if="form.name.$error.required") The Worker's name is required
+                    .col-sm-2
+                        .pull-right.btn.btn-danger(ng-click="worker_remove(worker)")
+                            | delete worker
+                .form-group
+                    label.col-sm-2.control-label number of workers:
+                    .col-sm-10
+                        input.form-control(type="number", ng-model="worker.number")
+
+                .form-group(ng-if="worker.type=='Worker'")
+                    label.col-sm-2.control-label password for the workers:
+                    .col-sm-10
+                        input.form-control(type="text", ng-model="worker.password", ng-init="change_me")
+
+                .form-group(ng-if="worker.type=='DockerWorker'")
+                    label.col-sm-2.control-label Docker Host Url:
+                    .col-sm-10
+                        input.form-control(type="text", ng-model="worker.docker_url", placeholder = "tcp://dockerhost:2375")
+    .row
+        .col-sm-12
+            .input-group.filelist
+                select.form-control(ng-model="new_worker.type")
+                    option(value="LocalWorker") LocalWorker (a worker running on the master host)
+                    option(value="Worker") Worker (a worker running on another host)
+                    option(value="DockerWorker") DockerWorker (a worker spawn on demand on a docker host)
+                .input-group-btn
+                    .btn.btn-default(ng-click="worker_add()") +

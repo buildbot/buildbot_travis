@@ -32,7 +32,7 @@ class ProjectsConfig extends Controller
                             ret.push(tag)
             return ret
 
-         $scope.allStages = (query) ->
+        $scope.allStages = (query) ->
             ret = []
             for s in $scope.cfg.stages
                 if s.indexOf(query) == 0 and ret.indexOf(s) < 0
@@ -86,10 +86,98 @@ class NotImportantFilesConfig extends Controller
         @$scope.title = "Not Important Files"
 
         @$scope.important_file_remove = (file) ->
-            _.remove self.$scope.cfg.not_important_files, (i) -> i == file
+            _.remove self.$scope.cfg.workers, (i) -> i == file
 
         @$scope.important_file_add = ->
             if self.$scope.new_file
-                self.$scope.cfg.not_important_files ?= []
+                self.$scope.cfg.workers ?= []
                 self.$scope.cfg.not_important_files.push(self.$scope.new_file)
                 self.$scope.new_file = ""
+
+
+
+class WorkerConfig extends Controller
+    self = null
+    constructor: (@$scope, config, $state) ->
+        self = this
+        @$scope.title = "Workers"
+        @$scope.new_worker = type: "Worker"
+        $scope.shows = {}
+
+        $scope.toggle_show = (i) ->
+            $scope.shows[i] ?= false
+            $scope.shows[i] = !$scope.shows[i]
+
+        $scope.is_shown = (i) ->
+            return $scope.shows[i]
+
+        @$scope.worker_remove = (worker) ->
+            _.remove self.$scope.cfg.workers, (i) -> i == worker
+
+        @$scope.worker_add = ->
+            if self.$scope.new_worker.type
+                self.$scope.cfg.workers ?= []
+                name = "myslave" + (self.$scope.cfg.workers.length + 1).toString()
+                $scope.shows[name] = true
+                self.$scope.cfg.workers.push
+                    name: name
+                    type: self.$scope.new_worker.type
+                    number: 1
+
+
+
+DEFAULT_CUSTOM_AUTHCODE = """
+from plugins import *
+auth = util.UserPasswordAuth({"homer": "doh!"})
+"""
+DEFAULT_CUSTOM_AUTHZCODE = """
+from plugins import *
+allowRules=[
+    util.StopBuildEndpointMatcher(role="admins"),
+    util.ForceBuildEndpointMatcher(role="admins"),
+    util.RebuildBuildEndpointMatcher(role="admins)
+],
+roleMatchers=[
+    util.RolesFromEmails(admins=["my@email.com"])
+]
+"""
+class AuthConfig extends Controller
+    self = null
+    constructor: (@$scope, config, $state) ->
+        self = this
+        @$scope.title = "Authentication and Authorization"
+        @$scope.auth = {}
+        @$scope.$watch "cfg", (cfg) ->
+            cfg.auth ?= {type: "None"}
+            self.$scope.auth = cfg.auth
+        @$scope.$watch "auth.type", (type) ->
+            if type == "Custom" and not self.$scope.auth.customcode
+                self.$scope.auth.customcode = DEFAULT_CUSTOM_AUTHCODE
+        @$scope.$watch "auth.authztype", (type) ->
+            if type == "Groups" and not self.$scope.auth.groups
+                self.$scope.auth.groups = []
+            if type == "Emails" and not self.$scope.auth.emails
+                self.$scope.auth.emails = []
+            if type == "Custom" and not self.$scope.auth.customauthzcode
+                self.$scope.auth.customauthzcode = DEFAULT_CUSTOM_AUTHZCODE
+            console.log self.$scope.auth
+        @$scope.$watch "auth.customcode", (customcode) ->
+            console.log customcode
+        @$scope.isOAuth = ->
+            return self.$scope.auth.type in [ "Google", "GitLab", "GitHub"]
+        @$scope.getOAuthDoc = (type) ->
+            return {
+                Google: "https://developers.google.com/accounts/docs/OAuth2"
+                GitLab: "http://docs.gitlab.com/ce/api/oauth2.html"
+                GitHub: "https://developer.github.com/v3/oauth/"
+            }[type]
+        @$scope.worker_add = ->
+            if self.$scope.new_worker.type
+                self.$scope.cfg.workers ?= []
+                name = "myslave" + (self.$scope.cfg.workers.length + 1).toString()
+                id = _.random(2 ** 32)
+                $scope.shows[name] = true
+                self.$scope.cfg.workers.push
+                    name: name
+                    type: self.$scope.new_worker.type
+                    number: 1

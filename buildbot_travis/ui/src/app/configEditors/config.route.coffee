@@ -72,4 +72,22 @@ class State extends Config
                 group: groupName
                 caption: 'Not Important Files'
 
+        # Register new state
+        $stateProvider.state
+            controller: "workerConfigController"
+            templateUrl: "buildbot_travis/views/workers_config.html"
+            name: "workers_config"
+            url: "/bbtravis/config/workers"
+            data:
+                group: groupName
+                caption: 'Workers'
 
+        # Register new state
+        $stateProvider.state
+            controller: "authConfigController"
+            templateUrl: "buildbot_travis/views/auth.html"
+            name: "auth_config"
+            url: "/bbtravis/config/auth"
+            data:
+                group: groupName
+                caption: 'Authentication'
