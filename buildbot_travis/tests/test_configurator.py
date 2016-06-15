@@ -1,0 +1,161 @@
+import textwrap
+
+from twisted.trial import unittest
+from buildbot_travis.configurator import TravisConfigurator
+from buildbot.test.util import config
+from buildbot.plugins import util
+
+
+class TravisConfiguratorTestCase(unittest.TestCase, config.ConfigErrorsMixin):
+    def setUp(self):
+        self.c = TravisConfigurator({'www': {}}, "")
+
+    def test_auth_no_conf(self):
+        self.c.cfgdict = {
+        }
+        self.c.createAuthConfig()
+
+    def test_auth_no_conf_type(self):
+        self.c.cfgdict = {
+            'auth': {
+            }
+        }
+        self.c.createAuthConfig()
+
+    def test_auth_badtype(self):
+        self.c.cfgdict = {
+            'auth': {
+                'type': 'foo'
+            }
+        }
+        self.assertRaisesConfigError("auth type foo is not supported",
+                                     self.c.createAuthConfig)
+
+    def test_auth_github_noargs(self):
+        self.c.cfgdict = {
+            'auth': {
+                'type': 'GitHub'
+            }
+        }
+        self.assertRaisesConfigError("auth requires parameter clientid but only has {'type': 'GitHub'}",
+                                     self.c.createAuthConfig)
+
+    def test_auth_github(self):
+        self.c.cfgdict = {
+            'auth': {
+                'type': 'GitHub',
+                'clientid': 'foo',
+                'clientsecret': 'bar'
+            }
+        }
+        self.c.createAuthConfig()
+        self.assertIsInstance(self.c.config['www']['auth'], util.GitHubAuth)
+
+    def test_auth_google(self):
+        self.c.cfgdict = {
+            'auth': {
+                'type': 'Google',
+                'clientid': 'foo',
+                'clientsecret': 'bar'
+            }
+        }
+        self.c.createAuthConfig()
+        self.assertIsInstance(self.c.config['www']['auth'], util.GoogleAuth)
+
+    def test_auth_gitlab_no_url(self):
+        self.c.cfgdict = {
+            'auth': {
+                'type': 'GitLab',
+                'clientid': 'foo',
+                'clientsecret': 'bar'
+            }
+        }
+        self.assertRaisesConfigError("auth requires parameter instanceUri but only has",
+                                     self.c.createAuthConfig)
+
+    def test_auth_gitlab(self):
+        self.c.cfgdict = {
+            'auth': {
+                'type': 'GitLab',
+                'clientid': 'foo',
+                'clientsecret': 'bar',
+                'instanceUri': 'http://sd'
+            }
+        }
+        self.c.createAuthConfig()
+        self.assertIsInstance(self.c.config['www']['auth'], util.GitLabAuth)
+
+    def test_auth_custom(self):
+        self.c.cfgdict = {
+            'auth': {
+                'type': 'Custom',
+                'customcode': textwrap.dedent("""
+                    from buildbot.plugins import *
+                    auth = util.UserPasswordAuth({"homer": "doh!"})
+                """)
+            }
+        }
+        self.c.createAuthConfig()
+        self.assertIsInstance(self.c.config['www']['auth'], util.UserPasswordAuth)
+
+    def test_auth_custom_noauth(self):
+        self.c.cfgdict = {
+            'auth': {
+                'type': 'Custom',
+                'customcode': textwrap.dedent("""
+                    from buildbot.plugins import *
+                    foo = util.UserPasswordAuth({"homer": "doh!"})
+                """)
+            }
+        }
+        self.assertRaisesConfigError("custom code does not generate variable auth",
+                                     self.c.createAuthConfig)
+
+    def test_authz_custom(self):
+        self.c.cfgdict = {
+            'auth': {
+                'type': 'GitHub',
+                'clientid': 'foo',
+                'clientsecret': 'bar',
+                'authztype': 'Custom',
+                'customauthzcode': textwrap.dedent("""
+                    from buildbot.plugins import *
+                    allowRules=[
+                        util.StopBuildEndpointMatcher(role="admins"),
+                        util.ForceBuildEndpointMatcher(role="admins"),
+                        util.RebuildBuildEndpointMatcher(role="admins")
+                    ]
+                    roleMatchers=[
+                        util.RolesFromEmails(admins=["my@email.com"])
+                    ]
+                """)
+            }
+        }
+        self.c.createAuthConfig()
+        self.assertIsInstance(self.c.config['www']['authz'], util.Authz)
+
+    def test_authz_groups(self):
+        self.c.cfgdict = {
+            'auth': {
+                'type': 'GitHub',
+                'clientid': 'foo',
+                'clientsecret': 'bar',
+                'authztype': 'Groups',
+                'groups': ['buildbot']
+            }
+        }
+        self.c.createAuthConfig()
+        self.assertIsInstance(self.c.config['www']['authz'], util.Authz)
+
+    def test_authz_emails(self):
+        self.c.cfgdict = {
+            'auth': {
+                'type': 'GitHub',
+                'clientid': 'foo',
+                'clientsecret': 'bar',
+                'authztype': 'Emails',
+                'emails': ['buildbot@buildbot.net']
+            }
+        }
+        self.c.createAuthConfig()
+        self.assertIsInstance(self.c.config['www']['authz'], util.Authz)

@@ -127,16 +127,16 @@ class WorkerConfig extends Controller
 
 
 DEFAULT_CUSTOM_AUTHCODE = """
-from plugins import *
+from buildbot.plugins import *
 auth = util.UserPasswordAuth({"homer": "doh!"})
 """
 DEFAULT_CUSTOM_AUTHZCODE = """
-from plugins import *
+from buildbot.plugins import *
 allowRules=[
     util.StopBuildEndpointMatcher(role="admins"),
     util.ForceBuildEndpointMatcher(role="admins"),
     util.RebuildBuildEndpointMatcher(role="admins)
-],
+]
 roleMatchers=[
     util.RolesFromEmails(admins=["my@email.com"])
 ]
@@ -161,8 +161,6 @@ class AuthConfig extends Controller
             if type == "Custom" and not self.$scope.auth.customauthzcode
                 self.$scope.auth.customauthzcode = DEFAULT_CUSTOM_AUTHZCODE
             console.log self.$scope.auth
-        @$scope.$watch "auth.customcode", (customcode) ->
-            console.log customcode
         @$scope.isOAuth = ->
             return self.$scope.auth.type in [ "Google", "GitLab", "GitHub"]
         @$scope.getOAuthDoc = (type) ->
