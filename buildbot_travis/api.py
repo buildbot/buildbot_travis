@@ -56,16 +56,34 @@ class Api(object):
             oid = yield getDbConfigObjectId(self.ep.master)
             yield self.ep.master.db.state.setState(oid, "travis", cfg)
 
-    @app.route("/config", methods=['GET'])
-    @defer.inlineCallbacks
-    def getConfig(self, request):
+        ret = None
+        master = self.ep.master
         try:
-            yield self.ep.master.www.assertUserAllowed(request, tuple(request.postpath),
-                                                       'get', {})
+            yield threads.deferToThreadPool(
+                master.reactor, master.reactor.getThreadPool(),
+                master.config_loader.loadConfig)
+
+        except config.ConfigErrors as e:
+            ret = []
+            for msg in e.errors:
+                ret.append(msg)
+        defer.returnValue(ret)
+
+    @defer.inlineCallbacks
+    def assertAllowed(self, request):
+        try:
+            yield self.ep.master.www.assertUserAllowed(request, tuple(request.path.strip("/").split("/")),
+                                                       request.method, {})
         except Forbidden:
             request.setResponseCode(401)
             defer.returnValue("FORBIDDEN")
 
+    @app.route("/config", methods=['GET'])
+    @defer.inlineCallbacks
+    def getConfig(self, request):
+        res = yield self.assertAllowed(request)
+        if res:
+            defer.returnValue(res)
         request.setHeader('Content-Type', 'application/json')
         defer.returnValue(json.dumps(self._cfg))
 
@@ -73,12 +91,9 @@ class Api(object):
     @defer.inlineCallbacks
     def saveConfig(self, request):
         """I save the config, and run check_config, potencially returning errors"""
-        try:
-            yield self.ep.master.www.assertUserAllowed(request, tuple(request.postpath),
-                                                       'put', {})
-        except Forbidden:
-            request.setResponseCode(401)
-            defer.returnValue("FORBIDDEN")
+        res = yield self.assertAllowed(request)
+        if res:
+            defer.returnValue(res)
         request.setHeader('Content-Type', 'application/json')
         if self._in_progress:
             defer.returnValue(json.dumps({'success': False, 'errors': ['reconfig already in progress']}))

@@ -35,7 +35,6 @@ class TravisEndpointMatcher(EndpointMatcherBase):
         return defer.succeed(None)
 
 
-
 class TravisConfigurator(object):
 
     def __init__(self, config, vardir, latentRunners=False):
@@ -132,9 +131,9 @@ class TravisConfigurator(object):
             return
 
         auth = getattr(self, createAuthConfigMethod)(authcfg)
-        if auth:
-            self.config['www']['auth'] = auth
-
+        if auth is None:
+            return
+        self.config['www']['auth'] = auth
         if 'authztype' not in authcfg:
             return
 
@@ -147,7 +146,7 @@ class TravisConfigurator(object):
         if authz:
             self.config['www']['authz'] = authz
 
-    def createAuthConfig_None(self, authcfg):
+    def createAuthConfigNone(self, authcfg):
         return None
 
     def createAuthConfigGitHub(self, authcfg):
