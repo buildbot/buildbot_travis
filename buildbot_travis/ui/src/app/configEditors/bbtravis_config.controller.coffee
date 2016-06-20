@@ -118,11 +118,13 @@ class WorkerConfig extends Controller
             if self.$scope.new_worker.type
                 self.$scope.cfg.workers ?= []
                 name = "myslave" + (self.$scope.cfg.workers.length + 1).toString()
+                id = _.random(2 ** 32)
                 $scope.shows[name] = true
                 self.$scope.cfg.workers.push
                     name: name
                     type: self.$scope.new_worker.type
                     number: 1
+                    id: id
 
 
 
@@ -171,13 +173,3 @@ class AuthConfig extends Controller
                 GitLab: "http://docs.gitlab.com/ce/api/oauth2.html"
                 GitHub: "https://developer.github.com/v3/oauth/"
             }[type]
-        @$scope.worker_add = ->
-            if self.$scope.new_worker.type
-                self.$scope.cfg.workers ?= []
-                name = "myslave" + (self.$scope.cfg.workers.length + 1).toString()
-                id = _.random(2 ** 32)
-                $scope.shows[name] = true
-                self.$scope.cfg.workers.push
-                    name: name
-                    type: self.$scope.new_worker.type
-                    number: 1
