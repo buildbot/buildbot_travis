@@ -1,6 +1,7 @@
 import urlparse
 import os
 import uuid
+import traceback
 
 from buildbot.config import error as config_error
 
@@ -90,9 +91,14 @@ class TravisConfigurator(object):
                 config_error(
                     "'stages' values must be strings ; stage %s is incorrect: %s" % (s, type(s)))
 
-        PORT = int(os.environ.get('PORT', 8020))
+        PORT = int(os.environ.get('PORT', 8010))
         self.config['buildbotURL'] = os.environ.get(
             'buildbotURL', "http://localhost:%d/" % (PORT, ))
+
+        db_url = os.environ.get('BUILDBOT_DB_URL')
+        if db_url is not None:
+            self.config.setdefault('db', {'db_url': db_url})
+
         # minimalistic config to activate new web UI
         self.config['www'] = dict(port=PORT,
                                   change_hook_dialects=self.change_hook_dialects,
@@ -113,7 +119,11 @@ class TravisConfigurator(object):
     def execCustomCode(self, code, required_variables):
         l = {}
         # execute the code with empty global, and a given local context (that we return)
-        exec code in {}, l
+        try:
+            exec code in {}, l
+        except Exception:
+            config_error("custom code generated an exception {}:".format(traceback.format_exc()))
+            raise
         for n in required_variables:
             if n not in l:
                 config_error("custom code does not generate variable {}: {} {}".format(n, code, l))
@@ -214,8 +224,9 @@ class TravisConfigurator(object):
         return worker.LocalWorker(name)
 
     def createWorkerConfigDockerWorker(self, config, name):
-        return worker.DockerLatentWorker(name, uuid.uuid4(),
-                                         docker_host=config['docker_host'])
+        return worker.DockerLatentWorker(name, str(uuid.uuid4()),
+                                         docker_host=config['docker_host'], image=config['image'],
+                                         followStartupLogs=True)
 
     def createWorkerConfig(self):
         self.config.setdefault('workers', [])

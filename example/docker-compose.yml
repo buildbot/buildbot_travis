@@ -1,0 +1,25 @@
+version: '2'
+services:
+    postgres:
+        env_file: db.env
+        image: "postgres:9.4"
+        volumes:
+            - /var/lib/buildbot_db:/var/lib/postgresql/data
+        expose:
+            - 5432
+
+    buildbot:
+    # switch between local build and dockerhub image
+    #    build: ../
+        image: "buildbot/buildbot_travis"
+        env_file: db.env
+        ports:
+            - "8010:8010"
+        # for external non-docker workers, uncomment the following line
+            - "9989:9989"
+        expose:
+            - 9989
+        depends_on:
+            - postgres
+        volumes:
+            - /var/lib/buildbot_travis/:/var/lib/buildbot/

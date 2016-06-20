@@ -214,4 +214,5 @@ class TravisConfiguratorTestCase(unittest.TestCase, config.ConfigErrorsMixin):
         }
         self.c.createWorkerConfig()
         self.assertIsInstance(self.c.config['workers'][0], worker.DockerLatentWorker)
-        self.assertEqual(self.c.config['workers'][0].name, 'foo')
+        self.assertEqual(self.c.config['workers'][0].name, 'foo_1')
+        self.assertEqual(len(self.c.config['workers']), 10)

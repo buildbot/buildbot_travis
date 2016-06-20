@@ -77,7 +77,7 @@ class TravisMaster(RunMasterBase):
         self.assertEqual(build['steps'][0]['name'], 'git-buildbot_travis')
         self.assertEqual(build['steps'][1]['state_string'], 'triggered ' +
                          ", ".join(["buildbot_travis-job"] * 6))
-        self.assertIn({u'url': u'http://localhost:8020/#builders/1/builds/3',
+        self.assertIn({u'url': u'http://localhost:8010/#builders/1/builds/3',
                        u'name': u'success: buildbot_travis-job #3'},
                       build['steps'][1]['urls'])
         self.assertEqual(build['steps'][1]['logs'][0]['contents']['content'], travis_yml)
