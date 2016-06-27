@@ -1,0 +1,27 @@
+.container
+    .row
+        .alert.alert-danger(role="alert" ng-repeat="error in errors")
+            | {{ error }}
+    div(ng-if="!loading")
+        .row(ng-if="forbidden")
+            .panel.panel-danger
+                .panel-heading
+                    h3.panel-title
+                        | You shall not pass!
+                .panel-body
+                    You need admin rights to access administration panels
+        .row(ng-if="!forbidden")
+            .col-sm-12
+                .panel.panel-default
+                    .panel-heading
+                        h3.panel-title
+                            | {{ title }}
+                    .panel-body
+                        ng-transclude
+                    .panel-footer
+                        .btn.btn-default(ng-click="cancel()")
+                            | Dismiss changes
+                        .btn.btn-default.pull-right(ng-class="{disabled: hasInvalids() || saving}", ng-click="save()")
+                            i.fa.fa-check(ng-hide='saving')
+                            i.fa.fa-circle-o-notch.fa-spin(ng-show='saving')
+                            | &nbsp;Save

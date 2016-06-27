@@ -13,21 +13,29 @@ class _ConfigPage extends Controller
     self = null
     constructor: (@$scope, config, $state, $http) ->
         self = this
-        @$scope.cfg = angular.copy(config.plugins.buildbot_travis.cfg)
+        @$scope.loading = true
+        $http.get("buildbot_travis/api/config").then (travis_config) ->
+            travis_config = travis_config.data
+            self.$scope.loading = false
+            self.$scope.forbidden = false
+            self.$scope.original_cfg = travis_config
+            self.$scope.cfg = angular.copy(travis_config)
+            for p in self.$scope.cfg.projects
+                if p.branch
+                    p.branches = p.branch.split(" ")
+                    delete p.branch
+        , ->
+            self.$scope.loading = false
+            self.$scope.forbidden = true
         @$scope.buildbot_travis = config.plugins.buildbot_travis
         @$scope.errors = []
         @$scope.saving = false
-        for p in @$scope.cfg.projects
-            if p.branch
-                p.branches = p.branch.split(" ")
-                delete p.branch
         @$scope.save = ->
             self.$scope.$broadcast('show-errors-check-validity')
             if not self.$scope.hasInvalids()
-                config.plugins.buildbot_travis.cfg
-                config.plugins.buildbot_travis.cfg = angular.copy(self.$scope.cfg)
+                @$scope.original_cfg = angular.copy(self.$scope.cfg)
                 self.$scope.saving = true
-                $http.put("buildbot_travis/api/config", config.plugins.buildbot_travis.cfg).then (res) ->
+                $http.put("buildbot_travis/api/config", @$scope.original_cfg).then (res) ->
                     if res.data.success
                         location.reload(true)  # reload the application to take in account new builders
                     else
@@ -36,7 +44,7 @@ class _ConfigPage extends Controller
 
 
         @$scope.cancel = ->
-            @$scope.cfg = angular.copy(config.plugins.buildbot_travis.cfg)
+            @$scope.cfg = angular.copy(@$scope.original_cfg)
 
         @$scope.hasInvalids = ->
             hasInvalidInScope = (scope) ->

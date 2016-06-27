@@ -4,7 +4,7 @@ class InputTags extends Directive
             replace: false
             transclude: false
             restrict: 'E' # E: Element
-            scope: {allTags: '=', tags: '=', placeholder:"@"}
+            scope: {allTags: '=?', tags: '=', placeholder:"@"}
             templateUrl: 'buildbot_travis/views/input_tags.html'
             controller: '_InputTagsController'
         }
@@ -16,6 +16,7 @@ class _InputTags extends Controller
         self = this
         $scope.tags_model = []
         $scope.tags ?= []
+        $scope.allTags ?= -> []
         for t in $scope.tags
             if angular.isObject(t)
                 t = t.text

@@ -5,13 +5,15 @@ from buildbot.config import error as config_error
 
 # TBD use plugins!
 from buildbot.config import BuilderConfig
-from buildbot.schedulers.forcesched import StringParameter, CodebaseParameter
+from buildbot.schedulers.forcesched import StringParameter
 from buildbot.schedulers.triggerable import Triggerable
 from buildbot.worker import Worker
 from buildbot.worker import AbstractLatentWorker
 from buildbot.process import factory
 from buildbot.plugins import util
 from buildbot import getVersion
+from buildbot.www.authz.endpointmatchers import EndpointMatcherBase, Match
+from twisted.internet import defer
 from .important import ImportantManager
 from .vcs import addRepository, getSupportedVCSTypes
 from .steps import TravisSetupSteps
@@ -19,6 +21,19 @@ from .steps import TravisTrigger
 from yaml import safe_load
 
 import buildbot_travis
+
+
+class TravisEndpointMatcher(EndpointMatcherBase):
+
+    def __init__(self, **kwargs):
+        EndpointMatcherBase.__init__(self, **kwargs)
+
+    def match(self, ep, action="get", options=None):
+        print ep
+        if "/".join(ep).startswith("buildbot_travis/api/config"):
+            return defer.succeed(Match(self.master))
+        return defer.succeed(None)
+
 
 
 class TravisConfigurator(object):
@@ -80,9 +95,115 @@ class TravisConfigurator(object):
         # minimalistic config to activate new web UI
         self.config['www'] = dict(port=PORT,
                                   change_hook_dialects=self.change_hook_dialects,
-                                  plugins=dict(buildbot_travis={'cfg': self.cfgdict,
-                                                                'supported_vcs': getSupportedVCSTypes()}),
+                                  plugins=dict(buildbot_travis={
+                                      'supported_vcs': getSupportedVCSTypes()}),
                                   versions=[('buildbot_travis', getVersion(__file__))])
+        self.createAuthConfig()
+
+    def configAssertContains(self, cfg, names):
+        hasError = False
+        for n in names:
+            if n not in cfg:
+                config_error("auth requires parameter {} but only has {}".format(n, cfg))
+                hasError = True
+        return not hasError
+
+    def execCustomCode(self, code, required_variables):
+        l = {}
+        # execute the code with empty global, and a given local context (that we return)
+        exec code in {}, l
+        for n in required_variables:
+            if n not in l:
+                config_error("custom code does not generate variable {}: {} {}".format(n, code, l))
+
+        return l
+
+    def createAuthConfig(self):
+        if 'auth' not in self.cfgdict:
+            return
+        authcfg = self.cfgdict['auth']
+        if 'type' not in authcfg:
+            return
+
+        createAuthConfigMethod = 'createAuthConfig' + authcfg['type']
+
+        if not hasattr(self, createAuthConfigMethod):
+            config_error("auth type {} is not supported".format(authcfg['type']))
+            return
+
+        auth = getattr(self, createAuthConfigMethod)(authcfg)
+        if auth:
+            self.config['www']['auth'] = auth
+
+        if 'authztype' not in authcfg:
+            return
+
+        createAuthzConfigMethod = 'createAuthzConfig' + authcfg['authztype']
+        if not hasattr(self, createAuthzConfigMethod):
+            config_error("authz type {} is not supported".format(authcfg['authztype']))
+            return
+
+        authz = getattr(self, createAuthzConfigMethod)(authcfg)
+        if authz:
+            self.config['www']['authz'] = authz
+
+    def createAuthConfig_None(self, authcfg):
+        return None
+
+    def createAuthConfigGitHub(self, authcfg):
+        if not self.configAssertContains(authcfg, ['clientid', 'clientsecret']):
+            return None
+        return util.GitHubAuth(authcfg["clientid"], authcfg["clientsecret"])
+
+    def createAuthConfigGoogle(self, authcfg):
+        if not self.configAssertContains(authcfg, ['clientid', 'clientsecret']):
+            return None
+        return util.GoogleAuth(authcfg["clientid"], authcfg["clientsecret"])
+
+    def createAuthConfigGitLab(self, authcfg):
+        if not self.configAssertContains(authcfg, ['clientid', 'clientsecret', 'instanceUri']):
+            return None
+
+        return util.GitLabAuth(authcfg["instanceUri"], authcfg["clientid"], authcfg["clientsecret"])
+
+    def createAuthConfigCustom(self, authcfg):
+        if not self.configAssertContains(authcfg, ['customcode']):
+            return None
+
+        return self.execCustomCode(authcfg["customcode"], ['auth'])['auth']
+
+    def getDefaultAllowRules(self, admins):
+        epms = [
+            util.AnyEndpointMatcher(role=admin, defaultDeny=False)
+            for admin in admins]
+        epms += [
+            TravisEndpointMatcher(role=admin)
+            for admin in admins]
+        return epms + [
+            util.StopBuildEndpointMatcher(role="owner"),
+            util.RebuildBuildEndpointMatcher(role="owner"),
+        ]
+
+    def createAuthzConfigGroups(self, authcfg):
+        if not self.configAssertContains(authcfg, ['groups']):
+            return None
+
+        return util.Authz(self.getDefaultAllowRules(admins=authcfg['groups']),
+                          [util.RolesFromGroups(groupPrefix="")])
+
+    def createAuthzConfigEmails(self, authcfg):
+        if not self.configAssertContains(authcfg, ['emails']):
+            return None
+
+        return util.Authz(self.getDefaultAllowRules(admins=['admins']),
+                          [util.RolesFromEmails(role="admins", emails=authcfg['emails'])])
+
+    def createAuthzConfigCustom(self, authcfg):
+        if not self.configAssertContains(authcfg, ['customauthzcode']):
+            return None
+
+        cfg = self.execCustomCode(authcfg["customauthzcode"], ['allowRules', 'roleMatchers'])
+        return util.Authz(cfg['allowRules'], cfg['roleMatchers'])
 
     def fromDb(self):
         buildbot_travis.api.useDbConfig()
@@ -181,7 +302,7 @@ class TravisConfigurator(object):
         version = StringParameter(name='version', label='GIT tag',
                                   hide=False, required=False, size=20)
         stage = StringParameter(name='stage', label='Stage',
-                                hide=False, required=False,size=20)
+                                hide=False, required=False, size=20)
 
         dep_properties = [version, stage]
 

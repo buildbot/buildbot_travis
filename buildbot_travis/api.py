@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from buildbot import config
+from buildbot.www.authz import Forbidden
 from klein import Klein
 from twisted.internet import defer
 from twisted.internet import threads
@@ -56,13 +57,28 @@ class Api(object):
             yield self.ep.master.db.state.setState(oid, "travis", cfg)
 
     @app.route("/config", methods=['GET'])
+    @defer.inlineCallbacks
     def getConfig(self, request):
-        return json.dumps(self._cfg)
+        try:
+            yield self.ep.master.www.assertUserAllowed(request, tuple(request.postpath),
+                                                       'get', {})
+        except Forbidden:
+            request.setResponseCode(401)
+            defer.returnValue("FORBIDDEN")
+
+        request.setHeader('Content-Type', 'application/json')
+        defer.returnValue(json.dumps(self._cfg))
 
     @app.route("/config", methods=['PUT'])
     @defer.inlineCallbacks
     def saveConfig(self, request):
         """I save the config, and run check_config, potencially returning errors"""
+        try:
+            yield self.ep.master.www.assertUserAllowed(request, tuple(request.postpath),
+                                                       'put', {})
+        except Forbidden:
+            request.setResponseCode(401)
+            defer.returnValue("FORBIDDEN")
         request.setHeader('Content-Type', 'application/json')
         if self._in_progress:
             defer.returnValue(json.dumps({'success': False, 'errors': ['reconfig already in progress']}))
