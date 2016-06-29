@@ -1,5 +1,7 @@
 import urlparse
 import os
+import uuid
+import traceback
 
 from buildbot.config import error as config_error
 
@@ -8,9 +10,9 @@ from buildbot.config import BuilderConfig
 from buildbot.schedulers.forcesched import StringParameter
 from buildbot.schedulers.triggerable import Triggerable
 from buildbot.worker import Worker
-from buildbot.worker import AbstractLatentWorker
 from buildbot.process import factory
 from buildbot.plugins import util
+from buildbot.plugins import worker
 from buildbot import getVersion
 from buildbot.www.authz.endpointmatchers import EndpointMatcherBase, Match
 from twisted.internet import defer
@@ -19,6 +21,7 @@ from .vcs import addRepository, getSupportedVCSTypes
 from .steps import TravisSetupSteps
 from .steps import TravisTrigger
 from yaml import safe_load
+from buildbot.interfaces import ILatentWorker
 
 import buildbot_travis
 
@@ -35,13 +38,11 @@ class TravisEndpointMatcher(EndpointMatcherBase):
         return defer.succeed(None)
 
 
-
 class TravisConfigurator(object):
 
     def __init__(self, config, vardir, latentRunners=False):
         self.config = config
         self.vardir = vardir
-        self.latentRunners = latentRunners
         self.passwords = {}
         self.properties = {}
         self.repositories = {}
@@ -74,6 +75,7 @@ class TravisConfigurator(object):
     def fromDict(self, y):
         buildbot_travis.api.setCfg(y)
         self.cfgdict = y
+        self.createWorkerConfig()
         self.importantManager = ImportantManager(
             y.setdefault("not_important_files", []))
         self.defaultEnv = y.setdefault("env", {})
@@ -89,15 +91,21 @@ class TravisConfigurator(object):
                 config_error(
                     "'stages' values must be strings ; stage %s is incorrect: %s" % (s, type(s)))
 
-        PORT = int(os.environ.get('PORT', 8020))
+        PORT = int(os.environ.get('PORT', 8010))
         self.config['buildbotURL'] = os.environ.get(
             'buildbotURL', "http://localhost:%d/" % (PORT, ))
+
+        db_url = os.environ.get('BUILDBOT_DB_URL')
+        if db_url is not None:
+            self.config.setdefault('db', {'db_url': db_url})
+
         # minimalistic config to activate new web UI
         self.config['www'] = dict(port=PORT,
                                   change_hook_dialects=self.change_hook_dialects,
                                   plugins=dict(buildbot_travis={
                                       'supported_vcs': getSupportedVCSTypes()}),
                                   versions=[('buildbot_travis', getVersion(__file__))])
+        self.config.setdefault('protocols', {'pb': {'port': 9989}})
         self.createAuthConfig()
 
     def configAssertContains(self, cfg, names):
@@ -111,7 +119,11 @@ class TravisConfigurator(object):
     def execCustomCode(self, code, required_variables):
         l = {}
         # execute the code with empty global, and a given local context (that we return)
-        exec code in {}, l
+        try:
+            exec code in {}, l
+        except Exception:
+            config_error("custom code generated an exception {}:".format(traceback.format_exc()))
+            raise
         for n in required_variables:
             if n not in l:
                 config_error("custom code does not generate variable {}: {} {}".format(n, code, l))
@@ -132,9 +144,9 @@ class TravisConfigurator(object):
             return
 
         auth = getattr(self, createAuthConfigMethod)(authcfg)
-        if auth:
-            self.config['www']['auth'] = auth
-
+        if auth is None:
+            return
+        self.config['www']['auth'] = auth
         if 'authztype' not in authcfg:
             return
 
@@ -147,7 +159,7 @@ class TravisConfigurator(object):
         if authz:
             self.config['www']['authz'] = authz
 
-    def createAuthConfig_None(self, authcfg):
+    def createAuthConfigNone(self, authcfg):
         return None
 
     def createAuthConfigGitHub(self, authcfg):
@@ -205,23 +217,56 @@ class TravisConfigurator(object):
         cfg = self.execCustomCode(authcfg["customauthzcode"], ['allowRules', 'roleMatchers'])
         return util.Authz(cfg['allowRules'], cfg['roleMatchers'])
 
+    def createWorkerConfigWorker(self, config, name):
+        return worker.Worker(name, password=config['password'])
+
+    def createWorkerConfigLocalWorker(self, config, name):
+        return worker.LocalWorker(name)
+
+    def createWorkerConfigDockerWorker(self, config, name):
+        return worker.DockerLatentWorker(name, str(uuid.uuid4()),
+                                         docker_host=config['docker_host'], image=config['image'],
+                                         followStartupLogs=True)
+
+    def createWorkerConfig(self):
+        self.config.setdefault('workers', [])
+        if 'workers' not in self.cfgdict:
+            return
+        for _worker in self.cfgdict['workers']:
+            createWorkerConfigMethod = 'createWorkerConfig' + _worker['type']
+
+            if not hasattr(self, createWorkerConfigMethod):
+                config_error("_worker type {} is not supported".format(_worker['type']))
+                continue
+
+            for i in xrange(_worker.get('number', 1)):
+                name = _worker['name']
+                if _worker.get('number', 1) != 1:
+                    name = name + "_" + str(i + 1) # count one based
+                self.config['workers'].append(getattr(self, createWorkerConfigMethod)(_worker, name))
+
     def fromDb(self):
         buildbot_travis.api.useDbConfig()
         dbConfig = util.DbConfig(self.config, self.vardir)
         return self.fromDict(dbConfig.get("travis", {}))
 
+    def get_all_workers(self):
+        workers = [s.workername for s in self.config[
+            'workers']]
+        return workers
+
     def get_spawner_workers(self):
         workers = [s.workername for s in self.config[
-            'workers'] if isinstance(s, Worker)]
+            'workers'] if not ILatentWorker.providedBy(s)]
+        if not workers:
+            return self.get_all_workers()
         return workers
 
     def get_runner_workers(self):
-        if self.latentRunners:
-            WorkerClass = AbstractLatentWorker
-        else:
-            WorkerClass = Worker
         workers = [s.workername for s in self.config[
-            'workers'] if isinstance(s, WorkerClass)]
+            'workers'] if ILatentWorker.providedBy(s)]
+        if not workers:
+            return self.get_all_workers()
         return workers
 
     def define_travis_builder(self, name, repository, tags=None, **kwargs):

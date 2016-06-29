@@ -14,7 +14,6 @@ sandbox
 wheelhouse
 dist
 slave/
-master.cfg
 buildbot.tac
 cfg.yml
 run.sh

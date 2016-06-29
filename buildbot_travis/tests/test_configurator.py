@@ -4,6 +4,7 @@ from twisted.trial import unittest
 from buildbot_travis.configurator import TravisConfigurator
 from buildbot.test.util import config
 from buildbot.plugins import util
+from buildbot.plugins import worker
 
 
 class TravisConfiguratorTestCase(unittest.TestCase, config.ConfigErrorsMixin):
@@ -159,3 +160,59 @@ class TravisConfiguratorTestCase(unittest.TestCase, config.ConfigErrorsMixin):
         }
         self.c.createAuthConfig()
         self.assertIsInstance(self.c.config['www']['authz'], util.Authz)
+
+    def test_worker_worker(self):
+        self.c.cfgdict = {
+            'workers': [{
+                'type': 'Worker',
+                'name': 'foo',
+                'password': 'bar',
+                'number': 1
+            }]
+        }
+        self.c.createWorkerConfig()
+        self.assertIsInstance(self.c.config['workers'][0], worker.Worker)
+        self.assertEqual(self.c.config['workers'][0].name, 'foo')
+
+    def test_worker_2worker(self):
+        self.c.cfgdict = {
+            'workers': [{
+                'type': 'Worker',
+                'name': 'foo',
+                'password': 'bar',
+                'number': 2
+            }]
+        }
+        self.c.createWorkerConfig()
+        self.assertIsInstance(self.c.config['workers'][0], worker.Worker)
+        self.assertIsInstance(self.c.config['workers'][1], worker.Worker)
+        self.assertEqual(self.c.config['workers'][0].name, 'foo_1')
+        self.assertEqual(self.c.config['workers'][1].name, 'foo_2')
+        self.assertEqual(len(self.c.config['workers']), 2)
+
+    def test_worker_localworker(self):
+        self.c.cfgdict = {
+            'workers': [{
+                'type': 'LocalWorker',
+                'name': 'foo',
+                'number': 1
+            }]
+        }
+        self.c.createWorkerConfig()
+        self.assertIsInstance(self.c.config['workers'][0], worker.LocalWorker)
+        self.assertEqual(self.c.config['workers'][0].name, 'foo')
+
+    def test_worker_dockerworker(self):
+        self.c.cfgdict = {
+            'workers': [{
+                'type': 'DockerWorker',
+                'name': 'foo',
+                'number': 10,
+                'docker_host': 'tcp://foo:2193',
+                'image': 'slave'
+            }]
+        }
+        self.c.createWorkerConfig()
+        self.assertIsInstance(self.c.config['workers'][0], worker.DockerLatentWorker)
+        self.assertEqual(self.c.config['workers'][0].name, 'foo_1')
+        self.assertEqual(len(self.c.config['workers']), 10)

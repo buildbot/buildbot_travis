@@ -27,9 +27,17 @@ config-page
                         input.form-control(type="text", ng-model="worker.password", ng-init="change_me")
 
                 .form-group(ng-if="worker.type=='DockerWorker'")
+                    label.col-sm-2.control-label image name:
+                    .col-sm-10
+                        input.form-control(type="text", ng-model="worker.image", placeholder = "buildbot/worker-%{prop:language}")
+                .alert.alert-info(ng-if="worker.type=='DockerWorker'")
+                    b Note:&nbsp;
+                    | image name is interpolated with buildrequest properties
+
+                .form-group(ng-if="worker.type=='DockerWorker'")
                     label.col-sm-2.control-label Docker Host Url:
                     .col-sm-10
-                        input.form-control(type="text", ng-model="worker.docker_url", placeholder = "tcp://dockerhost:2375")
+                        input.form-control(type="text", ng-model="worker.docker_host", placeholder = "tcp://dockerhost:2375")
     .row
         .col-sm-12
             .input-group.filelist

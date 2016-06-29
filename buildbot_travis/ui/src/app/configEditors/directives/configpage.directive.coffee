@@ -33,9 +33,9 @@ class _ConfigPage extends Controller
         @$scope.save = ->
             self.$scope.$broadcast('show-errors-check-validity')
             if not self.$scope.hasInvalids()
-                @$scope.original_cfg = angular.copy(self.$scope.cfg)
+                self.$scope.original_cfg = angular.copy(self.$scope.cfg)
                 self.$scope.saving = true
-                $http.put("buildbot_travis/api/config", @$scope.original_cfg).then (res) ->
+                $http.put("buildbot_travis/api/config", self.$scope.original_cfg).then (res) ->
                     if res.data.success
                         location.reload(true)  # reload the application to take in account new builders
                     else

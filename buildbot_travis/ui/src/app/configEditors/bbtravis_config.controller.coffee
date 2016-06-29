@@ -118,11 +118,13 @@ class WorkerConfig extends Controller
             if self.$scope.new_worker.type
                 self.$scope.cfg.workers ?= []
                 name = "myslave" + (self.$scope.cfg.workers.length + 1).toString()
+                id = _.random(2 ** 32)
                 $scope.shows[name] = true
                 self.$scope.cfg.workers.push
                     name: name
                     type: self.$scope.new_worker.type
                     number: 1
+                    id: id
 
 
 
@@ -132,10 +134,12 @@ auth = util.UserPasswordAuth({"homer": "doh!"})
 """
 DEFAULT_CUSTOM_AUTHZCODE = """
 from buildbot.plugins import *
+from buildbot_travis.configurator import TravisEndpointMatcher
 allowRules=[
     util.StopBuildEndpointMatcher(role="admins"),
     util.ForceBuildEndpointMatcher(role="admins"),
-    util.RebuildBuildEndpointMatcher(role="admins)
+    util.RebuildBuildEndpointMatcher(role="admins"),
+    TravisEndpointMatcher(role="admins")
 ]
 roleMatchers=[
     util.RolesFromEmails(admins=["my@email.com"])
@@ -148,8 +152,9 @@ class AuthConfig extends Controller
         @$scope.title = "Authentication and Authorization"
         @$scope.auth = {}
         @$scope.$watch "cfg", (cfg) ->
-            cfg.auth ?= {type: "None"}
-            self.$scope.auth = cfg.auth
+            if cfg
+                cfg.auth ?= {type: "None"}
+                self.$scope.auth = cfg.auth
         @$scope.$watch "auth.type", (type) ->
             if type == "Custom" and not self.$scope.auth.customcode
                 self.$scope.auth.customcode = DEFAULT_CUSTOM_AUTHCODE
@@ -160,7 +165,6 @@ class AuthConfig extends Controller
                 self.$scope.auth.emails = []
             if type == "Custom" and not self.$scope.auth.customauthzcode
                 self.$scope.auth.customauthzcode = DEFAULT_CUSTOM_AUTHZCODE
-            console.log self.$scope.auth
         @$scope.isOAuth = ->
             return self.$scope.auth.type in [ "Google", "GitLab", "GitHub"]
         @$scope.getOAuthDoc = (type) ->
@@ -169,13 +173,3 @@ class AuthConfig extends Controller
                 GitLab: "http://docs.gitlab.com/ce/api/oauth2.html"
                 GitHub: "https://developer.github.com/v3/oauth/"
             }[type]
-        @$scope.worker_add = ->
-            if self.$scope.new_worker.type
-                self.$scope.cfg.workers ?= []
-                name = "myslave" + (self.$scope.cfg.workers.length + 1).toString()
-                id = _.random(2 ** 32)
-                $scope.shows[name] = true
-                self.$scope.cfg.workers.push
-                    name: name
-                    type: self.$scope.new_worker.type
-                    number: 1
