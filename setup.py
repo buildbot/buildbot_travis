@@ -23,6 +23,7 @@ setup_www_plugin(
             'git+poller = buildbot_travis.vcs.git:GitPoller',
             'gerrit = buildbot_travis.vcs.gerrit:Gerrit',
             'github = buildbot_travis.vcs.github:GitHub',
+            'gitpb = buildbot_travis.vcs.git:GitPb',
             # untested 'svn+poller = buildbot_travis.vcs.svn:SVNPoller',
             ],
         'buildbot.www': [
