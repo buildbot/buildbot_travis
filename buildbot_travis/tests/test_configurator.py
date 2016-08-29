@@ -1,10 +1,10 @@
 import textwrap
 
 from twisted.trial import unittest
-from buildbot_travis.configurator import TravisConfigurator
+
+from buildbot.plugins import util, worker
 from buildbot.test.util import config
-from buildbot.plugins import util
-from buildbot.plugins import worker
+from buildbot_travis.configurator import TravisConfigurator
 
 
 class TravisConfiguratorTestCase(unittest.TestCase, config.ConfigErrorsMixin):

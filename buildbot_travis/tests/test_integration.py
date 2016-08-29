@@ -14,14 +14,17 @@
 # Copyright Buildbot Team Members
 
 import os
+
+from twisted.internet import defer
+
+from buildbot.worker import Worker
+from buildbot.worker.local import LocalWorker as RemoteLocalBuildSlave
+
 try:
     from buildbot.test.util.integration import RunMasterBase
 except ImportError:
     # if buildbot installed with wheel, it does not include the test util :-(
     RunMasterBase = object
-from twisted.internet import defer
-from buildbot.worker import Worker
-from buildbot.worker.local import LocalWorker as RemoteLocalBuildSlave
 [RemoteLocalBuildSlave]
 
 # This integration test creates a master and slave environment,

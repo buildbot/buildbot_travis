@@ -14,16 +14,14 @@
 
 import fnmatch
 
-from .git import GitBase, ParsedGitUrl
-from buildbot.plugins import changes
-from buildbot.plugins import util
-from buildbot.plugins import schedulers
-from buildbot.steps.source.gerrit import Gerrit as GerritStep
-from buildbot.plugins import reporters
+from twisted.internet import defer
 
 from buildbot import config
-from twisted.internet import defer
+from buildbot.plugins import changes, reporters, schedulers, util
+from buildbot.steps.source.gerrit import Gerrit as GerritStep
 from buildbot.util import ComparableMixin
+
+from .git import GitBase, ParsedGitUrl
 
 
 class RepoMatcher(ComparableMixin):

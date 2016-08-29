@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .base import VCSBase, PollerMixin
+from urlparse import urlparse
+
 from buildbot.plugins import changes
 from buildbot.steps.source.git import Git
-from urlparse import urlparse
+
+from .base import PollerMixin, VCSBase
 
 
 class ParsedGitUrl(object):
@@ -37,11 +39,9 @@ class ParsedGitUrl(object):
 
 class GitBase(VCSBase):
 
-    def addRepository(self, factory, project=None, repository=None, branch=None, **kwargs):
-        branch = branch or "master"
+    def addRepository(self, factory, project=None, repository=None, branches=None, **kwargs):
         kwargs.update(dict(
             repourl=repository,
-            branch=branch,
             codebase=project,
             haltOnFailure=True,
             flunkOnFailure=True,

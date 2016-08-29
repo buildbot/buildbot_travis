@@ -12,14 +12,60 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import re
+import textwrap
+import traceback
 
 from twisted.internet import defer
-from buildbot.process.buildstep import SUCCESS
+
+from buildbot.process.buildstep import SUCCESS, LoggingBuildStep, ShellMixin
 from buildbot.steps import shell
 
-from .base import ConfigurableStep
 from ..travisyml import TRAVIS_HOOKS
+from .base import ConfigurableStep
+
+
+class SetupVirtualEnv(ShellMixin, LoggingBuildStep):
+    name = "setup virtualenv"
+
+    def __init__(self, python):
+        self.python = python
+        super(SetupVirtualEnv, self).__init__()
+
+    @defer.inlineCallbacks
+    def run(self):
+        command = self.buildCommand()
+        cmd = yield self.makeRemoteShellCommand(command=["bash", "-c", command])
+        yield self.runCommand(cmd)
+        self.setProperty("PATH", os.path.join(self.getProperty("builddir"), self.workdir, "sandbox/bin") +
+                         ":" +
+                         self.worker.worker_environ['PATH'])
+        defer.returnValue(cmd.results())
+
+    def buildCommand(self):
+        # set up self.command as a very long sh -c invocation
+        command = textwrap.dedent("""\
+        PYTHON='python{virtualenv_python}'
+        VE='sandbox'
+        VEPYTHON='sandbox/bin/python'
+
+        # first, set up the virtualenv if it hasn't already been done, or if it's
+        # broken (as sometimes happens when a slave's Python is updated)
+        if ! test -f "$VE/bin/pip" || ! test -d "$VE/lib/$PYTHON" || ! "$VE/bin/python" -c 'import math'; then
+            echo "Setting up virtualenv $VE";
+            rm -rf "$VE";
+            test -d "$VE" && {{ echo "$VE couldn't be removed"; exit 1; }};
+            virtualenv -p $PYTHON "$VE" || exit 1;
+        else
+            echo "Virtualenv already exists"
+        fi
+
+        echo "Upgrading pip";
+        $VE/bin/pip install -U pip
+
+        """).format(virtualenv_python=self.python)
+        return command
 
 
 class ShellCommand(shell.ShellCommand):
@@ -158,18 +204,39 @@ class TravisSetupSteps(ConfigurableStep):
     flunkOnFailure = True
     MAX_NAME_LENGTH = 50
 
-    def addShellCommand(self, name, command):
-        b = self.build
+    def addSetupVirtualEnv(self, python):
+        step = SetupVirtualEnv(python)
+        self.build.addStepsAfterLastStep([step])
 
+    def addShellCommand(self, command):
+        name = None
+        condition = None
+        if isinstance(command, dict):
+            name = command.get("title")
+            condition = command.get("condition")
+            command = command.get("cmd")
+        if name is None:
+            name = self.truncateName(command)
+        if condition is not None:
+            try:
+                if not self.testCondition(condition):
+                    return
+            except Exception:
+                self.descriptionDone = u"Problem parsing condition"
+                self.addCompleteLog(
+                    "condition error",
+                    traceback.format_exc())
+                return
         step = ShellCommand(
             name=name,
             description=command,
-            command=['/bin/bash', '-c', command],
+            command=['bash', '-c', command]
         )
+        self.build.addStepsAfterLastStep([step])
 
-        step.setBuild(b)
-        step.setWorker(b.workerforbuilder.worker)
-        b.steps.append(step)
+    def testCondition(self, condition):
+        l = dict((k, v) for k, (v, s) in self.build.getProperties().properties.items())
+        return eval(condition, l)
 
     def truncateName(self, name):
         name = name.lstrip("#")
@@ -182,11 +249,11 @@ class TravisSetupSteps(ConfigurableStep):
     @defer.inlineCallbacks
     def run(self):
         config = yield self.getStepConfig()
-
+        if 'python' in config.language:
+            self.addSetupVirtualEnv(self.getProperty("python"))
         for k in TRAVIS_HOOKS:
             for command in getattr(config, k):
                 self.addShellCommand(
-                    name=self.truncateName(command),
                     command=command,
                 )
 
