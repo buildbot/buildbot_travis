@@ -102,14 +102,14 @@ class WorkerConfig extends Controller
         self = this
         @$scope.title = "Workers"
         @$scope.new_worker = type: "Worker"
-        $scope.shows = {}
+        @$scope.shows = {}
 
-        $scope.toggle_show = (i) ->
-            $scope.shows[i] ?= false
-            $scope.shows[i] = !$scope.shows[i]
+        @$scope.toggle_show = (i) ->
+            self.$scope.shows[i] ?= false
+            self.$scope.shows[i] = !self.$scope.shows[i]
 
-        $scope.is_shown = (i) ->
-            return $scope.shows[i]
+        @$scope.is_shown = (i) ->
+            return self.$scope.shows[i]
 
         @$scope.worker_remove = (worker) ->
             _.remove self.$scope.cfg.workers, (i) -> i == worker
@@ -119,7 +119,7 @@ class WorkerConfig extends Controller
                 self.$scope.cfg.workers ?= []
                 name = "myslave" + (self.$scope.cfg.workers.length + 1).toString()
                 id = _.random(2 ** 32)
-                $scope.shows[name] = true
+                self.$scope.shows[name] = true
                 self.$scope.cfg.workers.push
                     name: name
                     type: self.$scope.new_worker.type
