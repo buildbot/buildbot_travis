@@ -17,27 +17,52 @@ config-page
                         .pull-right.btn.btn-danger(ng-click="worker_remove(worker)")
                             | delete worker
                 .form-group
-                    label.col-sm-2.control-label number of workers:
+                    label.col-sm-2.control-label Number of workers:
                     .col-sm-10
                         input.form-control(type="number", ng-model="worker.number")
 
                 .form-group(ng-if="worker.type=='Worker'")
-                    label.col-sm-2.control-label password for the workers:
+                    label.col-sm-2.control-label Password for the workers:
                     .col-sm-10
                         input.form-control(type="text", ng-model="worker.password", ng-init="change_me")
-
-                .form-group(ng-if="worker.type=='DockerWorker'")
-                    label.col-sm-2.control-label image name:
-                    .col-sm-10
-                        input.form-control(type="text", ng-model="worker.image", placeholder = "buildbot/worker-%{prop:language}")
-                .alert.alert-info(ng-if="worker.type=='DockerWorker'")
-                    b Note:&nbsp;
-                    | image name is interpolated with buildrequest properties
+                div(ng-if="worker.type=='HyperWorker'")
+                    .form-group
+                        label.col-sm-2.control-label Hyper Host Url:
+                        .col-sm-10
+                            input.form-control(type="text", ng-model="worker.hyper_host", placeholder = "tcp://us-west-1.hyper.sh:443")
+                    .form-group
+                        label.col-sm-2.control-label MasterFQDN:
+                        .col-sm-10
+                            input.form-control(type="text", ng-model="worker.masterFQDN", placeholder = "IP or dns of the master, leave empty for autodetection")
+                    .form-group
+                        label.col-sm-2.control-label Accesskey:
+                        .col-sm-10
+                            input.form-control(type="text", ng-model="worker.hyper_accesskey")
+                    .form-group
+                        label.col-sm-2.control-label Secretkey:
+                        .col-sm-10
+                            input.form-control(type="text", ng-model="worker.hyper_secretkey")
+                    .form-group
+                        label.col-sm-2.control-label
+                            a(href='https://www.hyper.sh/pricing.html')  Worker Size
+                            | &nbsp;:
+                        .col-sm-2
+                            select.form-control(ng-model="worker.size")
+                                option(value="{{s}}" ng-repeat="s in 's1 s2 s3 s4 m1 m2 m3 l1 l2 l3'.split(' ')") {{s}}
+                div(ng-if="worker.type=='DockerWorker' || worker.type=='HyperWorker'")
+                    .form-group
+                        label.col-sm-2.control-label image name:
+                        .col-sm-10
+                            input.form-control(type="text", ng-model="worker.image", placeholder = "buildbot/worker-%{prop:language}")
+                    .alert.alert-info
+                        b Note:&nbsp;
+                        | image name is interpolated with buildrequest properties
 
                 .form-group(ng-if="worker.type=='DockerWorker'")
                     label.col-sm-2.control-label Docker Host Url:
                     .col-sm-10
                         input.form-control(type="text", ng-model="worker.docker_host", placeholder = "tcp://dockerhost:2375")
+
     .row
         .col-sm-12
             .input-group.filelist
@@ -45,5 +70,6 @@ config-page
                     option(value="LocalWorker") LocalWorker (a worker running on the master host)
                     option(value="Worker") Worker (a worker running on another host)
                     option(value="DockerWorker") DockerWorker (a worker spawn on demand on a docker host)
+                    option(value="HyperWorker") HyperWorker (a worker spawn on demand on a hyper caas)
                 .input-group-btn
                     .btn.btn-default(ng-click="worker_add()") +
