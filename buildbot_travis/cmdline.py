@@ -1,14 +1,17 @@
 import argparse
-from travisyml import TravisYml, TRAVIS_HOOKS
+import os
 import subprocess
+
+from travisyml import TRAVIS_HOOKS, TravisYml
 
 
 def loadTravisYml():
     yml = TravisYml()
-
-    with open(".travis.yml") as f:
-        yml.parse(f.read())
-
+    for filename in [".bbtravis.yml", ".travis.yml"]:
+        if os.path.exists(filename):
+            with open(filename) as f:
+                yml.parse(f.read())
+            break
     return yml
 
 
@@ -17,7 +20,7 @@ def run(args):
 
     for env in config.matrix:
         script = "set -v; set -e\n"
-        final_env = {}
+        final_env = {"TRAVIS_PULL_REQUEST": 1}
         for k, v in env.items():
             if k == "env":
                 final_env.update(v)
@@ -27,18 +30,34 @@ def run(args):
         for k, v in final_env.items():
             script += "export %s='%s'\n" % (k, v)
 
-        for k in TRAVIS_HOOKS:
-            script += "# " + k + "\n"
-            for command in getattr(config, k):
-                script += command + "\n"
+
         print "running matrix", matrix
-        subprocess.call(["bash", "-c", script])
+        print "========================"
+        for k in TRAVIS_HOOKS:
+            print "running hook", k
+            print "--------------------"
+            for command in getattr(config, k):
+                title = None
+                condition = None
+                if isinstance(command, dict):
+                    title = command.get("title")
+                    condition = command.get("condition")
+                    command = command['cmd']
+                if title:
+                    print "title:", title
+                if condition and not eval(condition, final_env):
+                    print "not run because of", condition
+                    continue
+                print command
+                if not args.dryrun:
+                    subprocess.checkcall(["bash", "-c", script + "\n" + command])
 
 
 def bbtravis():
     parser = argparse.ArgumentParser(description='Travis commandline')
     subparsers = parser.add_subparsers()
     parser_run = subparsers.add_parser('run', help='run a travis rc')
+    parser_run.add_argument('--dryrun', '-n', action='store_true')
     parser_run.set_defaults(func=run)
     args = parser.parse_args()
     args.func(args)

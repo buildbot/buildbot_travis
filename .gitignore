@@ -1,5 +1,7 @@
+build/
 *.pyc
 _trial_temp/
+_trial_temp.lock
 bin/
 buildbot_travis.egg-info/
 distribute-*.tar.gz
@@ -26,4 +28,3 @@ pollers/
 *-try/
 *-deploy/
 *.sample
-

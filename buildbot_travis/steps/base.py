@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from buildbot.process import buildstep
-from buildbot.steps.worker import CompositeStepMixin
 from twisted.internet import defer
 
-from ..travisyml import TravisYml
-from ..travisyml import TravisYmlInvalid
+from buildbot.process import buildstep
+from buildbot.steps.worker import CompositeStepMixin
+
+from ..travisyml import TravisYml, TravisYmlInvalid
+
 
 HOW_TO_DEBUG = """
 In order to help you debug, you can install the bbtravis tool:
@@ -46,16 +47,23 @@ class ConfigurableStepMixin(CompositeStepMixin):
 
     @defer.inlineCallbacks
     def getStepConfig(self):
-        try:
-            travis_yml = yield self.getFileContentFromWorker(".travis.yml", abandonOnFailure=True)
-        except buildstep.BuildStepFailed as e:
-                self.descriptionDone = u"unable to fetch .travis.yml"
-                self.addCompleteLog(
-                    "error",
-                    "Please put a file named .travis.yml at the root of your repository:\n{0}".format(e))
-                self.addHelpLog()
-                raise
-        self.addCompleteLog(".travis.yml", travis_yml)
+        travis_yml = None
+        for filename in [".bbtravis.yml", ".travis.yml"]:
+            try:
+                travis_yml = yield self.getFileContentFromWorker(filename, abandonOnFailure=True)
+                break
+            except buildstep.BuildStepFailed as e:
+                continue
+
+        if travis_yml is None:
+            self.descriptionDone = u"unable to fetch .travis.yml"
+            self.addCompleteLog(
+                "error",
+                "Please put a file named .travis.yml at the root of your repository:\n{0}".format(e))
+            self.addHelpLog()
+            raise
+
+        self.addCompleteLog(filename, travis_yml)
 
         config = TravisYml()
         try:

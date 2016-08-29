@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import re
+
 from yaml import safe_load
 
 TRAVIS_HOOKS = ("before_install", "install", "after_install",
@@ -139,13 +140,13 @@ class TravisYml(object):
 
         cfg = self.config.get("matrix", {})
 
-        for env in cfg.get("exclude", []):
+        for env in cfg.get("exclude") or []:
             matchee = env.copy()
             matchee['env'] = parse_env_string(matchee.get('env', ''))
             if matchee in matrix:
                 matrix.remove(matchee)
 
-        for env in cfg.get("include", []):
+        for env in cfg.get("include") or []:
             e = env.copy()
             e['env'] = parse_env_string(e.get('env', ''))
             matrix.append(e)
