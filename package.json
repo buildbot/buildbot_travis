@@ -1,7 +1,8 @@
 {
    "version" : "0.1.0",
    "devDependencies" : {
-      "guanlecoja" : "0.3.5"
+      "guanlecoja" : "~0.7.0",
+      "gulp": "~3.9.0"
    },
    "name" : "buildbot_travis",
    "dependencies" : {}
