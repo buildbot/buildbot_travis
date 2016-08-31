@@ -38,6 +38,7 @@ setup_www_plugin(
         'buildbot-www',
         'buildbot-slave',
         'klein',
+        'urwid',
         'PyYAML',
     ],
 )
