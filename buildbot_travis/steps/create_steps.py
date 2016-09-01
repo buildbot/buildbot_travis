@@ -28,6 +28,7 @@ from .base import ConfigurableStep
 
 class SetupVirtualEnv(ShellMixin, LoggingBuildStep):
     name = "setup virtualenv"
+    sandboxname = "sandbox"
 
     def __init__(self, python):
         self.python = python
@@ -36,10 +37,11 @@ class SetupVirtualEnv(ShellMixin, LoggingBuildStep):
     @defer.inlineCallbacks
     def run(self):
         command = self.buildCommand()
-        cmd = yield self.makeRemoteShellCommand(command=["bash", "-c", command])
+        cmd = yield self.makeRemoteShellCommand(
+            command=["bash", "-c", command])
         yield self.runCommand(cmd)
-        self.setProperty("PATH", os.path.join(self.getProperty("builddir"), self.workdir, "sandbox/bin") +
-                         ":" +
+        self.setProperty("PATH", os.path.join(
+            self.getProperty("builddir"), self.workdir, "sandbox/bin") + ":" +
                          self.worker.worker_environ['PATH'])
         defer.returnValue(cmd.results())
 
@@ -47,8 +49,8 @@ class SetupVirtualEnv(ShellMixin, LoggingBuildStep):
         # set up self.command as a very long sh -c invocation
         command = textwrap.dedent("""\
         PYTHON='python{virtualenv_python}'
-        VE='sandbox'
-        VEPYTHON='sandbox/bin/python'
+        VE='{sandboxname}'
+        VEPYTHON='{sandboxname}/bin/python'
 
         # first, set up the virtualenv if it hasn't already been done, or if it's
         # broken (as sometimes happens when a slave's Python is updated)
@@ -64,7 +66,8 @@ class SetupVirtualEnv(ShellMixin, LoggingBuildStep):
         echo "Upgrading pip";
         $VE/bin/pip install -U pip
 
-        """).format(virtualenv_python=self.python)
+        """).format(
+            virtualenv_python=self.python, sandboxname=self.sandboxname)
         return command
 
 
@@ -118,7 +121,8 @@ class ShellCommand(shell.ShellCommand):
 
         if not hastests:
             outputs = re.findall(
-                "Ran (?P<count>[\d]+) tests with (?P<fail>[\d]+) failures and (?P<error>[\d]+) errors", stdio)
+                "Ran (?P<count>[\d]+) tests with (?P<fail>[\d]+) failures and (?P<error>[\d]+) errors",
+                stdio)
             for output in outputs:
                 total += int(output[0])
                 fails += int(output[1])
@@ -145,7 +149,8 @@ class ShellCommand(shell.ShellCommand):
 
                     if "successes" not in data:
                         total = 0
-                        for number in re.findall("Ran (?P<count>[\d]+) tests in ", stdio):
+                        for number in re.findall(
+                                "Ran (?P<count>[\d]+) tests in ", stdio):
                             total += int(number)
                         data["successes"] = total - sum(data.values())
 
@@ -158,8 +163,10 @@ class ShellCommand(shell.ShellCommand):
 
         if not hastests:
             fails += len(re.findall('FAIL:', stdio))
-            errors += len(re.findall(
-                '======================================================================\nERROR:', stdio))
+            errors += len(
+                re.findall(
+                    '======================================================================\nERROR:',
+                    stdio))
             for number in re.findall("Ran (?P<count>[\d]+)", stdio):
                 total += int(number)
                 hastests = True
@@ -182,6 +189,7 @@ class ShellCommand(shell.ShellCommand):
         description = shell.ShellCommand.describe(self, done)
 
         if done and self.hasStatistic('total'):
+
             def append(stat, fmtstring):
                 val = self.getStatistic(stat, 0)
                 if val:
@@ -223,19 +231,16 @@ class TravisSetupSteps(ConfigurableStep):
                     return
             except Exception:
                 self.descriptionDone = u"Problem parsing condition"
-                self.addCompleteLog(
-                    "condition error",
-                    traceback.format_exc())
+                self.addCompleteLog("condition error", traceback.format_exc())
                 return
         step = ShellCommand(
-            name=name,
-            description=command,
-            command=['bash', '-c', command]
-        )
+            name=name, description=command, command=['bash', '-c', command])
         self.build.addStepsAfterLastStep([step])
 
     def testCondition(self, condition):
-        l = dict((k, v) for k, (v, s) in self.build.getProperties().properties.items())
+        l = dict(
+            (k, v)
+            for k, (v, s) in self.build.getProperties().properties.items())
         return eval(condition, l)
 
     def truncateName(self, name):
@@ -253,8 +258,6 @@ class TravisSetupSteps(ConfigurableStep):
             self.addSetupVirtualEnv(self.getProperty("python"))
         for k in TRAVIS_HOOKS:
             for command in getattr(config, k):
-                self.addShellCommand(
-                    command=command,
-                )
+                self.addShellCommand(command=command, )
 
         defer.returnValue(SUCCESS)

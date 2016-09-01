@@ -245,6 +245,23 @@ The basic behaviour is:
    XXX: this needs to be adapted for nine
 
 
+CommandLine
+===========
+``buildbot_travis`` package comes with a ``bbtravis`` command line utility.
+
+This utility is useful to test travis.yml locally without pushing it to the CI.
+It allows to test either the travis.yml and the docker image used to run the workers.
+It allows to run only the part of the matrix that you are working on
+
+Example::
+
+    bbtravis run -d tardyp/metabbotcfg  -j8 TESTS=trial TWISTED=latest
+
+This will run the resulting tests in parallel using docker image tagged tardyp/metabbotcfg and will filter only the matrix environment with TESTS=='trial' and TWISTED=='latest'
+
+UI is using urwid console UI framework, and will split the terminal into several terminal showing each matrix run.
+You can scroll using mouse wheel, and click to zoom and get more details.
+
 TODO
 ====
 

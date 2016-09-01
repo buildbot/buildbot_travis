@@ -16,8 +16,8 @@ import re
 
 from yaml import safe_load
 
-TRAVIS_HOOKS = ("before_install", "install", "after_install",
-                "before_script", "script", "after_script")
+TRAVIS_HOOKS = ("before_install", "install", "after_install", "before_script",
+                "script", "after_script")
 
 
 class TravisYmlInvalid(Exception):
@@ -40,7 +40,6 @@ def parse_env_string(env, global_env=None):
 
 
 class TravisYml(object):
-
     """
     Loads a .travis.yml file and parses it.
     """
@@ -94,7 +93,9 @@ class TravisYml(object):
             for e in env.get('global', []):
                 global_env.update(parse_env_string(e))
             self.environments = [
-                parse_env_string(e, global_env) for e in env.get('matrix', [''])]
+                parse_env_string(e, global_env)
+                for e in env.get('matrix', [''])
+            ]
         else:
             raise TravisYmlInvalid("'env' parameter is invalid")
 
@@ -129,14 +130,15 @@ class TravisYml(object):
 
     def parse_matrix(self):
         matrix = []
-
+        python = self.config.get("python", ["python2.6"])
+        if not isinstance(python, list):
+            python = [python]
         # First of all, build the implicit matrix
-        for lang in self.config.get("python", ["python2.6"]):
+        for lang in python:
             for env in self.environments:
                 matrix.append(dict(
                     python=lang,
-                    env=env,
-                ))
+                    env=env, ))
 
         cfg = self.config.get("matrix", {})
 
@@ -190,17 +192,16 @@ class _NotificationsMixin(object):
     def parse_failure_success(self, settings):
         self.success = settings.get("on_success", self.success)
         if self.success not in ("always", "never", "change"):
-            raise TravisYmlInvalid(
-                "Invalid value '%s' for on_success" % self.success)
+            raise TravisYmlInvalid("Invalid value '%s' for on_success" %
+                                   self.success)
 
         self.failure = settings.get("on_failure", self.failure)
         if self.failure not in ("always", "never", "change"):
-            raise TravisYmlInvalid(
-                "Invalid value '%s' for on_failure" % self.failure)
+            raise TravisYmlInvalid("Invalid value '%s' for on_failure" %
+                                   self.failure)
 
 
 class TravisYmlEmail(_NotificationsMixin):
-
     def __init__(self):
         self.enabled = True
         self.addresses = []
@@ -226,7 +227,6 @@ class TravisYmlEmail(_NotificationsMixin):
 
 
 class TravisYmlIrc(_NotificationsMixin):
-
     def __init__(self):
         self.enabled = False
         self.channels = []
