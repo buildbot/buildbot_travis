@@ -1,29 +1,26 @@
-import urlparse
 import os
-import uuid
 import traceback
+import urlparse
+import uuid
 
-from buildbot.config import error as config_error
-
-# TBD use plugins!
-from buildbot.config import BuilderConfig
-from buildbot.schedulers.forcesched import StringParameter
-from buildbot.schedulers.triggerable import Triggerable
-from buildbot.worker import Worker
-from buildbot.process import factory
-from buildbot.plugins import util
-from buildbot.plugins import worker
-from buildbot import getVersion
-from buildbot.www.authz.endpointmatchers import EndpointMatcherBase, Match
 from twisted.internet import defer
-from .important import ImportantManager
-from .vcs import addRepository, getSupportedVCSTypes
-from .steps import TravisSetupSteps
-from .steps import TravisTrigger
 from yaml import safe_load
-from buildbot.interfaces import ILatentWorker
 
 import buildbot_travis
+from buildbot import getVersion
+from buildbot.config import error as config_error
+# TBD use plugins!
+from buildbot.config import BuilderConfig
+from buildbot.interfaces import ILatentWorker
+from buildbot.plugins import util, worker
+from buildbot.process import factory
+from buildbot.schedulers.forcesched import StringParameter
+from buildbot.schedulers.triggerable import Triggerable
+from buildbot.www.authz.endpointmatchers import EndpointMatcherBase, Match
+
+from .important import ImportantManager
+from .steps import TravisSetupSteps, TravisTrigger
+from .vcs import addRepository, getSupportedVCSTypes
 
 
 class TravisEndpointMatcher(EndpointMatcherBase):
@@ -227,6 +224,13 @@ class TravisConfigurator(object):
         return worker.DockerLatentWorker(name, str(uuid.uuid4()),
                                          docker_host=config['docker_host'], image=config['image'],
                                          followStartupLogs=True)
+
+    def createWorkerConfigHyperWorker(self, config, name):
+        return worker.HyperLatentWorker(
+            name, str(uuid.uuid4()),
+            hyper_host=config['hyper_host'], image=config['image'],
+            hyper_accesskey=config['hyper_accesskey'], hyper_secretkey=config['hyper_secretkey'],
+            masterFQDN=config.get('masterFQDN'), hyper_size=config.get('size'))
 
     def createWorkerConfig(self):
         self.config.setdefault('workers', [])

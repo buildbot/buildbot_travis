@@ -17,7 +17,6 @@ wheelhouse
 dist
 slave/
 buildbot.tac
-cfg.yml
 run.sh
 *.log
 *.pid

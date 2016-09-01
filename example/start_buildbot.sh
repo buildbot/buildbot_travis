@@ -2,9 +2,10 @@
 B=`pwd`
 if [ ! -f $B/buildbot.tac ]
 then
-    buildbot create-master --db="postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@postgres/$POSTGRES_DB" $B
-    mv /usr/src/buildbot_travis/example/master.cfg $B/master.cfg
+    buildbot create-master $B
+    cp /usr/src/buildbot_travis/example/master.cfg $B/master.cfg
     cp /usr/src/buildbot_travis/example/buildbot.tac $B
+    cp /usr/src/buildbot_travis/example/cfg.yml $B
 
     echo
     echo buildbot is now setup on the docker host in /var/lib/buildbot
