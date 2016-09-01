@@ -86,6 +86,7 @@ class MyTerminal(urwid.Terminal):
 
     def __init__(self):
         urwid.Terminal.__init__(self, None)
+        self.original_top = None
 
     def spawn(self):
         self.pid = 'foo'
@@ -107,6 +108,13 @@ class MyTerminal(urwid.Terminal):
                 reactor.callFromThread(reactor.stop)
 
     def mouse_event(self, size, event, button, col, row, focus):
+        if button == 1:
+            if self.original_top:
+                self.loop.widget = self.original_top
+                self.original_top = None
+            else:
+                self.original_top = self.loop.widget
+                self.loop.widget = self
         if button == 4:
             self.term.scroll_buffer(up=True)
         if button == 5:
@@ -120,8 +128,9 @@ class Ui(object):
         self.maxwindow = maxwindow
         self.windows = []
         self.widgets = []
-        columns = [[]
-                   for i in xrange(int(math.floor(math.sqrt(maxwindow - 1))))]
+        numcolumns = int(math.floor(math.sqrt(maxwindow - 1)))
+        numcolumns = 2
+        columns = [[] for i in xrange(numcolumns)]
         for i in xrange(maxwindow):
             window = MyTerminal()
             self.windows.append(window)
@@ -131,6 +140,9 @@ class Ui(object):
         self.top = urwid.Columns(columns)
         evl = urwid.TwistedEventLoop(manage_reactor=True)
         self.loop = urwid.MainLoop(self.top, event_loop=evl)
+        # now that the loop is there, we inform the terminals
+        for window in self.windows:
+            window.loop = self.loop
         self.lock = Lock()
         self.curwindow = 0
         self.redrawing = False
