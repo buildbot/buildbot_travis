@@ -4,7 +4,9 @@ import argparse
 import hashlib
 import math
 import os
-from subprocess import PIPE, STDOUT, Popen, check_output
+import re
+import readline
+from subprocess import PIPE, STDOUT, Popen
 from threading import Lock
 
 from twisted.internet import reactor
@@ -13,6 +15,8 @@ from twisted.internet.threads import deferToThread
 import urwid
 from buildbot_travis.steps.create_steps import SetupVirtualEnv
 from buildbot_travis.travisyml import TRAVIS_HOOKS, TravisYml
+
+[readline]  # is imported for side effect (i.e get decent raw_input)
 
 
 def loadTravisYml():
@@ -174,19 +178,53 @@ class Ui(object):
         self.redrawing = False
 
 
+def filter_config(config, args):
+    if not args.filters:
+        return
+    new_matrix = []
+    for env in config.matrix:
+        final_env = flatten_env(env)
+        for f in args.filters:
+            k, op, v = f
+            res = False
+            if k in final_env:
+                if op == '==' or op == '=':
+                    res = str(final_env[k]) == v
+                if op == '!=':
+                    res = str(final_env[k]) != v
+            if res:
+                new_matrix.append(env)
+    config.matrix = new_matrix
+
+
+def flatten_env(env):
+    flatten_env = {}
+    for k, v in env.items():
+        if k == "env":
+            flatten_env.update(v)
+        else:
+            flatten_env[k] = v
+    return flatten_env
+
+
 def run(args):
     config = loadTravisYml()
+    filter_config(config, args)
+    all_configs = ""
+    for env in config.matrix:
+        all_configs += " ".join(
+            ["%s=%s" % (k, v) for k, v in flatten_env(env).items()]) + "\n"
+    print("will run:\n" + all_configs)
+    res = raw_input("OK? [Y/n]")
+    if res.lower()[:1] == "n":
+        return
     ui = Ui(len(config.matrix))
 
     def runOneEnv(env):
         results = 0
         script = "set -v; set -e\n"
         final_env = {"TRAVIS_PULL_REQUEST": 1}
-        for k, v in env.items():
-            if k == "env":
-                final_env.update(v)
-            else:
-                final_env[k] = v
+        final_env.update(flatten_env(env))
         matrix = " ".join(["%s=%s" % (k, v) for k, v in final_env.items()])
         window = ui.registerWindow(matrix)
 
@@ -255,6 +293,16 @@ def run(args):
     ui.loop.run()
 
 
+filter_re = re.compile("([A-Z0-9_]+)(!?=)(.*)")
+
+
+def parse_filter(f):
+    res = filter_re.match(f)
+    if not res:
+        raise ValueError("{} is not a correct filter".format(f))
+    return res.group(1), res.group(2), res.group(3)
+
+
 def bbtravis():
     parser = argparse.ArgumentParser(description='Travis commandline')
     subparsers = parser.add_subparsers()
@@ -267,7 +315,7 @@ def bbtravis():
         type=int,
         default=1,
         dest="num_threads",
-        help="run in parallel (only for docker runs)")
+        help="run in parallel")
     parser_run.add_argument(
         '--docker-image',
         '-d',
@@ -276,8 +324,15 @@ def bbtravis():
     parser_run.add_argument(
         '--docker-workdir',
         default="/buildbot",
-        help="workdir inside docker container where to run (will map current directory, and cd here to run commands)",
+        help="workdir inside docker container where to run" +
+        "(will map current directory, and cd here to run commands)",
         dest="docker_pwd")
+    parser_run.add_argument(
+        'filters',
+        type=parse_filter,
+        nargs='*',
+        metavar="VAR=foo",
+        help="filter matrix (supported operators: '=', '==', '!=')")
     parser_run.set_defaults(func=run)
     args = parser.parse_args()
     args.func(args)
