@@ -132,13 +132,13 @@ class Ui(object):
         self.maxwindow = maxwindow
         self.windows = []
         self.widgets = []
-        numcolumns = int(math.floor(math.sqrt(maxwindow - 1)))
-        numcolumns = 2
+        numcolumns = min(maxwindow, 2)
         columns = [[] for i in xrange(numcolumns)]
         for i in xrange(maxwindow):
             window = MyTerminal()
             self.windows.append(window)
-            widget = urwid.LineBox(window)
+            widget = urwid.Frame(urwid.LineBox(window))
+            self.widgets.append(widget)
             columns[i % len(columns)].append(widget)
         columns = [urwid.Pile(x) for x in columns]
         self.top = urwid.Columns(columns)
@@ -155,8 +155,7 @@ class Ui(object):
         with self.lock:
             n = self.curwindow
             self.curwindow += 1
-            output_widget = self.windows[n]
-            output_widget.set_title(title)
+            self.widgets[n].contents['header'] = (urwid.Text(title), None)
         self.redraw()
         return n
 
@@ -192,8 +191,10 @@ def filter_config(config, args):
                     res = str(final_env[k]) == v
                 if op == '!=':
                     res = str(final_env[k]) != v
-            if res:
-                new_matrix.append(env)
+            if not res:
+                break
+        if res:
+            new_matrix.append(env)
     config.matrix = new_matrix
 
 
@@ -210,11 +211,16 @@ def flatten_env(env):
 def run(args):
     config = loadTravisYml()
     filter_config(config, args)
+    if not config.matrix:
+        print("nothing in matrix (everything filtered?)")
+        return
     all_configs = ""
     for env in config.matrix:
         all_configs += " ".join(
             ["%s=%s" % (k, v) for k, v in flatten_env(env).items()]) + "\n"
     print("will run:\n" + all_configs)
+    print(
+        "Once running: Hit 'esc' to quit. Use mouse scroll wheel to scroll buffer. Use mouse click to zoom/unzoom")
     res = raw_input("OK? [Y/n]")
     if res.lower()[:1] == "n":
         return
