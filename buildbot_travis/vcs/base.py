@@ -103,28 +103,46 @@ class VCSBase(object):
                                     )
         return codebases_params
 
-    def setupSchedulers(self, _schedulers, spawner_name, try_name, deploy_name, importantManager, codebases, dep_properties):
+    def getPushChangeFilter(self):
         filt = dict(repository=self.repository)
         if self.branch is not None:
             filt['branch'] = self.branch
-        _schedulers.append(schedulers.AnyBranchScheduler(
-            name=spawner_name,
-            builderNames=[spawner_name],
-            change_filter=util.ChangeFilter(**filt),
-            onlyImportant=True,
-            fileIsImportant=importantManager.fileIsImportant,
-            codebases=codebases,
-        ))
-        _schedulers.append(schedulers.ForceScheduler(
-            name="force" + spawner_name,
-            builderNames=[spawner_name],
-            codebases=self.createCodebaseParams(codebases)))
+        return util.ChangeFilter(**filt)
 
-        _schedulers.append(schedulers.ForceScheduler(
-            name=deploy_name,
-            builderNames=[deploy_name],
-            codebases=self.createCodebaseParamsForDeploy(codebases),
-            properties=dep_properties))
+    def getTryChangeFilter(self):
+        raise NotImplemented()
+
+    def setupSchedulers(self, _schedulers, spawner_name, try_name, deploy_name,
+                        importantManager, codebases, dep_properties):
+        _schedulers.append(
+            schedulers.AnyBranchScheduler(
+                name=spawner_name,
+                builderNames=[spawner_name],
+                change_filter=self.getPushChangeFilter(),
+                onlyImportant=True,
+                fileIsImportant=importantManager.fileIsImportant,
+                codebases=codebases, ))
+        if self.supportsTry:
+            _schedulers.append(
+                schedulers.AnyBranchScheduler(
+                    name=try_name,
+                    builderNames=[try_name],
+                    change_filter=self.getTryChangeFilter(),
+                    onlyImportant=True,
+                    fileIsImportant=importantManager.fileIsImportant,
+                    codebases=codebases, ))
+        _schedulers.append(
+            schedulers.ForceScheduler(
+                name="force" + spawner_name,
+                builderNames=[spawner_name],
+                codebases=self.createCodebaseParams(codebases)))
+
+        _schedulers.append(
+            schedulers.ForceScheduler(
+                name=deploy_name,
+                builderNames=[deploy_name],
+                codebases=self.createCodebaseParamsForDeploy(codebases),
+                properties=dep_properties))
 
     # for source control that have CI integration, this can setup reporters
     def setupReporters(self, _reporters, spawner_name, try_name, codebases):
@@ -144,15 +162,21 @@ class PollerMixin(object):
 
 
 repository_db = {}
+repository_db_by_url = {}
 
 
 def getVCSManagerForRepository(name):
     return repository_db[name]
 
 
+def getCodebaseForRepository(url):
+    return repository_db_by_url[url].name
+
+
 def getSupportedVCSTypes():
     plugins = get_plugins("travis", IVCSManager, load_now=False)
-    return {vcs_type: plugins.get(vcs_type).description for vcs_type in plugins.names}
+    return {vcs_type: plugins.get(vcs_type).description
+            for vcs_type in plugins.names}
 
 
 def addRepository(name, config):
@@ -161,6 +185,7 @@ def addRepository(name, config):
     if vcs_type in plugins.names:
         plugin = plugins.get(vcs_type)
         r = repository_db[name] = plugin(**config)
+        repository_db_by_url[config['repository']] = r
         return r
 
     raise KeyError("No VCS manager for %s, got %s" %
