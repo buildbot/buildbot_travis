@@ -341,28 +341,40 @@ class TravisConfigurator(object):
             factory=f
         ))
 
-        # Define the builder for the deployment of the project
-        f = factory.BuildFactory()
-        vcsManager.addSourceSteps(f)
-        f.addStep(TravisSetupSteps())
 
-        # To manage deployment properly (with change traceability),
-        # we need the version and the target deployment environment or "stage"
-        version = StringParameter(name='version', label='GIT tag',
-                                  hide=False, required=False, size=20)
-        stage = StringParameter(name='stage', label='Stage',
-                                hide=False, required=False, size=20)
+        # no need for deployment builder if no stage is configured
+        if kwargs.get('stages', []):
+            # Define the builder for the deployment of the project
+            f = factory.BuildFactory()
+            vcsManager.addSourceSteps(f)
+            f.addStep(TravisSetupSteps())
 
-        dep_properties = [version, stage]
+            # To manage deployment properly (with change traceability),
+            # we need the version and the target deployment environment or "stage"
+            version = StringParameter(
+                name='version',
+                label='GIT tag',
+                hide=False,
+                required=False,
+                size=20)
+            stage = StringParameter(
+                name='stage',
+                label='Stage',
+                hide=False,
+                required=False,
+                size=20)
 
-        self.config['builders'].append(BuilderConfig(
-            name=deploy_name,
-            workernames=self.get_runner_workers(),
-            env=self.defaultEnv,
-            tags=["deploy", name] + tags,
-            factory=f
-        ))
+            dep_properties = [version, stage]
 
+            self.config['builders'].append(
+                BuilderConfig(
+                    name=deploy_name,
+                    workernames=self.get_runner_workers(),
+                    env=self.defaultEnv,
+                    tags=["deploy", name] + tags,
+                    factory=f))
+        else:
+            dep_properties = []
         if vcsManager.supportsTry:
             properties = dict(TRAVIS_PULL_REQUEST=True)
             properties.update(self.properties)

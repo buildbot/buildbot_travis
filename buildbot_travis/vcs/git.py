@@ -14,10 +14,10 @@
 
 from urlparse import urlparse
 
-from buildbot.plugins import changes
+from buildbot.plugins import changes, util
 from buildbot.steps.source.git import Git
 
-from .base import PollerMixin, VCSBase
+from .base import PollerMixin, VCSBase, getCodebaseForRepository
 
 
 class ParsedGitUrl(object):
@@ -71,8 +71,25 @@ class GitPb(GitBase):
         pass
 
 
+def getCodebaseForGitHubChange(payload):
+    return getCodebaseForRepository(payload['repository']['html_url'])
+
+
 class Github(GitBase):
     description = "Source code hosted on github, with detection of changes using github web hooks"
+    supportsTry = True
+
+    def getPushChangeFilter(self):
+        filt = dict(repository=self.repository)
+        filt['category'] = None
+        if self.branch is not None:
+            filt['branch'] = self.branch
+        return util.ChangeFilter(**filt)
+
+    def getTryChangeFilter(self):
+        filt = dict(repository=self.repository)
+        filt['category'] = 'pull'
+        return util.ChangeFilter(**filt)
 
     def setupChangeSource(self, changeSources):
-        return {'github': True}
+        return {'github': {'codebase': getCodebaseForGitHubChange}}
