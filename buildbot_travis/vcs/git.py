@@ -69,27 +69,3 @@ class GitPb(GitBase):
 
     def setupChangeSource(self, changeSources):
         pass
-
-
-def getCodebaseForGitHubChange(payload):
-    return getCodebaseForRepository(payload['repository']['html_url'])
-
-
-class Github(GitBase):
-    description = "Source code hosted on github, with detection of changes using github web hooks"
-    supportsTry = True
-
-    def getPushChangeFilter(self):
-        filt = dict(repository=self.repository)
-        filt['category'] = None
-        if self.branch is not None:
-            filt['branch'] = self.branch
-        return util.ChangeFilter(**filt)
-
-    def getTryChangeFilter(self):
-        filt = dict(repository=self.repository)
-        filt['category'] = 'pull'
-        return util.ChangeFilter(**filt)
-
-    def setupChangeSource(self, changeSources):
-        return {'github': {'codebase': getCodebaseForGitHubChange}}

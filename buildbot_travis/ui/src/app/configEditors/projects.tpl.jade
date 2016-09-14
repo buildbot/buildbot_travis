@@ -46,6 +46,22 @@ config-page
                         input-tags(tags="project.branches", all-tags="allBranches", placeholder="Add a branch")
                     span.col-sm-4.control-label
                         | use '*' character for matching several branches
+                .form-group(ng-if="project.vcs_type == 'github'")
+                    label.col-sm-2.control-label GitHub token:
+                    .col-sm-4
+                        input.form-control(name="github_token", type="text", ng-model="project.github_token",
+                                           required)
+                    span.col-sm-6.control-label
+                        | use 'env:`TOKEN`' to get the token from environment variable.
+                        br
+                        | use 'file:fn.txt' to get the token from a file.
+                .form-group(ng-if="project.vcs_type == 'github'")
+                    label.col-sm-2.control-label GitHub Reporter Title:
+                    .col-sm-6
+                        input.form-control(name="reporter_context", type="text", ng-model="project.reporter_context",
+                                           placeholder="buildbot:%(prop:reason)s", required)
+                    span.col-sm-4.control-label
+                        | Interpolated value for the title given to GitHub status lines.
                 .form-group(show-errors)
                     label.col-sm-2.control-label Repository:
                     .col-sm-10
