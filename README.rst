@@ -209,9 +209,55 @@ for python 2.7.
 Deployment
 ----------
 
-A Deploy section is available in the left side menu.
-A "deployment environment(s)" parameter is avalable in the Projects Settings section.
-TODO: add more description of this feature
+A "Deploy" section is available in the left side menu. In this section, a Deployment dashboard will be
+available once configured.
+
+This dashboard enables a streamlined, fully automated delivery process, from Commit to Production environment.
+Latest version of your project is just one click away from users.
+
+See the dashboard's template below.
+
+| DELIVERABLES  |                      STAGES                         |
+|*********************************************************************|
+|               |   COMMIT     |    DEV      |    QA      |    PROD   |
+|*********************************************************************|
+| Deliverable A | GIT revision |   GIT tag   |  GIT tag   |  GIT tag  |
+
+Here are the 5 steps to setup a Deployment dashboard in Buildbot Travis.
+
+1) A "Deployment" section is available in the "Settings" section.
+   In this section, the "Deployment Environment(s)" is the list of target environments (or Stages)
+   where deliverables are going to be deployed.
+   These environments should be sorted following your development process definition.
+   Example::
+
+   COMMIT (merged dev), DEV, QA, PROD
+
+   BEWARE!The first column is reserved for COMMIT stage so you do not need to define it in the Stages list.
+
+2) Go to the "Deploy" section in the left side menu. You should see a Deployment dashboard like the above example.
+   The Stages should be the same as the ones defined in 1).
+
+3) Go to the "Settings/Projects" section. Add corresponding Stages to the different projects in the Stages field.
+   Stages can be a subset of the Stages defined in 2).
+
+4) You should see a fully configured Deployment dashboard with all the deliverables, Stages, GIT revisions and GIT
+   tags. GIT revisions and GIT tags are available in dropdown lists. When you select a specific version, a pop_up
+   window appears to launch the deployment procedure in the specific stage.
+
+5) To enable push button deployments, you need to define the deployment procedures.
+   Create deployment scripts and update the script and/or after_script sections of the .travis.yml file
+   of each deliverable.
+   Example::
+
+   after_script:
+   - |
+     # Deployment
+       python ./deploy.py --repo "${repository}" --stage "${stage}" --version "${version}";
+
+   ${repository} is the URL of the project's (or deliverable's) repo.
+   ${stage} is the retrieved from the Deployment dashboard.
+   ${version} is retrieved from the Deployment dashboard.
 
 How it works
 ============

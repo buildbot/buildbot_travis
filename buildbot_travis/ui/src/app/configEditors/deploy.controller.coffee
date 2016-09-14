@@ -78,13 +78,13 @@ class Deploy extends Controller
             gitTagRevisionMapDict = gitTagRevisionMap.toDict('name')
 
         $scope.isStageUndefined = (project, stage)->
-            if projectsDict[project].stages?
-                if stage in $scope.projectsDict[project].stages
-                    return false
-                else
-                    return true
+            isUndefined = true
+            if projectsDict? and projectsDict[project].stages?
+                if stage in projectsDict[project].stages
+                    isUndefined = false
+                return isUndefined
             else
-                return true
+                return isUndefined
 
         retrieveLatestCommits = (builder) ->
             data.getBuilds(limit: 50, order: '-complete_at', builderid: builder.builderid, complete: 'true', results: 0).onChange = (builds) ->
@@ -153,7 +153,7 @@ class Deploy extends Controller
                                 if properties['stage'][0]? and properties['stage'][0] != ''
                                     if latestDeployedVersionByProject != []
                                         for p in latestDeployedVersionByProject
-                                            if p.projectName == projectName
+                                            if p.projectName == projectName and gitTagRevisionMapDict[projectName]?
                                                 for x in gitTagRevisionMapDict[projectName].map
                                                     if x.rev == properties['revision'][0]
                                                         for s in p.stages

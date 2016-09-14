@@ -10,12 +10,5 @@ projects:
     vcs_type: github
 stages: []
 workers:
--   hyper_accesskey: fillme
-    hyper_host: tcp://us-west-1.hyper.sh:443
-    hyper_secretkey: fillme
-    id: 3386175858
-    image: buildbot/buildbot-worker:master
-    name: hyperworker
-    number: 5
-    size: xxs
-    type: HyperWorker
+-   name: localworker
+    type: LocalWorker
