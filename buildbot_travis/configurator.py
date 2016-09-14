@@ -100,10 +100,21 @@ class TravisConfigurator(object):
         self.config['www'] = dict(port=PORT,
                                   change_hook_dialects=self.change_hook_dialects,
                                   plugins=dict(buildbot_travis={
-                                      'supported_vcs': getSupportedVCSTypes()}),
+                                      'supported_vcs': getSupportedVCSTypes(),
+                                      'cfg': self.getCleanConfig()}),
                                   versions=[('buildbot_travis', getVersion(__file__))])
         self.config.setdefault('protocols', {'pb': {'port': 9989}})
         self.createAuthConfig()
+
+    def getCleanConfig(self):
+        cleancfgdict = {}
+        print "TBD....."
+        print self.cfgdict
+        for k,v in self.cfgdict.items():
+            if k == 'projects' or k == 'stages':
+                cleancfgdict[k] = v
+
+        return cleancfgdict
 
     def configAssertContains(self, cfg, names):
         hasError = False
@@ -400,3 +411,4 @@ class TravisConfigurator(object):
         res = vcsManager.setupChangeSource(self.config['services'])
         if res is not None:
             self.change_hook_dialects.update(res)
+

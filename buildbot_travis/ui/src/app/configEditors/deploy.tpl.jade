@@ -34,11 +34,11 @@
                 a(href='#', ng-click='deployLatest(commit, project.name)') {{ commit }}
         td(ng-repeat='(stage_id, stage) in cfg.stages').text-center {{ latestDeployedVersionByProjectDict[project.name].stages_sorted[stage].versions[0] }}
           | &nbsp;
-          .btn-group(uib-dropdown)
+          .btn-group(uib-dropdown, ng-hide='isStageUndefined(project.name, stage)')
             button.btn.btn-primary(type='button', uib-dropdown-toggle)
               | {{ gitTagsByProjectDict[project.name].projectGitTags[0]  }}
               span.caret
             | &nbsp;
-            ul.dropdown-menu(uib-dropdown-menu, role='menu', aria-labelledby='single-button')
+            ul.dropdown-menu(uib-dropdown-menu, role='menu', aria-labelledby='single-button', ng-hide='isStageUndefined(project.name, stage)')
               li(ng-repeat='git_tag in gitTagsByProjectDict[project.name].projectGitTags track by $index')
                 a(href='#', ng-click='deploy(git_tag, project.name, stage)') {{ git_tag }}
