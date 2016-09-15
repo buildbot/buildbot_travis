@@ -11,8 +11,8 @@ install:
   - rm -rf ~/.nvm && git clone https://github.com/creationix/nvm.git ~/.nvm && (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`) && source ~/.nvm/nvm.sh && nvm install $TRAVIS_NODE_VERSION
   - pip install -r example/requirements.txt
   - pip install --pre buildbot_pkg
-  - pip install --pre --no-use-wheel buildbot==0.9.0rc2
-  - pip install --pre buildbot-worker==0.9.0rc2
+  - pip install --pre --no-use-wheel buildbot==0.9.0rc3
+  - pip install --pre buildbot-worker==0.9.0rc3
   - pip install -e .
   - pip install mock
 
