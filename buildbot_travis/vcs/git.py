@@ -38,6 +38,7 @@ class ParsedGitUrl(object):
 
 
 class GitBase(VCSBase):
+    GitStep = Git
 
     def addRepository(self, factory, project=None, repository=None, branches=None, **kwargs):
         kwargs.update(dict(
@@ -48,7 +49,7 @@ class GitBase(VCSBase):
             getDescription={'tags': True, 'always': True}
         ))
 
-        factory.addStep(Git(**kwargs))
+        factory.addStep(self.GitStep(**kwargs))
 
 
 class GitPoller(GitBase, PollerMixin):
