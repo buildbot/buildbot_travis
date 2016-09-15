@@ -27,7 +27,7 @@ class TravisTrigger(Trigger, ConfigurableStepMixin):
 
     sourceStamps = []
     alwaysUseLatest = False
-    updateSourceStamp = True
+    updateSourceStamp = False
 
     def __init__(self, scheduler, **kwargs):
         if "name" not in kwargs:
