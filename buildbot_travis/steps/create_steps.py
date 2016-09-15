@@ -32,7 +32,7 @@ class SetupVirtualEnv(ShellMixin, LoggingBuildStep):
 
     def __init__(self, python):
         self.python = python
-        super(SetupVirtualEnv, self).__init__()
+        super(SetupVirtualEnv, self).__init__(haltOnFailure=True)
 
     @defer.inlineCallbacks
     def run(self):

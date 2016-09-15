@@ -14,6 +14,8 @@
 # Copyright Buildbot Team Members
 
 import os
+import shutil
+import tempfile
 
 from twisted.internet import defer
 
@@ -62,6 +64,14 @@ notifications:
 
 
 class TravisMaster(RunMasterBase):
+
+    def mktemp(self):
+        # twisted mktemp will create a very long directory, which virtualenv will not like.
+        # https://github.com/pypa/virtualenv/issues/596
+        # so we put it in the /tmp directory to be safe
+        tmp = tempfile.mkdtemp(prefix="travis_trial")
+        self.addCleanup(shutil.rmtree, tmp)
+        return os.path.join(tmp, "work")
 
     @defer.inlineCallbacks
     def test_travis(self):
