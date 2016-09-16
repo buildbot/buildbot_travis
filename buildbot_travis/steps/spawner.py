@@ -22,19 +22,18 @@ from .base import ConfigurableStepMixin
 
 class TravisTrigger(Trigger, ConfigurableStepMixin):
 
-    haltOnFailure = True
-    flunkOnFailure = True
-
-    sourceStamps = []
-    alwaysUseLatest = False
-    updateSourceStamp = True
-
     def __init__(self, scheduler, **kwargs):
         if "name" not in kwargs:
             kwargs['name'] = 'trigger'
         self.config = None
         Trigger.__init__(
-            self, waitForFinish=True, schedulerNames=[scheduler], **kwargs)
+            self, waitForFinish=True, schedulerNames=[scheduler],
+            haltOnFailure=True,
+            flunkOnFailure=True,
+            sourceStamps=[],
+            alwaysUseLatest=False,
+            updateSourceStamp=False,
+            **kwargs)
 
     @defer.inlineCallbacks
     def run(self):

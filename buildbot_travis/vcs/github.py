@@ -14,7 +14,7 @@
 
 import os
 
-from buildbot.plugins import reporters, util
+from buildbot.plugins import reporters, steps, util
 
 from .base import getCodebaseForRepository
 from .git import GitBase
@@ -34,6 +34,9 @@ def makeContext(props):
 class GitHub(GitBase):
     description = "Source code hosted on github, with detection of changes using github web hooks"
     supportsTry = True
+    # GitHub is only in 0.9.1+
+    if hasattr(steps, "GitHub"):
+        GitStep = steps.GitHub
 
     def getPushChangeFilter(self):
         filt = dict(repository=self.repository)
