@@ -27,7 +27,9 @@ class TravisYmlTestCase(unittest.TestCase):
 
     def setUp(self):
         self.t = TravisYml()
-        self.t.config = {}
+        self.t.config = {'language': 'python'}
+        self.t.load_cfgdict_options()
+        self.t.parse_language()
 
 
 class TestYamlParsing(TravisYmlTestCase):
@@ -102,7 +104,7 @@ class TestEnv(TravisYmlTestCase):
 
         self.t.parse_matrix()
         self.assertEqual(
-            self.t.matrix, [dict(python="python2.6", env=dict(FOO='1', BAR='2')), ])
+            self.t.matrix, [dict(python="2.7", env=dict(FOO='1', BAR='2')), ])
 
     def test_multienv(self):
         self.t.config["env"] = ["FOO=1 BAR=2", "FOO=2 BAR=1"]
@@ -112,8 +114,8 @@ class TestEnv(TravisYmlTestCase):
 
         self.t.parse_matrix()
         self.assertEqual(self.t.matrix, [
-            dict(python="python2.6", env=dict(FOO='1', BAR='2')),
-            dict(python="python2.6", env=dict(FOO='2', BAR='1')),
+            dict(python="2.7", env=dict(FOO='1', BAR='2')),
+            dict(python="2.7", env=dict(FOO='2', BAR='1')),
         ])
 
     def test_globalenv(self):
@@ -124,8 +126,8 @@ class TestEnv(TravisYmlTestCase):
 
         self.t.parse_matrix()
         self.assertEqual(self.t.matrix, [
-            dict(python="python2.6", env=dict(FOOBAR='0', FOO='1', BAR='2')),
-            dict(python="python2.6", env=dict(FOOBAR='0', FOO='2', BAR='1')),
+            dict(python="2.7", env=dict(FOOBAR='0', FOO='1', BAR='2')),
+            dict(python="2.7", env=dict(FOOBAR='0', FOO='2', BAR='1')),
         ])
 
     def test_emptymatrixlenv(self):
@@ -136,7 +138,7 @@ class TestEnv(TravisYmlTestCase):
 
         self.t.parse_matrix()
         self.assertEqual(self.t.matrix, [
-            dict(python="python2.6", env=dict(FOOBAR='0')),
+            dict(python="2.7", env=dict(FOOBAR='0')),
         ])
 
 
@@ -145,7 +147,7 @@ class TestMatrix(TravisYmlTestCase):
     def test_exclude_match(self):
         self.t.config["env"] = ["FOO=1 BAR=2", "FOO=2 BAR=1"]
         m = self.t.config["matrix"] = {}
-        m['exclude'] = [dict(python="python2.6", env="FOO=2 BAR=1")]
+        m['exclude'] = [dict(python="2.7", env="FOO=2 BAR=1")]
 
         self.t.parse_envs()
         self.t.parse_matrix()
@@ -157,54 +159,54 @@ class TestMatrix(TravisYmlTestCase):
     def test_exclude_subset_match(self):
         self.t.config["env"] = ["FOO=1 BAR=2", "FOO=2 BAR=1 SPAM=3"]
         m = self.t.config["matrix"] = {}
-        m['exclude'] = [dict(python="python2.6", env="FOO=2 BAR=1")]
+        m['exclude'] = [dict(python="2.7", env="FOO=2 BAR=1")]
 
         self.t.parse_envs()
         self.t.parse_matrix()
 
         self.assertEqual(self.t.matrix, [
-            dict(python="python2.6", env=dict(FOO='1', BAR='2')),
+            dict(python="2.7", env=dict(FOO='1', BAR='2')),
         ])
 
     def test_exclude_nomatch(self):
         self.t.config["env"] = ["FOO=1 BAR=2", "FOO=2 BAR=1"]
         m = self.t.config["matrix"] = {}
-        m['exclude'] = [dict(python="python2.6", env="FOO=2 BAR=3")]
+        m['exclude'] = [dict(python="2.7", env="FOO=2 BAR=3")]
 
         self.t.parse_envs()
         self.t.parse_matrix()
 
         self.assertEqual(self.t.matrix, [
-            dict(python="python2.6", env=dict(FOO='1', BAR='2')),
-            dict(python="python2.6", env=dict(FOO='2', BAR='1')),
+            dict(python="2.7", env=dict(FOO='1', BAR='2')),
+            dict(python="2.7", env=dict(FOO='2', BAR='1')),
         ])
 
     def test_include(self):
         self.t.config["env"] = ["FOO=1 BAR=2", "FOO=2 BAR=1"]
         m = self.t.config["matrix"] = {}
-        m['include'] = [dict(python="python2.6", env="FOO=2 BAR=3")]
+        m['include'] = [dict(python="2.7", env="FOO=2 BAR=3")]
 
         self.t.parse_envs()
         self.t.parse_matrix()
 
         self.assertEqual(self.t.matrix, [
-            dict(python="python2.6", env=dict(FOO='1', BAR='2')),
-            dict(python="python2.6", env=dict(FOO='2', BAR='1')),
-            dict(python="python2.6", env=dict(FOO='2', BAR='3')),
+            dict(python="2.7", env=dict(FOO='1', BAR='2')),
+            dict(python="2.7", env=dict(FOO='2', BAR='1')),
+            dict(python="2.7", env=dict(FOO='2', BAR='3')),
         ])
 
     def test_include_with_global(self):
         self.t.config["env"] = {'global': "CI=true", 'matrix': ["FOO=1 BAR=2", "FOO=2 BAR=1"]}
         m = self.t.config["matrix"] = {}
-        m['include'] = [dict(python="python2.6", env="FOO=2 BAR=3")]
+        m['include'] = [dict(python="2.7", env="FOO=2 BAR=3")]
 
         self.t.parse_envs()
         self.t.parse_matrix()
 
         self.assertEqual(self.t.matrix, [
-            dict(python="python2.6", env=dict(FOO='1', BAR='2', CI='true')),
-            dict(python="python2.6", env=dict(FOO='2', BAR='1', CI='true')),
-            dict(python="python2.6", env=dict(FOO='2', BAR='3', CI='true')),
+            dict(python="2.7", env=dict(FOO='1', BAR='2', CI='true')),
+            dict(python="2.7", env=dict(FOO='2', BAR='1', CI='true')),
+            dict(python="2.7", env=dict(FOO='2', BAR='3', CI='true')),
         ])
 
 
