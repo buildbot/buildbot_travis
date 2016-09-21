@@ -17,7 +17,9 @@ from __future__ import division
 from __future__ import print_function
 from future.utils import string_types
 
+import itertools
 import re
+from copy import deepcopy
 
 import yaml
 from buildbot.plugins import util
@@ -25,6 +27,18 @@ from buildbot.plugins.db import get_plugins
 
 TRAVIS_HOOKS = ("before_install", "install", "after_install", "before_script",
                 "script", "after_script")
+
+DEFAULT_MATRIX = {
+    'os': (
+        'linux',
+    ),
+    'dist': (
+        'precise',
+    ),
+    'language': {
+        'python': ('2.7',),
+    },
+}
 
 
 class TravisYmlInvalid(Exception):
@@ -105,6 +119,7 @@ class TravisYml(object):
         self.email = TravisYmlEmail()
         self.irc = TravisYmlIrc()
         self.config = None
+        self.default_matrix = deepcopy(DEFAULT_MATRIX)
         self.cfgdict = {}
         if cfgdict:
             self.cfgdict = cfgdict
@@ -118,6 +133,7 @@ class TravisYml(object):
 
     def parse_dict(self, config):
         self.config = config
+        self.load_cfgdict_options()
         self.parse_language()
         self.parse_label_mapping()
         self.parse_envs()
@@ -126,6 +142,11 @@ class TravisYml(object):
         self.parse_branches()
         self.parse_notifications_email()
         self.parse_notifications_irc()
+
+    def load_cfgdict_options(self):
+        default_matrix = self.cfgdict.get('default_matrix')
+        if isinstance(default_matrix, dict):
+            self.default_matrix.update(default_matrix)
 
     def parse_language(self):
         try:
@@ -189,15 +210,36 @@ class TravisYml(object):
 
     def parse_matrix(self):
         matrix = []
-        python = self.config.get("python", ["python2.6"])
-        if not isinstance(python, list):
-            python = [python]
         # First of all, build the implicit matrix
-        for lang in python:
-            for env in self.environments:
-                matrix.append(dict(
-                    python=lang,
-                    env=env, ))
+        supported_languages = self.default_matrix.get('language', {})
+        language_options = supported_languages.get(self.language)
+        if not isinstance(language_options, (tuple, list)):
+            language_options = [language_options]
+        # Many languages use their name as the key to check for versions to use.
+        if isinstance(language_options, (tuple, list)):
+            for language_version in self.config.get(self.language, language_options):
+                for env in self.environments:
+                    matrix.append({self.language: language_version, 'env': env})
+        elif isinstance(language_options, dict):
+            # Get a view of the keys this language supports. Use those
+            # keys to check if they specified in the config, otherwise
+            # use the defaults. Do a cross-product across all of the
+            # keys to get all of the combinations. Finally, zip together
+            # the keys and the particular combination to convert to a
+            # dict to populate the matrix.
+            build_matrix_keys = sorted(list(language_options.keys()))
+            matrix_versions = [self.config.get(k, language_options[k])
+                               for k in build_matrix_keys]
+            # Ensure everything is at least a list of the versions for this
+            # language.
+            matrix_versions = [v if isinstance(v, (tuple, list)) else [v]
+                               for v in matrix_versions]
+            for matrix_combination in itertools.product(*matrix_versions):
+                for env in self.environments:
+                    lang_matrix = dict(itertools.izip(build_matrix_keys,
+                                                      matrix_combination))
+                    lang_matrix['env'] = env
+                    matrix.append(lang_matrix)
 
         cfg = self.config.get("matrix", {})
 
