@@ -70,7 +70,7 @@ class ConfigurableStepMixin(CompositeStepMixin):
 
         self.addCompleteLog(filename, travis_yml)
 
-        config = TravisYml()
+        config = TravisYml(self.cfgdict)
         try:
             config.parse(travis_yml)
         except TravisYmlInvalid as e:

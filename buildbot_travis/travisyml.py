@@ -93,7 +93,7 @@ class TravisYml(object):
     Loads a .travis.yml file and parses it.
     """
 
-    def __init__(self):
+    def __init__(self, cfgdict=None):
         self.language = None
         self.image = None
         self.environments = [{}]
@@ -105,6 +105,9 @@ class TravisYml(object):
         self.email = TravisYmlEmail()
         self.irc = TravisYmlIrc()
         self.config = None
+        self.cfgdict = {}
+        if cfgdict:
+            self.cfgdict = cfgdict
 
     def parse(self, config_input):
         try:
