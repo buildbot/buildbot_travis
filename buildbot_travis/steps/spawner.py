@@ -23,10 +23,12 @@ from .base import ConfigurableStepMixin
 
 
 class TravisTrigger(Trigger, ConfigurableStepMixin):
-    def __init__(self, scheduler, **kwargs):
+
+    def __init__(self, scheduler, cfgdict, **kwargs):
         if "name" not in kwargs:
             kwargs['name'] = 'trigger'
         self.config = None
+        self.cfgdict = cfgdict
         Trigger.__init__(
             self,
             waitForFinish=True,
