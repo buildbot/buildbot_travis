@@ -160,6 +160,21 @@ class TestBuildMatrix(TravisYmlTestCase):
             dict(python="3.5"),
         ])
 
+    def test_language_with_dict(self):
+        self.t.default_matrix = {
+            'language': {
+                'c': {'compiler': 'gcc'}
+            }
+        }
+        self.t.language = "c"
+        self.t.config["language"] = "c"
+
+        matrix = self.t._build_matrix()
+
+        self.failUnlessEqual(matrix, [
+            dict(compiler='gcc'),
+        ])
+
 
 class TestMatrix(TravisYmlTestCase):
 
