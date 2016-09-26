@@ -186,6 +186,61 @@ class TestBuildMatrix(TravisYmlTestCase):
             dict(compiler='cc'),
         ])
 
+    def test_language_multiple_options(self):
+        self.t.default_matrix = {
+            'language': {
+                'ruby': {
+                    'gemfile': 'Gemfile',
+                    'jdk': 'openjdk7',
+                    'rvm': '2.2',
+                }
+            }
+        }
+        self.t.language = "ruby"
+        self.t.config["language"] = "ruby"
+
+        matrix = self.t._build_matrix()
+
+        self.failUnlessEqual(matrix, [
+            dict(gemfile='Gemfile', jdk='openjdk7', rvm='2.2'),
+        ])
+
+        # Start exploding the matrix
+        self.t.config["gemfile"] = ['Gemfile', 'gemfiles/a']
+
+        matrix = self.t._build_matrix()
+
+        self.failUnlessEqual(matrix, [
+            dict(gemfile='Gemfile', jdk='openjdk7', rvm='2.2'),
+            dict(gemfile='gemfiles/a', jdk='openjdk7', rvm='2.2'),
+        ])
+
+        self.t.config["rvm"] = ['2.2', 'jruby']
+
+        matrix = self.t._build_matrix()
+
+        self.failUnlessEqual(matrix, [
+            dict(gemfile='Gemfile', jdk='openjdk7', rvm='2.2'),
+            dict(gemfile='Gemfile', jdk='openjdk7', rvm='jruby'),
+            dict(gemfile='gemfiles/a', jdk='openjdk7', rvm='2.2'),
+            dict(gemfile='gemfiles/a', jdk='openjdk7', rvm='jruby'),
+        ])
+
+        self.t.config["jdk"] = ['openjdk7', 'oraclejdk7']
+
+        matrix = self.t._build_matrix()
+
+        self.failUnlessEqual(matrix, [
+            dict(gemfile='Gemfile', jdk='openjdk7', rvm='2.2'),
+            dict(gemfile='Gemfile', jdk='openjdk7', rvm='jruby'),
+            dict(gemfile='Gemfile', jdk='oraclejdk7', rvm='2.2'),
+            dict(gemfile='Gemfile', jdk='oraclejdk7', rvm='jruby'),
+            dict(gemfile='gemfiles/a', jdk='openjdk7', rvm='2.2'),
+            dict(gemfile='gemfiles/a', jdk='openjdk7', rvm='jruby'),
+            dict(gemfile='gemfiles/a', jdk='oraclejdk7', rvm='2.2'),
+            dict(gemfile='gemfiles/a', jdk='oraclejdk7', rvm='jruby'),
+        ])
+
 
 class TestMatrix(TravisYmlTestCase):
 
