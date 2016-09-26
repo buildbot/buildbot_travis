@@ -243,11 +243,32 @@ class TravisYml(object):
 
         return matrix
 
+    def _os_matrix(self, build_matrix):
+        # The language-level matrix has been built. Merge that with the os and
+        # dist options from the config.
+        matrix = []
+        os_options = self.config.get('os', self.default_matrix['os'])
+        if isinstance(os_options, basestring):
+            os_options = [os_options]
+        dist_options = self.config.get('dist', self.default_matrix['dist'])
+        if isinstance(dist_options, basestring):
+            dist_options = [dist_options]
+        for os in os_options:
+            for dist in dist_options:
+                for build_config in build_matrix:
+                    os_matrix = build_config.copy()
+                    os_matrix['os'] = os
+                    os_matrix['dist'] = dist
+                    matrix.append(os_matrix)
+
+        return matrix
+
     def parse_matrix(self):
         build_matrix = self._build_matrix()
+        os_matrix = self._os_matrix(build_matrix)
         matrix = []
         for env in self.environments:
-            for mat in build_matrix:
+            for mat in os_matrix:
                 mat = mat.copy()
                 mat['env'] = env
                 matrix.append(mat)
