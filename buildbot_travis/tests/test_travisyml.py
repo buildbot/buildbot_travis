@@ -175,6 +175,17 @@ class TestBuildMatrix(TravisYmlTestCase):
             dict(compiler='gcc'),
         ])
 
+        # Now try again with multiple compilers to use.
+        self.t.config["compiler"] = ["gcc", "clang", "cc"]
+
+        matrix = self.t._build_matrix()
+
+        self.failUnlessEqual(matrix, [
+            dict(compiler='gcc'),
+            dict(compiler='clang'),
+            dict(compiler='cc'),
+        ])
+
 
 class TestMatrix(TravisYmlTestCase):
 
