@@ -242,6 +242,30 @@ class TestBuildMatrix(TravisYmlTestCase):
         ])
 
 
+class TestOsMatrix(TravisYmlTestCase):
+
+    def test_os_matrix(self):
+        build_matrix = [dict(python='2.7')]
+
+        matrix = self.t._os_matrix(build_matrix)
+
+        self.failUnlessEqual(matrix, [
+            dict(os='linux', dist='precise', python='2.7')
+        ])
+
+    def test_multiple_dists(self):
+        build_matrix = [dict(python='2.7')]
+        self.t.config["dist"] = ["precise", "trusty", "xenial"]
+
+        matrix = self.t._os_matrix(build_matrix)
+
+        self.failUnlessEqual(matrix, [
+            dict(os='linux', dist='precise', python='2.7'),
+            dict(os='linux', dist='trusty', python='2.7'),
+            dict(os='linux', dist='xenial', python='2.7'),
+        ])
+
+
 class TestMatrix(TravisYmlTestCase):
 
     def test_exclude_match(self):
