@@ -104,7 +104,7 @@ class TestEnv(TravisYmlTestCase):
 
         self.t.parse_matrix()
         self.assertEqual(
-            self.t.matrix, [dict(python="2.7", env=dict(FOO='1', BAR='2')), ])
+            self.t.matrix, [dict(python="2.7", env=dict(FOO='1', BAR='2'), os='linux', dist='precise'), ])
 
     def test_multienv(self):
         self.t.config["env"] = ["FOO=1 BAR=2", "FOO=2 BAR=1"]
@@ -114,8 +114,8 @@ class TestEnv(TravisYmlTestCase):
 
         self.t.parse_matrix()
         self.assertEqual(self.t.matrix, [
-            dict(python="2.7", env=dict(FOO='1', BAR='2')),
-            dict(python="2.7", env=dict(FOO='2', BAR='1')),
+            dict(python="2.7", env=dict(FOO='1', BAR='2'), os='linux', dist='precise'),
+            dict(python="2.7", env=dict(FOO='2', BAR='1'), os='linux', dist='precise'),
         ])
 
     def test_globalenv(self):
@@ -126,8 +126,8 @@ class TestEnv(TravisYmlTestCase):
 
         self.t.parse_matrix()
         self.assertEqual(self.t.matrix, [
-            dict(python="2.7", env=dict(FOOBAR='0', FOO='1', BAR='2')),
-            dict(python="2.7", env=dict(FOOBAR='0', FOO='2', BAR='1')),
+            dict(python="2.7", env=dict(FOOBAR='0', FOO='1', BAR='2'), os='linux', dist='precise'),
+            dict(python="2.7", env=dict(FOOBAR='0', FOO='2', BAR='1'), os='linux', dist='precise'),
         ])
 
     def test_emptymatrixlenv(self):
@@ -138,7 +138,7 @@ class TestEnv(TravisYmlTestCase):
 
         self.t.parse_matrix()
         self.assertEqual(self.t.matrix, [
-            dict(python="2.7", env=dict(FOOBAR='0')),
+            dict(python="2.7", env=dict(FOOBAR='0'), os='linux', dist='precise'),
         ])
 
 
@@ -277,7 +277,7 @@ class TestMatrix(TravisYmlTestCase):
         self.t.parse_matrix()
 
         self.assertEqual(self.t.matrix, [
-            dict(python="python2.6", env=dict(FOO='1', BAR='2')),
+            dict(python="2.7", env=dict(FOO='1', BAR='2'), os='linux', dist='precise'),
         ])
 
     def test_exclude_subset_match(self):
@@ -289,7 +289,7 @@ class TestMatrix(TravisYmlTestCase):
         self.t.parse_matrix()
 
         self.assertEqual(self.t.matrix, [
-            dict(python="2.7", env=dict(FOO='1', BAR='2')),
+            dict(python="2.7", env=dict(FOO='1', BAR='2'), os='linux', dist='precise'),
         ])
 
     def test_exclude_nomatch(self):
@@ -301,8 +301,8 @@ class TestMatrix(TravisYmlTestCase):
         self.t.parse_matrix()
 
         self.assertEqual(self.t.matrix, [
-            dict(python="2.7", env=dict(FOO='1', BAR='2')),
-            dict(python="2.7", env=dict(FOO='2', BAR='1')),
+            dict(python="2.7", env=dict(FOO='1', BAR='2'), os='linux', dist='precise'),
+            dict(python="2.7", env=dict(FOO='2', BAR='1'), os='linux', dist='precise'),
         ])
 
     def test_include(self):
@@ -314,8 +314,8 @@ class TestMatrix(TravisYmlTestCase):
         self.t.parse_matrix()
 
         self.assertEqual(self.t.matrix, [
-            dict(python="2.7", env=dict(FOO='1', BAR='2')),
-            dict(python="2.7", env=dict(FOO='2', BAR='1')),
+            dict(python="2.7", env=dict(FOO='1', BAR='2'), os='linux', dist='precise'),
+            dict(python="2.7", env=dict(FOO='2', BAR='1'), os='linux', dist='precise'),
             dict(python="2.7", env=dict(FOO='2', BAR='3')),
         ])
 
@@ -328,8 +328,8 @@ class TestMatrix(TravisYmlTestCase):
         self.t.parse_matrix()
 
         self.assertEqual(self.t.matrix, [
-            dict(python="2.7", env=dict(FOO='1', BAR='2', CI='true')),
-            dict(python="2.7", env=dict(FOO='2', BAR='1', CI='true')),
+            dict(python="2.7", env=dict(FOO='1', BAR='2', CI='true'), os='linux', dist='precise'),
+            dict(python="2.7", env=dict(FOO='2', BAR='1', CI='true'), os='linux', dist='precise'),
             dict(python="2.7", env=dict(FOO='2', BAR='3', CI='true')),
         ])
 
