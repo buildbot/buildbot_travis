@@ -221,7 +221,8 @@ class TravisYml(object):
         # Many languages use their name as the key to check for versions to use.
         if isinstance(language_options, (tuple, list)):
             for language_version in self.config.get(self.language, language_options):
-                matrix.append({self.language: language_version})
+                matrix.append({'language': self.language,
+                               self.language: language_version})
         elif isinstance(language_options, dict):
             # Get a view of the keys this language supports. Use those
             # keys to check if they specified in the config, otherwise
@@ -239,6 +240,7 @@ class TravisYml(object):
             for matrix_combination in itertools.product(*matrix_versions):
                 lang_matrix = dict(itertools.izip(build_matrix_keys,
                                                   matrix_combination))
+                lang_matrix['language'] = self.language
                 matrix.append(lang_matrix)
 
         return matrix
