@@ -147,6 +147,9 @@ class TravisYml(object):
         default_matrix = self.cfgdict.get('default_matrix')
         if isinstance(default_matrix, dict):
             self.default_matrix.update(default_matrix)
+            for k, v in self.default_matrix.iteritems():
+                if isinstance(v, basestring):
+                    self.default_matrix[k] = [v]
 
     def parse_language(self):
         try:
