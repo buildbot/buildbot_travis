@@ -142,6 +142,25 @@ class TestEnv(TravisYmlTestCase):
         ])
 
 
+class TestBuildMatrix(TravisYmlTestCase):
+
+    def test_default_language(self):
+        matrix = self.t._build_matrix()
+
+        self.failUnlessEqual(matrix, [
+            dict(python="2.7"),
+        ])
+
+    def test_default_multiple_options(self):
+        self.t.config["python"] = ['2.7', '3.5']
+        matrix = self.t._build_matrix()
+
+        self.failUnlessEqual(matrix, [
+            dict(python="2.7"),
+            dict(python="3.5"),
+        ])
+
+
 class TestMatrix(TravisYmlTestCase):
 
     def test_exclude_match(self):
