@@ -208,18 +208,17 @@ class TravisYml(object):
         raise TravisYmlInvalid(
             "'branches' parameter contains neither 'only' nor 'except'")
 
-    def parse_matrix(self):
+    def _build_matrix(self):
         matrix = []
         # First of all, build the implicit matrix
         supported_languages = self.default_matrix.get('language', {})
         language_options = supported_languages.get(self.language)
-        if not isinstance(language_options, (tuple, list)):
+        if not isinstance(language_options, (dict, tuple, list)):
             language_options = [language_options]
         # Many languages use their name as the key to check for versions to use.
         if isinstance(language_options, (tuple, list)):
             for language_version in self.config.get(self.language, language_options):
-                for env in self.environments:
-                    matrix.append({self.language: language_version, 'env': env})
+                matrix.append({self.language: language_version})
         elif isinstance(language_options, dict):
             # Get a view of the keys this language supports. Use those
             # keys to check if they specified in the config, otherwise
@@ -235,11 +234,20 @@ class TravisYml(object):
             matrix_versions = [v if isinstance(v, (tuple, list)) else [v]
                                for v in matrix_versions]
             for matrix_combination in itertools.product(*matrix_versions):
-                for env in self.environments:
-                    lang_matrix = dict(itertools.izip(build_matrix_keys,
-                                                      matrix_combination))
-                    lang_matrix['env'] = env
-                    matrix.append(lang_matrix)
+                lang_matrix = dict(itertools.izip(build_matrix_keys,
+                                                  matrix_combination))
+                matrix.append(lang_matrix)
+
+        return matrix
+
+    def parse_matrix(self):
+        build_matrix = self._build_matrix()
+        matrix = []
+        for env in self.environments:
+            for mat in build_matrix:
+                mat = mat.copy()
+                mat['env'] = env
+                matrix.append(mat)
 
         cfg = self.config.get("matrix", {})
 
