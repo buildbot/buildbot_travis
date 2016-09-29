@@ -24,6 +24,32 @@ buildbot_travis does however not support the full .travis.yml format.
 .. _codecov-badge: http://codecov.io/github/buildbot/buildbot_travis?branch=master
 
 
+QuickStart
+==========
+
+First you need to make sure you have the proper python 2.7 environment. On ubuntu 16.04, that would mean::
+
+    sudo apt-get install build-essential python-dev libffi-dev libssl-dev python-pip
+
+Then you create a virtualenv and install buildbot_travis via pip::
+
+    mkdir bbtravis
+    cd bbtravis
+    virtualenv sandbox
+    . ./sandbox/bin/activate
+    pip install buildbot_travis
+
+Now you can create a new master::
+
+    bbtravis create-master master
+
+Now you can start that new master::
+
+    buildbot start master
+
+And then go to the UI: http://localhost:8010  which has an administration panel where to configure the projects.
+
+
 Buildbot Nine UI Plugin
 =======================
 
@@ -33,8 +59,8 @@ You can edit the project list, environment variables, not_important files, deplo
 
 high level configuration is either stored in a yaml file or directly in the configured database.
 
-The config file
-===============
+The per project config file
+===========================
 
 This is a ``.travis.yml`` for a typical buildout project::
 

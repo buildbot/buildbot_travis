@@ -23,12 +23,12 @@ class State extends Config
                 group: groupName
                 caption: 'Deploy'
 
-        groupName = 'settings'
+        groupName = 'administration'
 
         # Configuration
         glMenuServiceProvider.addGroup
             name: groupName
-            caption: 'Settings'
+            caption: 'Administration'
             icon: 'wrench'
             order: 150
 
