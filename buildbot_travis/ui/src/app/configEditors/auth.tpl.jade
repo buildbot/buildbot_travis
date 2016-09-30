@@ -6,6 +6,7 @@ config-page
                 .col-sm-10
                     select.form-control(ng-model="auth.type")
                         option(value="None") No Authentication
+                        option(value="AdminPassword") Admin Password
                         option(value="GitHub") GitHub OAuth2
                         option(value="GitLab") GitLab OAuth2
                         option(value="Google") Google OAuth2
@@ -25,6 +26,11 @@ config-page
                 label.col-sm-2.control-label GitLab URL:
                 .col-sm-10
                     input.form-control(type="text", ng-model="auth.instanceUri", placeholder="https://gitlab.com")
+
+            .form-group(ng-if='auth.type=="AdminPassword"')
+                label.col-sm-2.control-label Admin Password (user is 'admin'):
+                .col-sm-10
+                    input.form-control(type="text", ng-model="auth.adminPassword", placeholder="Note that this password is not stored encrypted")
 
             .form-group(ng-if='auth.type=="Custom"')
                 label.col-sm-2.control-label Python Code:
@@ -48,10 +54,12 @@ config-page
                 .form-group
                     label.col-sm-2.control-label Authorization rules:
                     .col-sm-10
-                        select.form-control(ng-model="auth.authztype")
+                        select.form-control(ng-model="auth.authztype", ng-if='auth.type!="AdminPassword"')
+                            option(value="Admin") Admin rights to a admin user
                             option(value="Groups") Admin rights to a {{AuthType}} group
                             option(value="Emails") Admin rights to a list of people via email
                             option(value="Custom") Custom Authorization settings via Python Code
+                        input.form-control(type="text" disabled ng-if='auth.type=="AdminPassword"', ng-init="auth.authztype = 'Admin'" value='Admin rights to a admin user')
                 .form-group(ng-if="auth.authztype == 'Groups'")
                     label.col-sm-2.control-label Groups:
                     .col-sm-10

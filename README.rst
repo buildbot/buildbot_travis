@@ -24,6 +24,50 @@ buildbot_travis does however not support the full .travis.yml format.
 .. _codecov-badge: http://codecov.io/github/buildbot/buildbot_travis?branch=master
 
 
+QuickStart
+==========
+
+First you need to make sure you have the proper python 2.7 environment. On ubuntu 16.04, that would mean::
+
+    sudo apt-get install build-essential python-dev libffi-dev libssl-dev python-pip
+
+Then you create a virtualenv and install buildbot_travis via pip::
+
+    mkdir bbtravis
+    cd bbtravis
+    virtualenv sandbox
+    . ./sandbox/bin/activate
+    pip install buildbot_travis
+
+Now you can create a new master::
+
+    bbtravis create-master master
+
+Now you can start that new master::
+
+    buildbot start master
+
+And then go to the UI: http://localhost:8010  which has an administration panel where to configure the projects.
+
+
+QuickStart With Docker
+======================
+
+docker run buildbot/buildbot_travis -p 8010:8010 -p 9989:9989
+
+
+QuickStart With Hyper
+=====================
+
+::
+
+    IP=<yourFIPaddress>
+    container=`hyper run -d -e buildbotURL=http://$IP/ -p 0.0.0.0:9989:9989 -p 0.0.0.0:80:8010 buildbot/buildbot_travis`
+    hyper fip attach $IP $container
+    echo go to http://$IP/#/bbtravis/config/auth  to configure admin access
+    echo go to http://$IP/#/bbtravis/config/workers to configure
+
+
 Buildbot Nine UI Plugin
 =======================
 
@@ -33,8 +77,8 @@ You can edit the project list, environment variables, not_important files, deplo
 
 high level configuration is either stored in a yaml file or directly in the configured database.
 
-The config file
-===============
+The per project config file
+===========================
 
 This is a ``.travis.yml`` for a typical buildout project::
 
@@ -218,15 +262,15 @@ Latest version of your project is just one click away from users.
 See the dashboard's template below
 
     ==============   =========    =========    =========    =========
-     DELIVERABLES                         STAGES                         
+     DELIVERABLES                         STAGES
     --------------   ------------------------------------------------
-     (projects)        COMMIT        DEV          QA           PROD   
+     (projects)        COMMIT        DEV          QA           PROD
     ==============   =========    =========    =========    =========
-     Deliverable A    GIT rev      1.2.3        GIT tag      GIT tag  
+     Deliverable A    GIT rev      1.2.3        GIT tag      GIT tag
     ==============   =========    =========    =========    =========
 
 For example, the version 1.2.3 (specified thanks to a GIT tag) of deliverable A is deployed in DEV stage.
-     
+
 Here are the 5 steps to setup a Deployment dashboard in Buildbot Travis.
 
 1) A ``Deployment`` section is available in the ``Settings`` section.
@@ -251,7 +295,7 @@ Here are the 5 steps to setup a Deployment dashboard in Buildbot Travis.
 5) To enable push button deployments, you need to define the deployment procedures.
    Create deployment scripts and update the script and/or after_script sections of the ``.travis.yml`` file
    of each deliverable.
-   
+
    Example::
 
     after_script:
@@ -328,23 +372,6 @@ Compared to original Travis format, here is a non-exaustive list of features kno
 
 * after_success, after_failure. Not implemented, but easy to add.
 * deploy. Deployment step would have to happen after all the matrix subbuilds are succeed
-
-
-Deploying
-=========
-
-"example" directory is available for easy to use example.
-
-
-Deploying in hyper
-===================
-
-::
-
-    IP=<yourFIPaddress>
-    container=`hyper run -d -e buildbotURL=http://$IP/ -p 0.0.0.0:9989:9989 -p 0.0.0.0:80:8010 tardyp/buildbot_travis:hyper`
-    hyper fip attach $IP $container
-    echo go to http://$IP/#/bbtravis/config/workers
 
 
 And configure your hyper keys in the default hyper worker
