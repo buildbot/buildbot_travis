@@ -3,9 +3,6 @@ import traceback
 import urlparse
 import uuid
 
-from twisted.internet import defer
-from yaml import safe_load
-
 import buildbot_travis
 from buildbot import getVersion
 from buildbot.config import error as config_error
@@ -17,6 +14,9 @@ from buildbot.process import factory
 from buildbot.schedulers.forcesched import StringParameter
 from buildbot.schedulers.triggerable import Triggerable
 from buildbot.www.authz.endpointmatchers import EndpointMatcherBase, Match
+from buildbot.www.authz.roles import RolesFromBase
+from twisted.internet import defer
+from yaml import safe_load
 
 from .important import ImportantManager
 from .steps import TravisSetupSteps, TravisTrigger
@@ -108,9 +108,7 @@ class TravisConfigurator(object):
 
     def getCleanConfig(self):
         cleancfgdict = {}
-        print "TBD....."
-        print self.cfgdict
-        for k,v in self.cfgdict.items():
+        for k, v in self.cfgdict.items():
             if k == 'projects' or k == 'stages':
                 cleancfgdict[k] = v
 
@@ -170,6 +168,11 @@ class TravisConfigurator(object):
     def createAuthConfigNone(self, authcfg):
         return None
 
+    def createAuthConfigAdminPassword(self, authcfg):
+        if not self.configAssertContains(authcfg, ['adminPassword']):
+            return None
+        return util.UserPasswordAuth({'admin': authcfg['adminPassword']})
+
     def createAuthConfigGitHub(self, authcfg):
         if not self.configAssertContains(authcfg, ['clientid', 'clientsecret']):
             return None
@@ -204,6 +207,18 @@ class TravisConfigurator(object):
             util.RebuildBuildEndpointMatcher(role="owner"),
         ]
 
+    def createAuthzConfigAdmin(self, authcfg):
+
+        class AdminsRolesFromAdminUser(RolesFromBase):
+            def getRolesFromUser(self, userDetails):
+                print userDetails
+                if 'name' in userDetails and userDetails['name'] == "admin":
+                    return "admins"
+                return []
+
+        return util.Authz(self.getDefaultAllowRules(admins=['admins']),
+                          [util.RolesFromEmails(admins=['admin'])])
+
     def createAuthzConfigGroups(self, authcfg):
         if not self.configAssertContains(authcfg, ['groups']):
             return None
@@ -216,7 +231,7 @@ class TravisConfigurator(object):
             return None
 
         return util.Authz(self.getDefaultAllowRules(admins=['admins']),
-                          [util.RolesFromEmails(role="admins", emails=authcfg['emails'])])
+                          [util.RolesFromEmails(admins=authcfg['emails'])])
 
     def createAuthzConfigCustom(self, authcfg):
         if not self.configAssertContains(authcfg, ['customauthzcode']):
@@ -257,7 +272,7 @@ class TravisConfigurator(object):
             for i in xrange(_worker.get('number', 1)):
                 name = _worker['name']
                 if _worker.get('number', 1) != 1:
-                    name = name + "_" + str(i + 1) # count one based
+                    name = name + "_" + str(i + 1)  # count one based
                 self.config['workers'].append(getattr(self, createWorkerConfigMethod)(_worker, name))
 
     def fromDb(self):
@@ -352,7 +367,6 @@ class TravisConfigurator(object):
             factory=f
         ))
 
-
         # no need for deployment builder if no stage is configured
         if kwargs.get('stages', []):
             # Define the builder for the deployment of the project
@@ -411,4 +425,3 @@ class TravisConfigurator(object):
         res = vcsManager.setupChangeSource(self.config['services'])
         if res is not None:
             self.change_hook_dialects.update(res)
-

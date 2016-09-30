@@ -64,7 +64,8 @@ QuickStart With Hyper
     IP=<yourFIPaddress>
     container=`hyper run -d -e buildbotURL=http://$IP/ -p 0.0.0.0:9989:9989 -p 0.0.0.0:80:8010 buildbot/buildbot_travis`
     hyper fip attach $IP $container
-    echo go to http://$IP/#/bbtravis/config/workers
+    echo go to http://$IP/#/bbtravis/config/auth  to configure admin access
+    echo go to http://$IP/#/bbtravis/config/workers to configure
 
 
 Buildbot Nine UI Plugin

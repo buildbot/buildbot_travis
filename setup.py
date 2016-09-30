@@ -40,6 +40,7 @@ setup_www_plugin(
         'klein',
         'urwid',
         'PyYAML',
+        'requests<2.8,>=2.6.1',  # because of docker-compose
         'txrequests',
         'pyjade',
         'txgithub',

@@ -125,7 +125,7 @@ class WorkerConfig extends Controller
                     type: self.$scope.new_worker.type
                     number: 1
                     id: id
-
+                self.$scope.toggle_show(id)
 
 
 DEFAULT_CUSTOM_AUTHCODE = """
