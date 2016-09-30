@@ -50,6 +50,23 @@ Now you can start that new master::
 And then go to the UI: http://localhost:8010  which has an administration panel where to configure the projects.
 
 
+QuickStart With Docker
+======================
+
+docker run buildbot/buildbot_travis -p 8010:8010 -p 9989:9989
+
+
+QuickStart With Hyper
+=====================
+
+::
+
+    IP=<yourFIPaddress>
+    container=`hyper run -d -e buildbotURL=http://$IP/ -p 0.0.0.0:9989:9989 -p 0.0.0.0:80:8010 buildbot/buildbot_travis`
+    hyper fip attach $IP $container
+    echo go to http://$IP/#/bbtravis/config/workers
+
+
 Buildbot Nine UI Plugin
 =======================
 
@@ -244,15 +261,15 @@ Latest version of your project is just one click away from users.
 See the dashboard's template below
 
     ==============   =========    =========    =========    =========
-     DELIVERABLES                         STAGES                         
+     DELIVERABLES                         STAGES
     --------------   ------------------------------------------------
-     (projects)        COMMIT        DEV          QA           PROD   
+     (projects)        COMMIT        DEV          QA           PROD
     ==============   =========    =========    =========    =========
-     Deliverable A    GIT rev      1.2.3        GIT tag      GIT tag  
+     Deliverable A    GIT rev      1.2.3        GIT tag      GIT tag
     ==============   =========    =========    =========    =========
 
 For example, the version 1.2.3 (specified thanks to a GIT tag) of deliverable A is deployed in DEV stage.
-     
+
 Here are the 5 steps to setup a Deployment dashboard in Buildbot Travis.
 
 1) A ``Deployment`` section is available in the ``Settings`` section.
@@ -277,7 +294,7 @@ Here are the 5 steps to setup a Deployment dashboard in Buildbot Travis.
 5) To enable push button deployments, you need to define the deployment procedures.
    Create deployment scripts and update the script and/or after_script sections of the ``.travis.yml`` file
    of each deliverable.
-   
+
    Example::
 
     after_script:
@@ -354,23 +371,6 @@ Compared to original Travis format, here is a non-exaustive list of features kno
 
 * after_success, after_failure. Not implemented, but easy to add.
 * deploy. Deployment step would have to happen after all the matrix subbuilds are succeed
-
-
-Deploying
-=========
-
-"example" directory is available for easy to use example.
-
-
-Deploying in hyper
-===================
-
-::
-
-    IP=<yourFIPaddress>
-    container=`hyper run -d -e buildbotURL=http://$IP/ -p 0.0.0.0:9989:9989 -p 0.0.0.0:80:8010 tardyp/buildbot_travis:hyper`
-    hyper fip attach $IP $container
-    echo go to http://$IP/#/bbtravis/config/workers
 
 
 And configure your hyper keys in the default hyper worker

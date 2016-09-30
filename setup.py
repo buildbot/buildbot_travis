@@ -40,5 +40,11 @@ setup_www_plugin(
         'klein',
         'urwid',
         'PyYAML',
+        'txrequests',
+        'pyjade',
+        'txgithub',
+        'ldap3',
+        'docker-py>=1.4',
+        'hyper-compose'
     ],
 )
