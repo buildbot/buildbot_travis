@@ -1,6 +1,16 @@
 Changelog
 =========
 
+0.4.0
+-----
+- Support for Hyper latent workers
+- Support for admin authentiation
+- Support for GitHub Pull requests
+
+0.3.0
+-----
+- Support for configuration of workers and auth via administration UI
+
 0.1.1
 -----
 Release of buildbot_travis based on buildbot nine beta1
