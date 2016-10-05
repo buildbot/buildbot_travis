@@ -36,16 +36,14 @@ setup_www_plugin(
         'setuptools',
         'buildbot',
         'buildbot-www',
-        'buildbot-slave',
+        'buildbot-worker',
         'klein',
         'urwid',
         'PyYAML',
-        'requests<2.8,>=2.6.1',  # because of docker-compose
         'txrequests',
         'pyjade',
         'txgithub',
         'ldap3',
-        'docker-py>=1.4',
-        'hyper-compose'
+        'hyper_hs'
     ],
 )

@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.4.1
+-----
+- Minor dependencies fix to create a stable docker container
+
 0.4.0
 -----
 - Support for Hyper latent workers
