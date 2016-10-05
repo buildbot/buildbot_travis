@@ -1,8 +1,7 @@
 # please follow docker best practices
 # https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices/
 
-#FROM buildbot/buildbot-master:master
-FROM tardyp/buildbot-master
+FROM buildbot/buildbot-master:master
 COPY example /usr/src/buildbot_travis/example
 
 RUN \
