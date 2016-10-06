@@ -53,7 +53,9 @@ And then go to the UI: http://localhost:8010  which has an administration panel 
 QuickStart With Docker
 ======================
 
-docker run buildbot/buildbot_travis -p 8010:8010 -p 9989:9989
+::
+
+    docker run buildbot/buildbot_travis -p 8010:8010 -p 9989:9989
 
 
 QuickStart With Hyper
@@ -62,7 +64,7 @@ QuickStart With Hyper
 ::
 
     IP=<yourFIPaddress>
-    container=`hyper run -d -e buildbotURL=http://$IP/ -p 0.0.0.0:9989:9989 -p 0.0.0.0:80:8010 buildbot/buildbot_travis`
+    container=`hyper run -d -e buildbotURL=http://$IP/ -p 9989:9989 -p 80:8010 buildbot/buildbot-travis`
     hyper fip attach $IP $container
     echo go to http://$IP/#/bbtravis/config/auth  to configure admin access
     echo go to http://$IP/#/bbtravis/config/workers to configure
