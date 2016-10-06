@@ -7,8 +7,8 @@ COPY example /usr/src/buildbot_travis/example
 RUN \
     apk add --no-cache \
         py-cffi \
-        py-requests \
-        docker-py@testing && \
+        py-openssl \
+        py-requests && \
     pip install buildbot_travis && \
     rm -r /root/.cache
 
