@@ -210,7 +210,7 @@ class TravisSetupSteps(ConfigurableStep):
     name = "setup-steps"
     haltOnFailure = True
     flunkOnFailure = True
-    MAX_NAME_LENGTH = 50
+    MAX_NAME_LENGTH = 47
 
     def addSetupVirtualEnv(self, python):
         step = SetupVirtualEnv(python)
