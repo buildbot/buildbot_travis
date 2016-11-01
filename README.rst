@@ -55,7 +55,7 @@ QuickStart With Docker
 
 ::
 
-    docker run buildbot/buildbot_travis -p 8010:8010 -p 9989:9989
+    docker run buildbot/buildbot-travis -p 8010:8010 -p 9989:9989
 
 
 QuickStart With Hyper
