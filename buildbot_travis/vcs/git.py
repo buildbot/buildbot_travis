@@ -39,6 +39,10 @@ class ParsedGitUrl(object):
 
 class GitBase(VCSBase):
     GitStep = Git
+    shallow = False
+    method = "clone"
+    mode = "incremental"
+    retryFetch = True
 
     def addRepository(self, factory, project=None, repository=None, branches=None, **kwargs):
         kwargs.update(dict(
@@ -46,7 +50,11 @@ class GitBase(VCSBase):
             codebase=project,
             haltOnFailure=True,
             flunkOnFailure=True,
-            getDescription={'tags': True, 'always': True}
+            getDescription={'tags': True, 'always': True},
+            shallow=self.shallow,
+            mode=self.mode,
+            method=self.method,
+            retryFetch=self.retryFetch
         ))
 
         factory.addStep(self.GitStep(**kwargs))

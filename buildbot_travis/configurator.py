@@ -3,6 +3,8 @@ import traceback
 import urlparse
 import uuid
 
+from yaml import safe_load
+
 import buildbot_travis
 from buildbot import getVersion
 from buildbot.config import error as config_error
@@ -16,7 +18,6 @@ from buildbot.schedulers.triggerable import Triggerable
 from buildbot.www.authz.endpointmatchers import EndpointMatcherBase, Match
 from buildbot.www.authz.roles import RolesFromBase
 from twisted.internet import defer
-from yaml import safe_load
 
 from .important import ImportantManager
 from .steps import TravisSetupSteps, TravisTrigger

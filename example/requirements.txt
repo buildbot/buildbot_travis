@@ -1,6 +1,5 @@
 supervisor
 buildbot_travis
-MySQL-python
 docker-py
 requests
 buildbot_pkg
