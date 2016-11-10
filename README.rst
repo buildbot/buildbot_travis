@@ -155,7 +155,7 @@ Buildbot specific features
 
 Original Travis just create a simple shell script to run the whole CI script.
 Buildbot is a little bit more powerful, and buildbot_travis can make use of it.
-For this you need to go out of the travis "de-facto" standard. e.g:
+For this you need to go out of the travis "de-facto" standard. e.g::
 
     script:
       - |
@@ -178,6 +178,24 @@ If yaml parser encounters a dictionary, then it will use the following keys:
 
 In order to keep working with buildbot_travis and travis.org at the same time, buildbot travis will look for a .bbtravis.yml before .travis.yml.
 With this, you can keep your .travis.yml without any buildbot specific feature.
+
+* Original travis supports clone depth configuration inside the yml file (aka shallow clone).
+  As the git clone is made before buildbot has a chance to parse the yaml, this configuration is done in the per project config in buildbot travis.
+  Two options are available in the cfg.yml (shallow and retryFetch) e.g::
+
+    projects:
+    -   branches:
+        - master
+        name: buildbot
+        repository: https://github.com/buildbot/buildbot
+        shallow: 200
+        retryFetch: true
+        mode: "full"
+        method: "clobber"
+        stages: []
+        tags: []
+        vcs_type: github
+
 
 Installing dependencies
 -----------------------

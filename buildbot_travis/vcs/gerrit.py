@@ -14,12 +14,11 @@
 
 import fnmatch
 
-from twisted.internet import defer
-
 from buildbot import config
 from buildbot.plugins import changes, reporters, schedulers, util
 from buildbot.steps.source.gerrit import Gerrit as GerritStep
 from buildbot.util import ComparableMixin
+from twisted.internet import defer
 
 from .git import GitBase, ParsedGitUrl
 
@@ -101,7 +100,10 @@ class Gerrit(GitBase):
             codebase=project,
             haltOnFailure=True,
             flunkOnFailure=True,
-            retryFetch=True,
+            shallow=self.shallow,
+            mode=self.mode,
+            method=self.method,
+            retryFetch=self.retryFetch,
             getDescription={'tags': True, 'always': True}
         ))
 
