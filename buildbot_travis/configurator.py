@@ -3,9 +3,6 @@ import traceback
 import urlparse
 import uuid
 
-from yaml import safe_load
-
-import buildbot_travis
 from buildbot import getVersion
 from buildbot.config import error as config_error
 # TBD use plugins!
@@ -18,6 +15,9 @@ from buildbot.schedulers.triggerable import Triggerable
 from buildbot.www.authz.endpointmatchers import EndpointMatcherBase, Match
 from buildbot.www.authz.roles import RolesFromBase
 from twisted.internet import defer
+from yaml import safe_load
+
+import buildbot_travis
 
 from .important import ImportantManager
 from .steps import TravisSetupSteps, TravisTrigger
@@ -315,6 +315,10 @@ class TravisConfigurator(object):
                 return str(tag)
             return str(tag['text'])
 
+        def uniq(tags):
+            """tags needs to be unique list, so we need to filter them into a set"""
+            return list(set(tags))
+
         tags = map(formatTag, tags)
         if 'username' not in kwargs and 'password' not in kwargs:
             p = urlparse.urlparse(repository)
@@ -342,7 +346,7 @@ class TravisConfigurator(object):
             properties=self.properties,
             collapseRequests=False,
             env=self.defaultEnv,
-            tags=["job", name] + tags,
+            tags=uniq(["job", name] + tags),
             factory=f
         ))
 
@@ -364,7 +368,7 @@ class TravisConfigurator(object):
             name=spawner_name,
             workernames=self.get_spawner_workers(),
             properties=properties,
-            tags=["trunk", name] + tags,
+            tags=uniq(["trunk", name] + tags),
             factory=f
         ))
 
@@ -397,7 +401,7 @@ class TravisConfigurator(object):
                     name=deploy_name,
                     workernames=self.get_runner_workers(),
                     env=self.defaultEnv,
-                    tags=["deploy", name] + tags,
+                    tags=uniq(["deploy", name] + tags),
                     factory=f))
         else:
             dep_properties = []
@@ -415,7 +419,7 @@ class TravisConfigurator(object):
                 name=try_name,
                 workernames=self.get_spawner_workers(),
                 properties=properties,
-                tags=["try", name] + tags,
+                tags=uniq(["try", name] + tags),
                 factory=f
             ))
 

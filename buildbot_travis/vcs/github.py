@@ -34,6 +34,7 @@ def makeContext(props):
 class GitHub(GitBase):
     description = "Source code hosted on github, with detection of changes using github web hooks"
     supportsTry = True
+    github_token = "unset"
     # GitHub is only in 0.9.1+
     if hasattr(steps, "GitHub"):
         GitStep = steps.GitHub
