@@ -1,6 +1,14 @@
 Changelog
 =========
 
+0.4.3
+-----
+- upgrade compatibility fixes. Fix case were tags are duplicated in the config
+
+0.4.2
+-----
+- README fixes for pypi page
+
 0.4.1
 -----
 - Minor dependencies fix to create a stable docker container
