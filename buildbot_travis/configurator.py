@@ -179,6 +179,11 @@ class TravisConfigurator(object):
             return None
         return util.GitHubAuth(authcfg["clientid"], authcfg["clientsecret"])
 
+    def createAuthConfigBitbucket(self, authcfg):
+        if not self.configAssertContains(authcfg, ['clientid', 'clientsecret']):
+            return None
+        return util.BitbucketAuth(authcfg["clientid"], authcfg["clientsecret"])
+
     def createAuthConfigGoogle(self, authcfg):
         if not self.configAssertContains(authcfg, ['clientid', 'clientsecret']):
             return None

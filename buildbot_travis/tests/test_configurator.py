@@ -52,6 +52,17 @@ class TravisConfiguratorTestCase(unittest.TestCase, config.ConfigErrorsMixin):
         self.c.createAuthConfig()
         self.assertIsInstance(self.c.config['www']['auth'], util.GitHubAuth)
 
+    def test_auth_bitbucket(self):
+        self.c.cfgdict = {
+            'auth': {
+                'type': 'Bitbucket',
+                'clientid': 'foo',
+                'clientsecret': 'bar'
+            }
+        }
+        self.c.createAuthConfig()
+        self.assertIsInstance(self.c.config['www']['auth'], util.BitbucketAuth)
+
     def test_auth_google(self):
         self.c.cfgdict = {
             'auth': {
