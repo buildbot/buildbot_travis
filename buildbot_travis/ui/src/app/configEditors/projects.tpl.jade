@@ -52,7 +52,7 @@ config-page
                         input.form-control(type="number", ng-model="project.treeStableTimer", name="treeStableTimer"
                                            placeholder="None")
                     span.col-sm-6.control-label
-                        | Time in seconds during which Buildbot agregates changes before kicking a build.
+                        | Time in seconds during which Buildbot aggregates changes before starting a build.
                 .form-group(ng-if="project.vcs_type == 'github'")
                     label.col-sm-2.control-label GitHub token:
                     .col-sm-4
