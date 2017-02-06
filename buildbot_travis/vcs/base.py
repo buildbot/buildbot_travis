@@ -14,14 +14,13 @@
 
 import os
 
-from buildbot.interfaces import IPlugin
-from zope.interface import implements
-from buildbot.plugins.db import get_plugins
-from buildbot.plugins import schedulers
-from buildbot.plugins import util
-from buildbot.schedulers.forcesched import CodebaseParameter
-
 from twisted.python import log
+from zope.interface import implements
+
+from buildbot.interfaces import IPlugin
+from buildbot.plugins import schedulers, util
+from buildbot.plugins.db import get_plugins
+from buildbot.schedulers.forcesched import CodebaseParameter
 
 
 class IVCSManager(IPlugin):
@@ -47,6 +46,7 @@ class VCSBase(object):
     branch = None
     branches = None
     repository = None
+    treeStableTimer = None
 
     def __init__(self, **kw):
         # takes all configuration from the yaml
@@ -120,6 +120,7 @@ class VCSBase(object):
                 builderNames=[spawner_name],
                 change_filter=self.getPushChangeFilter(),
                 onlyImportant=True,
+                treeStableTimer=self.treeStableTimer,
                 fileIsImportant=importantManager.fileIsImportant,
                 codebases=codebases, ))
         if self.supportsTry:
