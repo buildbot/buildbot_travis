@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.4.4
+-----
+- add TreeStableTimer configurability. This avoids to create one build per commit but rather one build per push/merge.
+
 0.4.3
 -----
 - upgrade compatibility fixes. Fix case were tags are duplicated in the config

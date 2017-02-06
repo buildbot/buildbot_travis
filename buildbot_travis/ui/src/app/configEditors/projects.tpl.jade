@@ -46,6 +46,13 @@ config-page
                         input-tags(tags="project.branches", all-tags="allBranches", placeholder="Add a branch")
                     span.col-sm-4.control-label
                         | use '*' character for matching several branches
+                .form-group
+                    label.col-sm-2.control-label Tree Stable Timer:
+                    .col-sm-4
+                        input.form-control(type="number", ng-model="project.treeStableTimer", name="treeStableTimer"
+                                           placeholder="None")
+                    span.col-sm-6.control-label
+                        | Time in seconds during which Buildbot aggregates changes before starting a build.
                 .form-group(ng-if="project.vcs_type == 'github'")
                     label.col-sm-2.control-label GitHub token:
                     .col-sm-4
