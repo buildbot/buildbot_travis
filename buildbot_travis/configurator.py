@@ -30,7 +30,6 @@ class TravisEndpointMatcher(EndpointMatcherBase):
         EndpointMatcherBase.__init__(self, **kwargs)
 
     def match(self, ep, action="get", options=None):
-        print ep
         if "/".join(ep).startswith("buildbot_travis/api/config"):
             return defer.succeed(Match(self.master))
         return defer.succeed(None)
