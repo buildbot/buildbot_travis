@@ -166,10 +166,11 @@ class AuthConfig extends Controller
             if type == "Custom" and not self.$scope.auth.customauthzcode
                 self.$scope.auth.customauthzcode = DEFAULT_CUSTOM_AUTHZCODE
         @$scope.isOAuth = ->
-            return self.$scope.auth.type in [ "Google", "GitLab", "GitHub"]
+            return self.$scope.auth.type in [ "Google", "GitLab", "GitHub", "Bitbucket"]
         @$scope.getOAuthDoc = (type) ->
             return {
                 Google: "https://developers.google.com/accounts/docs/OAuth2"
                 GitLab: "http://docs.gitlab.com/ce/api/oauth2.html"
                 GitHub: "https://developer.github.com/v3/oauth/"
+                Bitbucket: "https://confluence.atlassian.com/bitbucket/oauth-on-bitbucket-cloud-238027431.html"
             }[type]
