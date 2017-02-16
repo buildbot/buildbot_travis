@@ -9,10 +9,10 @@ import readline
 from subprocess import PIPE, STDOUT, Popen
 from threading import Lock
 
+import urwid
 from twisted.internet import reactor
 from twisted.internet.threads import deferToThread
 
-import urwid
 from buildbot_travis.steps.create_steps import SetupVirtualEnv
 from buildbot_travis.travisyml import TRAVIS_HOOKS, TravisYml
 
@@ -255,7 +255,7 @@ def run(args):
             vecmd = ve.buildCommand()
             if not args.dryrun:
                 rc, out = runner.run(vecmd)
-                _, path = runner.run("echo $PATH")
+                _, path = runner.run("echo -n $PATH")
                 script += 'export PATH="{}/{}/bin:{}"'.format(
                     runner.pwd, ve.sandboxname, path)
 
