@@ -34,7 +34,10 @@ def makeContext(props):
 class GitHub(GitBase):
     description = "Source code hosted on github, with detection of changes using github web hooks"
     supportsTry = True
-    github_token = "unset"
+    github_token = None
+    reporter_context = ""
+    default_reporter_context = "bb%(prop:matrix_label:+/)s%(prop:matrix_label)s"
+
     # GitHub is only in 0.9.1+
     if hasattr(steps, "GitHub"):
         GitStep = steps.GitHub
@@ -57,13 +60,15 @@ class GitHub(GitBase):
     def setupReporters(self, _reporters, spawner_name, try_name, codebases):
         name = "GitHubStatusPush"
         reportersByName = dict([(r.name, r) for r in _reporters])
-        if name not in reportersByName:
+        if name not in reportersByName and self.github_token:
             token = self.github_token
             if token.startswith("file:"):
                 with open(token.split(":", 2)[1]) as f:
                     token = f.read().strip()
             if token.startswith("env:"):
                 token = os.environ[token.split(":", 2)[1]]
+            if not self.reporter_context:
+                self.reporter_context = self.default_reporter_context
             _reporters.append(
                 reporters.GitHubStatusPush(token, context=util.Interpolate(self.reporter_context),
                                            verbose=True))

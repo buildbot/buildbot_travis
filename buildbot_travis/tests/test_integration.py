@@ -33,15 +33,26 @@ except ImportError:
 # It uses a git bundle to store sample git repository for the integration test
 # inside the git is present the following '.travis.yml' file
 # to edit it:
-#     mkdir test.git
-#     cd test.git
-#     git init
-#     git reset --hard `git bundle unbundle ../test.git.bundle |awk '{print $1}'`
-#     vi .travis.yml
-#     git commit -a --am
-#     git bundle create ../test.git.bundle master
+"""
+mkdir test.git
+cd test.git
+git init
+git reset --hard `git bundle unbundle ../test.git.bundle |awk '{print $1}'`
+vi .travis.yml
+git commit -a --am
+git bundle create ../test.git.bundle master
+"""
+
 travis_yml = """
 language: python
+
+label_mapping:
+  TWISTED: tw
+  SQLALCHEMY: sqla
+  SQLALCHEMY_MIGRATE: sqlam
+  latest: l
+  python: py
+
 python:
   - "2.6"
   - "2.7"
@@ -110,6 +121,7 @@ class TravisMaster(RunMasterBase):
         self.assertEqual(len(builds), 7)
         props = {}
         reasons = {}
+        labels = {}
         for build in builds:
             build['properties'] = yield self.master.data.get(("builds", build['buildid'], 'properties'))
             props[build['buildid']] = {
@@ -118,6 +130,7 @@ class TravisMaster(RunMasterBase):
                 if v[1] == '.travis.yml'
             }
             reasons[build['buildid']] = build['properties'].get('reason')
+            labels[build['buildid']] = build['properties'].get('matrix_label')
         self.assertEqual(props, {
             1: {},
             2: {u'SQLALCHEMY': u'latest',
@@ -159,6 +172,14 @@ class TravisMaster(RunMasterBase):
             5: (u'SQLALCHEMY=latest | SQLALCHEMY_MIGRATE=latest | TWISTED=latest | python=2.7', u'spawner'),
             6: (u'SQLALCHEMY=0.6.0 | SQLALCHEMY_MIGRATE=0.7.1 | TWISTED=12.0.0 | python=2.7', u'spawner'),
             7: (u'SQLALCHEMY=0.6.8 | SQLALCHEMY_MIGRATE=0.7.1 | TWISTED=12.0.0 | python=2.7', u'spawner')})
+        self.assertEqual(labels, {
+            1: None,
+            2: (u'py:2.6/sqla:l/sqlam:0.7.1/tw:11.1.0', u'spawner'),
+            3: (u'py:2.6/sqla:l/sqlam:l/tw:l', u'spawner'),
+            4: (u'py:2.7/sqla:l/sqlam:0.7.1/tw:11.1.0', u'spawner'),
+            5: (u'py:2.7/sqla:l/sqlam:l/tw:l', u'spawner'),
+            6: (u'py:2.7/sqla:0.6.0/sqlam:0.7.1/tw:12.0.0', u'spawner'),
+            7: (u'py:2.7/sqla:0.6.8/sqlam:0.7.1/tw:12.0.0', u'spawner')})
 
 # master configuration
 sample_yml = """

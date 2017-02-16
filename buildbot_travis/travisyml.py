@@ -67,6 +67,7 @@ class TravisYml(object):
     def parse_dict(self, config):
         self.config = config
         self.parse_language()
+        self.parse_label_mapping()
         self.parse_envs()
         self.parse_matrix()
         self.parse_hooks()
@@ -79,6 +80,9 @@ class TravisYml(object):
             self.language = self.config['language']
         except:
             raise TravisYmlInvalid("'language' parameter is missing")
+
+    def parse_label_mapping(self):
+        self.label_mapping = self.config.get('label_mapping', {})
 
     def parse_envs(self):
         env = self.config.get("env", None)
