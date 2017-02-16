@@ -196,6 +196,26 @@ With this, you can keep your .travis.yml without any buildbot specific feature.
         tags: []
         vcs_type: github
 
+If github_token is specified, bbtravis will create a github status for each of the builds of the matrix, with direct link to the sub build.
+The name of the status (aka context) is calculated using ``reporter_context`` of the project configuration.
+The default is ``"bb%(prop:matrix_label:+/)s%(prop:matrix_label)s"``.
+
+``matrix_label`` is computed by the Trigger step, and is the concatenation of key and values of the matrix.
+because matrix can be large, and github context is limited in size, bbtravis implements a way for projects to define abbreviations for the labels.
+e.g .bbtravis.yml such as:
+
+.. code-block:: yaml
+
+    language: python
+
+    label_mapping:
+      TWISTED: tw
+      SQLALCHEMY: sqla
+      SQLALCHEMY_MIGRATE: sqlam
+      latest: l
+      python: py
+
+Will generate context like:  ``bb/py:2.6/sqla:l/sqlam:0.7.1/tw:11.1.0``
 
 Installing dependencies
 -----------------------
