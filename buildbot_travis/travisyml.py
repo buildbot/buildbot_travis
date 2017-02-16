@@ -67,6 +67,7 @@ class TravisYml(object):
     def parse_dict(self, config):
         self.config = config
         self.parse_language()
+        self.parse_label_mapping()
         self.parse_envs()
         self.parse_matrix()
         self.parse_hooks()
@@ -80,8 +81,12 @@ class TravisYml(object):
         except:
             raise TravisYmlInvalid("'language' parameter is missing")
 
+    def parse_label_mapping(self):
+        self.label_mapping = self.config.get('label_mapping', {})
+
     def parse_envs(self):
         env = self.config.get("env", None)
+        self.global_env = {}
         if env is None:
             return
         elif isinstance(env, basestring):
@@ -89,11 +94,13 @@ class TravisYml(object):
         elif isinstance(env, list):
             self.environments = [parse_env_string(e) for e in env]
         elif isinstance(env, dict):
-            global_env = {}
-            for e in env.get('global', []):
-                global_env.update(parse_env_string(e))
+            global_env_strings = env.get('global', [])
+            if isinstance(global_env_strings, basestring):
+                global_env_strings = [global_env_strings]
+            for e in global_env_strings:
+                self.global_env.update(parse_env_string(e))
             self.environments = [
-                parse_env_string(e, global_env)
+                parse_env_string(e, self.global_env)
                 for e in env.get('matrix', [''])
             ]
         else:
@@ -142,15 +149,25 @@ class TravisYml(object):
 
         cfg = self.config.get("matrix", {})
 
+        def env_to_set(env):
+            env = env.copy()
+            env.update(env.get('env', {}))
+            if 'env' in env:
+                del env['env']
+            return set("{}={}".format(k, v) for k, v in env.items())
+
         for env in cfg.get("exclude") or []:
             matchee = env.copy()
             matchee['env'] = parse_env_string(matchee.get('env', ''))
-            if matchee in matrix:
-                matrix.remove(matchee)
+            matchee_set = env_to_set(matchee)
+            for matrix_line in matrix:
+                matrix_line_set = env_to_set(matrix_line)
+                if matrix_line_set.issuperset(matchee_set):
+                    matrix.remove(matrix_line)
 
         for env in cfg.get("include") or []:
             e = env.copy()
-            e['env'] = parse_env_string(e.get('env', ''))
+            e['env'] = parse_env_string(e.get('env', ''), self.global_env)
             matrix.append(e)
 
         self.matrix = matrix

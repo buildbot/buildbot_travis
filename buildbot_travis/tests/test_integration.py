@@ -32,14 +32,36 @@ except ImportError:
 # with one builder and a custom step
 # It uses a git bundle to store sample git repository for the integration test
 # inside the git is present the following '.travis.yml' file
+# to edit it:
+"""
+mkdir test.git
+cd test.git
+git init
+git reset --hard `git bundle unbundle ../test.git.bundle |awk '{print $1}'`
+vi .travis.yml
+git commit -a --am
+git bundle create ../test.git.bundle master
+"""
+
 travis_yml = """
 language: python
+
+label_mapping:
+  TWISTED: tw
+  SQLALCHEMY: sqla
+  SQLALCHEMY_MIGRATE: sqlam
+  latest: l
+  python: py
+
 python:
   - "2.6"
   - "2.7"
 env:
-  - TWISTED=11.1.0 SQLALCHEMY=latest SQLALCHEMY_MIGRATE=0.7.1
-  - TWISTED=latest SQLALCHEMY=latest SQLALCHEMY_MIGRATE=latest
+  global:
+      - CI=true
+  matrix:
+      - TWISTED=11.1.0 SQLALCHEMY=latest SQLALCHEMY_MIGRATE=0.7.1
+      - TWISTED=latest SQLALCHEMY=latest SQLALCHEMY_MIGRATE=latest
 matrix:
   include:
     # Test different versions of SQLAlchemy
@@ -64,6 +86,7 @@ notifications:
 
 class TravisMaster(RunMasterBase):
     timeout = 300
+
     def mktemp(self):
         # twisted mktemp will create a very long directory, which virtualenv will not like.
         # https://github.com/pypa/virtualenv/issues/596
@@ -97,6 +120,8 @@ class TravisMaster(RunMasterBase):
         builds = yield self.master.data.get(("builds",))
         self.assertEqual(len(builds), 7)
         props = {}
+        reasons = {}
+        labels = {}
         for build in builds:
             build['properties'] = yield self.master.data.get(("builds", build['buildid'], 'properties'))
             props[build['buildid']] = {
@@ -104,32 +129,57 @@ class TravisMaster(RunMasterBase):
                 for k, v in build['properties'].items()
                 if v[1] == '.travis.yml'
             }
+            reasons[build['buildid']] = build['properties'].get('reason')
+            labels[build['buildid']] = build['properties'].get('matrix_label')
         self.assertEqual(props, {
             1: {},
             2: {u'SQLALCHEMY': u'latest',
                 u'SQLALCHEMY_MIGRATE': u'0.7.1',
                 u'TWISTED': u'11.1.0',
+                u'CI': u'true',
                 u'python': u'2.6'},
             3: {u'SQLALCHEMY': u'latest',
                 u'SQLALCHEMY_MIGRATE': u'latest',
                 u'TWISTED': u'latest',
+                u'CI': u'true',
                 u'python': u'2.6'},
             4: {u'SQLALCHEMY': u'latest',
                 u'SQLALCHEMY_MIGRATE': u'0.7.1',
                 u'TWISTED': u'11.1.0',
+                u'CI': u'true',
                 u'python': u'2.7'},
             5: {u'SQLALCHEMY': u'latest',
                 u'SQLALCHEMY_MIGRATE': u'latest',
                 u'TWISTED': u'latest',
+                u'CI': u'true',
                 u'python': u'2.7'},
             6: {u'SQLALCHEMY': u'0.6.0',
                 u'SQLALCHEMY_MIGRATE': u'0.7.1',
                 u'TWISTED': u'12.0.0',
+                u'CI': u'true',
                 u'python': u'2.7'},
             7: {u'SQLALCHEMY': u'0.6.8',
                 u'SQLALCHEMY_MIGRATE': u'0.7.1',
                 u'TWISTED': u'12.0.0',
+                u'CI': u'true',
                 u'python': u'2.7'}})
+        # global env CI should not be there
+        self.assertEqual(reasons, {
+            1: None,
+            2: (u'SQLALCHEMY=latest | SQLALCHEMY_MIGRATE=0.7.1 | TWISTED=11.1.0 | python=2.6', u'spawner'),
+            3: (u'SQLALCHEMY=latest | SQLALCHEMY_MIGRATE=latest | TWISTED=latest | python=2.6', u'spawner'),
+            4: (u'SQLALCHEMY=latest | SQLALCHEMY_MIGRATE=0.7.1 | TWISTED=11.1.0 | python=2.7', u'spawner'),
+            5: (u'SQLALCHEMY=latest | SQLALCHEMY_MIGRATE=latest | TWISTED=latest | python=2.7', u'spawner'),
+            6: (u'SQLALCHEMY=0.6.0 | SQLALCHEMY_MIGRATE=0.7.1 | TWISTED=12.0.0 | python=2.7', u'spawner'),
+            7: (u'SQLALCHEMY=0.6.8 | SQLALCHEMY_MIGRATE=0.7.1 | TWISTED=12.0.0 | python=2.7', u'spawner')})
+        self.assertEqual(labels, {
+            1: None,
+            2: (u'py:2.6/sqla:l/sqlam:0.7.1/tw:11.1.0', u'spawner'),
+            3: (u'py:2.6/sqla:l/sqlam:l/tw:l', u'spawner'),
+            4: (u'py:2.7/sqla:l/sqlam:0.7.1/tw:11.1.0', u'spawner'),
+            5: (u'py:2.7/sqla:l/sqlam:l/tw:l', u'spawner'),
+            6: (u'py:2.7/sqla:0.6.0/sqlam:0.7.1/tw:12.0.0', u'spawner'),
+            7: (u'py:2.7/sqla:0.6.8/sqlam:0.7.1/tw:12.0.0', u'spawner')})
 
 # master configuration
 sample_yml = """

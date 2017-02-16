@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from twisted.internet import defer
-
 from buildbot.process.properties import Properties
 from buildbot.steps.trigger import Trigger
+from twisted.internet import defer
 
 from .base import ConfigurableStepMixin
 
@@ -47,6 +46,8 @@ class TravisTrigger(Trigger, ConfigurableStepMixin):
 
     def getSchedulersAndProperties(self):
         sch = self.schedulerNames[0]
+        reason_excluded_env = self.config.global_env.keys()
+
         triggered_schedulers = []
         for env in self.config.matrix:
             props_to_set = Properties()
@@ -65,7 +66,17 @@ class TravisTrigger(Trigger, ConfigurableStepMixin):
                 "reason",
                 u" | ".join(
                     sorted(str(k) + '=' + str(v)
-                           for k, v in flat_env.items())),
+                           for k, v in flat_env.items()
+                           if k not in reason_excluded_env)),
+                "spawner")
+
+            props_to_set.setProperty(
+                "matrix_label",
+                u"/".join(
+                    sorted(str(self.config.label_mapping.get(k, k)) +
+                           ':' + str(self.config.label_mapping.get(v, v))
+                           for k, v in flat_env.items()
+                           if k not in reason_excluded_env)),
                 "spawner")
 
             triggered_schedulers.append((sch, props_to_set))
