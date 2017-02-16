@@ -17,10 +17,9 @@ import os
 import shutil
 import tempfile
 
-from twisted.internet import defer
-
 from buildbot.worker import Worker
 from buildbot.worker.local import LocalWorker as RemoteLocalBuildSlave
+from twisted.internet import defer
 
 try:
     from buildbot.test.util.integration import RunMasterBase
@@ -64,7 +63,7 @@ notifications:
 
 
 class TravisMaster(RunMasterBase):
-
+    timeout = 300
     def mktemp(self):
         # twisted mktemp will create a very long directory, which virtualenv will not like.
         # https://github.com/pypa/virtualenv/issues/596
