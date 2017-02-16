@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from twisted.trial import unittest
-
 from buildbot_travis.travisyml import TravisYml, TravisYmlInvalid
+from twisted.trial import unittest
 
 
 class TravisYmlTestCase(unittest.TestCase):
@@ -89,6 +88,18 @@ class TestMatrix(TravisYmlTestCase):
             dict(python="python2.6", env=dict(FOO='1', BAR='2')),
         ])
 
+    def test_exclude_subset_match(self):
+        self.t.config["env"] = ["FOO=1 BAR=2", "FOO=2 BAR=1 SPAM=3"]
+        m = self.t.config["matrix"] = {}
+        m['exclude'] = [dict(python="python2.6", env="FOO=2 BAR=1")]
+
+        self.t.parse_envs()
+        self.t.parse_matrix()
+
+        self.failUnlessEqual(self.t.matrix, [
+            dict(python="python2.6", env=dict(FOO='1', BAR='2')),
+        ])
+
     def test_exclude_nomatch(self):
         self.t.config["env"] = ["FOO=1 BAR=2", "FOO=2 BAR=1"]
         m = self.t.config["matrix"] = {}
@@ -114,6 +125,20 @@ class TestMatrix(TravisYmlTestCase):
             dict(python="python2.6", env=dict(FOO='1', BAR='2')),
             dict(python="python2.6", env=dict(FOO='2', BAR='1')),
             dict(python="python2.6", env=dict(FOO='2', BAR='3')),
+        ])
+
+    def test_include_with_global(self):
+        self.t.config["env"] = {'global': "CI=true", 'matrix': ["FOO=1 BAR=2", "FOO=2 BAR=1"]}
+        m = self.t.config["matrix"] = {}
+        m['include'] = [dict(python="python2.6", env="FOO=2 BAR=3")]
+
+        self.t.parse_envs()
+        self.t.parse_matrix()
+
+        self.failUnlessEqual(self.t.matrix, [
+            dict(python="python2.6", env=dict(FOO='1', BAR='2', CI='true')),
+            dict(python="python2.6", env=dict(FOO='2', BAR='1', CI='true')),
+            dict(python="python2.6", env=dict(FOO='2', BAR='3', CI='true')),
         ])
 
 

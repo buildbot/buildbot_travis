@@ -1,6 +1,10 @@
 Changelog
 =========
 
+master
+-----
+- Global environment is no more part of the triggered build reason.
+
 0.4.4
 -----
 - add TreeStableTimer configurability. This avoids to create one build per commit but rather one build per push/merge.
@@ -198,4 +202,3 @@ This version was hard to use as buildbot nine was not available in pip
 ------------------
 
 - Initial release
-
