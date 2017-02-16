@@ -14,7 +14,9 @@
 
 import re
 
-from yaml import safe_load
+import yaml
+from buildbot.plugins import util
+from buildbot.plugins.db import get_plugins
 
 TRAVIS_HOOKS = ("before_install", "install", "after_install", "before_script",
                 "script", "after_script")
@@ -39,6 +41,48 @@ def parse_env_string(env, global_env=None):
     return props
 
 
+def interpolate_constructor(loader, node):
+    value = loader.construct_scalar(node)
+    return util.Interpolate(value)
+
+
+class TravisLoader(yaml.SafeLoader):
+    pass
+
+TravisLoader.add_constructor(u'!Interpolate', interpolate_constructor)
+TravisLoader.add_constructor(u'!i', interpolate_constructor)
+
+
+def registerStepClass(name, step):
+    def step_constructor(loader, node):
+        args = []
+        kwargs = {}
+        exceptions = []
+        try:
+            args = [loader.construct_scalar(node)]
+        except Exception as e:
+            exceptions.append(e)
+        try:
+            args = loader.construct_sequence(node)
+        except Exception as e:
+            exceptions.append(e)
+        try:
+            kwargs = loader.construct_mapping(node)
+        except Exception as e:
+            exceptions.append(e)
+
+        if len(exceptions) == 3:
+            raise Exception("Could not parse steps arguments: {}".format(
+                " ".join([str(x) for x in exceptions])))
+        return step(*args, **kwargs)
+
+    TravisLoader.add_constructor(u'!' + name, step_constructor)
+
+steps = get_plugins('steps', None, load_now=True)
+for step in steps.names:
+    registerStepClass(step, steps.get(step))
+
+
 class TravisYml(object):
     """
     Loads a .travis.yml file and parses it.
@@ -59,7 +103,7 @@ class TravisYml(object):
 
     def parse(self, config_input):
         try:
-            d = safe_load(config_input)
+            d = yaml.load(config_input, Loader=TravisLoader)
         except Exception as e:
             raise TravisYmlInvalid("Invalid YAML data\n" + str(e))
         self.parse_dict(d)
