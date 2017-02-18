@@ -17,10 +17,11 @@ import re
 import textwrap
 import traceback
 
+from twisted.internet import defer
+
 from buildbot.process.buildstep import (SUCCESS, BuildStep, LoggingBuildStep,
                                         ShellMixin)
 from buildbot.steps import shell
-from twisted.internet import defer
 
 from ..travisyml import TRAVIS_HOOKS
 from .base import ConfigurableStep
@@ -221,6 +222,7 @@ class TravisSetupSteps(ConfigurableStep):
         condition = None
         shell = "bash"
         step = None
+        original_command = command
         if isinstance(command, dict):
             name = command.get("title")
             shell = command.get("shell", shell)
@@ -243,6 +245,11 @@ class TravisSetupSteps(ConfigurableStep):
                 return
 
         if step is None:
+            if command is None:
+                self.addCompleteLog("bbtravis.yml error",
+                    "Neither step nor cmd is defined: %r" %(original_command,))
+                return
+
             if not isinstance(command, list):
                 command = [shell, '-c', command]
             step = ShellCommand(
