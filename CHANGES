@@ -1,8 +1,10 @@
 Changelog
 =========
 
-master
+0.5.0
 -----
+- Added possibility to use Buildbot steps directly in the .bbtravis.yml.
+- Added possibility to use Interpolate from within step definition.
 - Global environment is no more part of the triggered build reason.
 
 0.4.4
