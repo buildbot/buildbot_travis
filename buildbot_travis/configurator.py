@@ -126,7 +126,7 @@ class TravisConfigurator(object):
         l = {}
         # execute the code with empty global, and a given local context (that we return)
         try:
-            exec code in {}, l
+            exec(code, {}, l)
         except Exception:
             config_error("custom code generated an exception {}:".format(traceback.format_exc()))
             raise
