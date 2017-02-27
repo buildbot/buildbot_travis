@@ -63,6 +63,8 @@ class TestYamlParsing(TravisYmlTestCase):
             'title': 'make dist'}])
 
     def test_with_plugin_step(self):
+        if not hasattr(steps.CMake, "compare_attrs"):
+            return unittest.SkipTest("Test needs buildbot buildstep comparison")
         self.t.parse("""
         language: python
         script:
