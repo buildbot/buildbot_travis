@@ -89,25 +89,25 @@ class TestEnv(TravisYmlTestCase):
 
     def test_noenv(self):
         self.t.parse_envs()
-        self.failUnlessEqual(self.t.environments, [{}])
+        self.assertEqual(self.t.environments, [{}])
 
     def test_singleenv(self):
         self.t.config["env"] = "FOO=1 BAR=2"
         self.t.parse_envs()
-        self.failUnlessEqual(self.t.environments, [dict(FOO='1', BAR='2')])
+        self.assertEqual(self.t.environments, [dict(FOO='1', BAR='2')])
 
         self.t.parse_matrix()
-        self.failUnlessEqual(
+        self.assertEqual(
             self.t.matrix, [dict(python="python2.6", env=dict(FOO='1', BAR='2')), ])
 
     def test_multienv(self):
         self.t.config["env"] = ["FOO=1 BAR=2", "FOO=2 BAR=1"]
         self.t.parse_envs()
-        self.failUnlessEqual(
+        self.assertEqual(
             self.t.environments, [dict(FOO='1', BAR='2'), dict(FOO='2', BAR='1')])
 
         self.t.parse_matrix()
-        self.failUnlessEqual(self.t.matrix, [
+        self.assertEqual(self.t.matrix, [
             dict(python="python2.6", env=dict(FOO='1', BAR='2')),
             dict(python="python2.6", env=dict(FOO='2', BAR='1')),
         ])
@@ -115,11 +115,11 @@ class TestEnv(TravisYmlTestCase):
     def test_globalenv(self):
         self.t.config["env"] = {'global': ["FOOBAR=0"], 'matrix': ["FOO=1 BAR=2", "FOO=2 BAR=1"]}
         self.t.parse_envs()
-        self.failUnlessEqual(
+        self.assertEqual(
             self.t.environments, [dict(FOOBAR='0', FOO='1', BAR='2'), dict(FOOBAR='0', FOO='2', BAR='1')])
 
         self.t.parse_matrix()
-        self.failUnlessEqual(self.t.matrix, [
+        self.assertEqual(self.t.matrix, [
             dict(python="python2.6", env=dict(FOOBAR='0', FOO='1', BAR='2')),
             dict(python="python2.6", env=dict(FOOBAR='0', FOO='2', BAR='1')),
         ])
@@ -127,11 +127,11 @@ class TestEnv(TravisYmlTestCase):
     def test_emptymatrixlenv(self):
         self.t.config["env"] = {'global': ["FOOBAR=0"]}
         self.t.parse_envs()
-        self.failUnlessEqual(
+        self.assertEqual(
             self.t.environments, [dict(FOOBAR='0')])
 
         self.t.parse_matrix()
-        self.failUnlessEqual(self.t.matrix, [
+        self.assertEqual(self.t.matrix, [
             dict(python="python2.6", env=dict(FOOBAR='0')),
         ])
 
@@ -146,7 +146,7 @@ class TestMatrix(TravisYmlTestCase):
         self.t.parse_envs()
         self.t.parse_matrix()
 
-        self.failUnlessEqual(self.t.matrix, [
+        self.assertEqual(self.t.matrix, [
             dict(python="python2.6", env=dict(FOO='1', BAR='2')),
         ])
 
@@ -158,7 +158,7 @@ class TestMatrix(TravisYmlTestCase):
         self.t.parse_envs()
         self.t.parse_matrix()
 
-        self.failUnlessEqual(self.t.matrix, [
+        self.assertEqual(self.t.matrix, [
             dict(python="python2.6", env=dict(FOO='1', BAR='2')),
         ])
 
@@ -170,7 +170,7 @@ class TestMatrix(TravisYmlTestCase):
         self.t.parse_envs()
         self.t.parse_matrix()
 
-        self.failUnlessEqual(self.t.matrix, [
+        self.assertEqual(self.t.matrix, [
             dict(python="python2.6", env=dict(FOO='1', BAR='2')),
             dict(python="python2.6", env=dict(FOO='2', BAR='1')),
         ])
@@ -183,7 +183,7 @@ class TestMatrix(TravisYmlTestCase):
         self.t.parse_envs()
         self.t.parse_matrix()
 
-        self.failUnlessEqual(self.t.matrix, [
+        self.assertEqual(self.t.matrix, [
             dict(python="python2.6", env=dict(FOO='1', BAR='2')),
             dict(python="python2.6", env=dict(FOO='2', BAR='1')),
             dict(python="python2.6", env=dict(FOO='2', BAR='3')),
@@ -197,7 +197,7 @@ class TestMatrix(TravisYmlTestCase):
         self.t.parse_envs()
         self.t.parse_matrix()
 
-        self.failUnlessEqual(self.t.matrix, [
+        self.assertEqual(self.t.matrix, [
             dict(python="python2.6", env=dict(FOO='1', BAR='2', CI='true')),
             dict(python="python2.6", env=dict(FOO='2', BAR='1', CI='true')),
             dict(python="python2.6", env=dict(FOO='2', BAR='3', CI='true')),
@@ -208,56 +208,56 @@ class TestHooks(TravisYmlTestCase):
 
     def test_empty(self):
         self.t.parse_hooks()
-        self.failUnlessEqual(self.t.before_install, [])
-        self.failUnlessEqual(self.t.install, [])
-        self.failUnlessEqual(self.t.after_install, [])
-        self.failUnlessEqual(self.t.before_script, [])
-        self.failUnlessEqual(self.t.script, [])
-        self.failUnlessEqual(self.t.after_script, [])
+        self.assertEqual(self.t.before_install, [])
+        self.assertEqual(self.t.install, [])
+        self.assertEqual(self.t.after_install, [])
+        self.assertEqual(self.t.before_script, [])
+        self.assertEqual(self.t.script, [])
+        self.assertEqual(self.t.after_script, [])
 
     def test_single(self):
         self.t.config["after_script"] = "wibble -f foo"
         self.t.parse_hooks()
-        self.failUnlessEqual(self.t.after_script, ["wibble -f foo"])
+        self.assertEqual(self.t.after_script, ["wibble -f foo"])
 
     def test_multi(self):
         self.t.config["after_script"] = ["wibble -f foo", "fox"]
         self.t.parse_hooks()
-        self.failUnlessEqual(self.t.after_script, ["wibble -f foo", "fox"])
+        self.assertEqual(self.t.after_script, ["wibble -f foo", "fox"])
 
 
 class TestBranches(TravisYmlTestCase):
 
     def test_nobranches(self):
         self.t.parse_branches()
-        self.failUnlessEqual(self.t.branch_whitelist, None)
-        self.failUnlessEqual(self.t.branch_blacklist, None)
-        self.failUnlessEqual(self.t.can_build_branch("master"), True)
+        self.assertEqual(self.t.branch_whitelist, None)
+        self.assertEqual(self.t.branch_blacklist, None)
+        self.assertEqual(self.t.can_build_branch("master"), True)
 
     def test_whitelist(self):
         self.t.config["branches"] = {"only": ['master']}
         self.t.parse_branches()
-        self.failUnlessEqual(self.t.branch_whitelist, ["master"])
-        self.failUnlessEqual(self.t.branch_blacklist, None)
-        self.failUnlessEqual(self.t.can_build_branch("master"), True)
-        self.failUnlessEqual(
+        self.assertEqual(self.t.branch_whitelist, ["master"])
+        self.assertEqual(self.t.branch_blacklist, None)
+        self.assertEqual(self.t.can_build_branch("master"), True)
+        self.assertEqual(
             self.t.can_build_branch("feature-new-stuff"), False)
 
     def test_whitelist_regex(self):
         self.t.config["branches"] = {"only": ['master', '/^deploy-.*$/']}
         self.t.parse_branches()
-        self.failUnlessEqual(self.t.can_build_branch("master"), True)
-        self.failUnlessEqual(self.t.can_build_branch("wibble"), False)
-        self.failUnlessEqual(
+        self.assertEqual(self.t.can_build_branch("master"), True)
+        self.assertEqual(self.t.can_build_branch("wibble"), False)
+        self.assertEqual(
             self.t.can_build_branch("deploy-cool-regex"), True)
 
     def test_blacklist(self):
         self.t.config["branches"] = {"except": ['master']}
         self.t.parse_branches()
-        self.failUnlessEqual(self.t.branch_whitelist, None)
-        self.failUnlessEqual(self.t.branch_blacklist, ["master"])
-        self.failUnlessEqual(self.t.can_build_branch("master"), False)
-        self.failUnlessEqual(
+        self.assertEqual(self.t.branch_whitelist, None)
+        self.assertEqual(self.t.branch_blacklist, ["master"])
+        self.assertEqual(self.t.can_build_branch("master"), False)
+        self.assertEqual(
             self.t.can_build_branch("feature-new-stuff"), True)
 
     def test_whitelist_and_blacklist(self):
@@ -265,10 +265,10 @@ class TestBranches(TravisYmlTestCase):
         self.t.config["branches"] = {
             "only": ['master'], "except": ['master']}
         self.t.parse_branches()
-        self.failUnlessEqual(self.t.branch_whitelist, ["master"])
-        self.failUnlessEqual(self.t.branch_blacklist, None)
-        self.failUnlessEqual(self.t.can_build_branch("master"), True)
-        self.failUnlessEqual(
+        self.assertEqual(self.t.branch_whitelist, ["master"])
+        self.assertEqual(self.t.branch_blacklist, None)
+        self.assertEqual(self.t.can_build_branch("master"), True)
+        self.assertEqual(
             self.t.can_build_branch("feature-new-stuff"), False)
 
 
