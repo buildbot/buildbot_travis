@@ -19,7 +19,8 @@ import traceback
 
 from twisted.internet import defer
 
-from buildbot.process.buildstep import SUCCESS, LoggingBuildStep, ShellMixin
+from buildbot.process.buildstep import (SUCCESS, BuildStep, LoggingBuildStep,
+                                        ShellMixin)
 from buildbot.steps import shell
 
 from ..travisyml import TRAVIS_HOOKS
@@ -216,13 +217,22 @@ class TravisSetupSteps(ConfigurableStep):
         step = SetupVirtualEnv(python)
         self.build.addStepsAfterLastStep([step])
 
-    def addShellCommand(self, command):
+    def addBBTravisStep(self, command):
         name = None
         condition = None
+        shell = "bash"
+        step = None
+        original_command = command
         if isinstance(command, dict):
             name = command.get("title")
+            shell = command.get("shell", shell)
             condition = command.get("condition")
+            step = command.get("step")
             command = command.get("cmd")
+
+        if isinstance(command, BuildStep):
+            step = command
+
         if name is None:
             name = self.truncateName(command)
         if condition is not None:
@@ -233,8 +243,17 @@ class TravisSetupSteps(ConfigurableStep):
                 self.descriptionDone = u"Problem parsing condition"
                 self.addCompleteLog("condition error", traceback.format_exc())
                 return
-        step = ShellCommand(
-            name=name, description=command, command=['bash', '-c', command])
+
+        if step is None:
+            if command is None:
+                self.addCompleteLog("bbtravis.yml error",
+                    "Neither step nor cmd is defined: %r" %(original_command,))
+                return
+
+            if not isinstance(command, list):
+                command = [shell, '-c', command]
+            step = ShellCommand(
+                name=name, description=command, command=command)
         self.build.addStepsAfterLastStep([step])
 
     def testCondition(self, condition):
@@ -258,6 +277,6 @@ class TravisSetupSteps(ConfigurableStep):
             self.addSetupVirtualEnv(self.getProperty("python"))
         for k in TRAVIS_HOOKS:
             for command in getattr(config, k):
-                self.addShellCommand(command=command, )
+                self.addBBTravisStep(command=command)
 
         defer.returnValue(SUCCESS)

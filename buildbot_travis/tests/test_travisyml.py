@@ -12,8 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from buildbot_travis.travisyml import TravisYml, TravisYmlInvalid
+import yaml
 from twisted.trial import unittest
+
+from buildbot.plugins import steps, util
+from buildbot_travis.travisyml import TravisYml, TravisYmlInvalid
 
 
 class TravisYmlTestCase(unittest.TestCase):
@@ -22,6 +25,65 @@ class TravisYmlTestCase(unittest.TestCase):
         self.t = TravisYml()
         self.t.config = {}
 
+
+class TestYamlParsing(TravisYmlTestCase):
+
+    def test_basic(self):
+        self.t.parse("""
+        language: python
+        """)
+
+    def test_with_scripts(self):
+        self.t.parse("""
+        language: python
+        script:
+            - echo ok
+        """)
+        self.failUnlessEqual(self.t.script, ["echo ok"])
+
+    def test_with_interpolated_scripts(self):
+        self.t.parse("""
+        language: python
+        script:
+            - !i echo ok
+        """)
+        self.failUnlessEqual(self.t.script, [util.Interpolate("echo ok")])
+
+    def test_with_interpolated_scripts_in_list(self):
+        self.t.parse("""
+        language: python
+        script:
+          - title: make dist
+            cmd: [ "make", !Interpolate "REVISION=%(prop:got_revision:-%(src::revision:-unknown)s)s", "dist" ]
+        """)
+        self.failUnlessEqual(self.t.script, [{'cmd': [
+            'make',
+            util.Interpolate(u'REVISION=%(prop:got_revision:-%(src::revision:-unknown)s)s'),
+            'dist'],
+            'title': 'make dist'}])
+
+    def test_with_plugin_step(self):
+        if not hasattr(steps.CMake, "compare_attrs"):
+            return unittest.SkipTest("Test needs buildbot buildstep comparison")
+        self.t.parse("""
+        language: python
+        script:
+            - !CMake target
+        """)
+        self.failUnlessEqual(self.t.script, [steps.CMake("target")])
+
+    def test_with_plugin_step_with_parse_error(self):
+        self.assertRaises(TravisYmlInvalid, self.t.parse, """
+        language: python
+        script:
+            - !CMake [ tar:get ]
+        """)
+
+    def test_yaml_not_polluted(self):
+        """yaml.load should not recognise Interpolate contruct"""
+        self.assertRaises(yaml.constructor.ConstructorError, yaml.load, """
+            - !i foo
+            """)
 
 class TestEnv(TravisYmlTestCase):
 
