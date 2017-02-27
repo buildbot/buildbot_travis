@@ -216,7 +216,6 @@ class TravisConfigurator(object):
 
         class AdminsRolesFromAdminUser(RolesFromBase):
             def getRolesFromUser(self, userDetails):
-                print userDetails
                 if 'name' in userDetails and userDetails['name'] == "admin":
                     return "admins"
                 return []
