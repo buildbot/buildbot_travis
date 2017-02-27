@@ -40,7 +40,6 @@ class RepoMatcher(ComparableMixin):
             return False
         for b in self.branches:
             if fnmatch.fnmatch(branch, b):
-                print("match", branch, b)
                 return True
         return False
 
@@ -55,7 +54,6 @@ class GerritChangeSource(changes.GerritChangeSource):
         self.configureService()
 
     def reconfigServiceWithSibling(self, sibling):
-        print("reconfiguring", self.name, sibling.watchedRepos)
         self.watchedRepos = sibling.watchedRepos
         return changes.GerritChangeSource.reconfigServiceWithSibling(self, sibling)
 
