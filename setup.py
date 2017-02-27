@@ -47,6 +47,7 @@ setup_www_plugin(
         'pyjade',
         'txgithub',
         'ldap3',
-        'hyper_sh'
+        'hyper_sh',
+        'future'
     ],
 )
