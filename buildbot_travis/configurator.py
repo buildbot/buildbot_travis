@@ -329,7 +329,7 @@ class TravisConfigurator(object):
             """tags needs to be unique list, so we need to filter them into a set"""
             return list(set(tags))
 
-        tags = map(formatTag, tags)
+        tags = [formatTag(tag) for tag in tags]
         if 'username' not in kwargs and 'password' not in kwargs:
             p = urlparse(repository)
             k = (p.scheme, p.netloc)
