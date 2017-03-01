@@ -2,11 +2,11 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+from future.moves.urllib.parse import urlparse
 from future.utils import string_types
 
 import os
 import traceback
-import urlparse
 import uuid
 
 from buildbot import getVersion
@@ -330,7 +330,7 @@ class TravisConfigurator(object):
 
         tags = map(formatTag, tags)
         if 'username' not in kwargs and 'password' not in kwargs:
-            p = urlparse.urlparse(repository)
+            p = urlparse(repository)
             k = (p.scheme, p.netloc)
             if k in self.passwords:
                 kwargs['username'], kwargs['password'] = self.passwords[k]
