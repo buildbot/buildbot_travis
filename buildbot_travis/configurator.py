@@ -1,3 +1,5 @@
+from future.utils import string_types
+
 import os
 import traceback
 import urlparse
@@ -77,14 +79,14 @@ class TravisConfigurator(object):
             y.setdefault("not_important_files", []))
         self.defaultEnv = y.setdefault("env", {})
         for k, v in self.defaultEnv.items():
-            if not (isinstance(v, list) or isinstance(v, basestring)):
+            if not (isinstance(v, list) or isinstance(v, string_types)):
                 config_error(
                     "'env' values must be strings or lists ; key %s is incorrect: %s" % (k, type(v)))
         for p in y.setdefault("projects", []):
             self.define_travis_builder(**p)
         self.defaultStages = y.setdefault("stages", [])
         for s in self.defaultStages:
-            if not isinstance(s, basestring):
+            if not isinstance(s, string_types):
                 config_error(
                     "'stages' values must be strings ; stage %s is incorrect: %s" % (s, type(s)))
 
@@ -314,7 +316,7 @@ class TravisConfigurator(object):
             tags = []
 
         def formatTag(tag):
-            if isinstance(tag, basestring):
+            if isinstance(tag, string_types):
                 return str(tag)
             return str(tag['text'])
 
