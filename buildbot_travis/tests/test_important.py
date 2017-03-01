@@ -1,3 +1,7 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 from twisted.trial import unittest
 from buildbot_travis.important import ImportantManager
 
