@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from builtins import range
 
 import argparse
 import hashlib
@@ -135,8 +136,8 @@ class Ui(object):
         self.windows = []
         self.widgets = []
         numcolumns = min(maxwindow, 2)
-        columns = [[] for i in xrange(numcolumns)]
-        for i in xrange(maxwindow):
+        columns = [[] for i in range(numcolumns)]
+        for i in range(maxwindow):
             window = MyTerminal()
             self.windows.append(window)
             widget = urwid.Frame(urwid.LineBox(window))
