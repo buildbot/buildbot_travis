@@ -1,4 +1,4 @@
-supervisor
+supervisor ; python_version < '3.0'
 MySQL-python
 docker-py
 requests
