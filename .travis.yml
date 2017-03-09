@@ -1,12 +1,24 @@
+language: python
+sudo: false
+
 env:
    global:
       - image=pythonnode_slave
-language: python
-python:
-  - "2.7"
-env:
-   - TRAVIS_NODE_VERSION="4"
-   - TRAVIS_NODE_VERSION="6"
+
+matrix:
+  include:
+    - python: 2.7
+      env: TRAVIS_NODE_VERSION="4"
+    - python: 2.7
+      env: TRAVIS_NODE_VERSION="6"
+    - python: 3.5
+      env: TRAVIS_NODE_VERSION="6"
+    - python: 3.6
+      env: TRAVIS_NODE_VERSION="6"
+  allow_failures:
+    - python: 3.5
+    - python: 3.6
+
 install:
   - rm -rf ~/.nvm && git clone https://github.com/creationix/nvm.git ~/.nvm && (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`) && source ~/.nvm/nvm.sh && nvm install $TRAVIS_NODE_VERSION
   - pip install -U pip
@@ -15,5 +27,8 @@ install:
   - pip install -e .
   - pip install mock
 
-script: trial buildbot_travis/tests
+script:
+  - python setup.py develop
+  - trial buildbot_travis.tests
+
 after_failure: "cat _trial_temp/test.log"
