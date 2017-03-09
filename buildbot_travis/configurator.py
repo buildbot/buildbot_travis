@@ -1,6 +1,12 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+from future.moves.urllib.parse import urlparse
+from future.utils import string_types
+
 import os
 import traceback
-import urlparse
 import uuid
 
 from buildbot import getVersion
@@ -77,14 +83,14 @@ class TravisConfigurator(object):
             y.setdefault("not_important_files", []))
         self.defaultEnv = y.setdefault("env", {})
         for k, v in self.defaultEnv.items():
-            if not (isinstance(v, list) or isinstance(v, basestring)):
+            if not (isinstance(v, list) or isinstance(v, string_types)):
                 config_error(
                     "'env' values must be strings or lists ; key %s is incorrect: %s" % (k, type(v)))
         for p in y.setdefault("projects", []):
             self.define_travis_builder(**p)
         self.defaultStages = y.setdefault("stages", [])
         for s in self.defaultStages:
-            if not isinstance(s, basestring):
+            if not isinstance(s, string_types):
                 config_error(
                     "'stages' values must be strings ; stage %s is incorrect: %s" % (s, type(s)))
 
@@ -314,7 +320,7 @@ class TravisConfigurator(object):
             tags = []
 
         def formatTag(tag):
-            if isinstance(tag, basestring):
+            if isinstance(tag, string_types):
                 return str(tag)
             return str(tag['text'])
 
@@ -324,7 +330,7 @@ class TravisConfigurator(object):
 
         tags = map(formatTag, tags)
         if 'username' not in kwargs and 'password' not in kwargs:
-            p = urlparse.urlparse(repository)
+            p = urlparse(repository)
             k = (p.scheme, p.netloc)
             if k in self.passwords:
                 kwargs['username'], kwargs['password'] = self.passwords[k]

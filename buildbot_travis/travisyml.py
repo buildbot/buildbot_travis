@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from future.utils import string_types
+
 import re
 
 import yaml
@@ -133,13 +138,13 @@ class TravisYml(object):
         self.global_env = {}
         if env is None:
             return
-        elif isinstance(env, basestring):
+        elif isinstance(env, string_types):
             self.environments = [parse_env_string(env)]
         elif isinstance(env, list):
             self.environments = [parse_env_string(e) for e in env]
         elif isinstance(env, dict):
             global_env_strings = env.get('global', [])
-            if isinstance(global_env_strings, basestring):
+            if isinstance(global_env_strings, string_types):
                 global_env_strings = [global_env_strings]
             for e in global_env_strings:
                 self.global_env.update(parse_env_string(e))
@@ -153,7 +158,7 @@ class TravisYml(object):
     def parse_hooks(self):
         for hook in TRAVIS_HOOKS:
             commands = self.config.get(hook, [])
-            if isinstance(commands, basestring):
+            if isinstance(commands, string_types):
                 commands = [commands]
             if not isinstance(commands, list):
                 raise TravisYmlInvalid("'%s' parameter is invalid" % hook)

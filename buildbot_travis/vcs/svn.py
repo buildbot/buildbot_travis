@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import urlparse
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from future.moves.urllib.parse import urlparse
+
 import os
 
 from .base import VCSBase, PollerMixin
@@ -119,7 +123,7 @@ class SVNPoller(VCSBase, PollerMixin):
         else:
             repo = self.getRepositoryRoot()
 
-            scheme, netloc, path, _, _, _ = urlparse.urlparse(repo)
+            scheme, netloc, path, _, _, _ = urlparse(repo)
             name = "%s-%s-%s" % (scheme, netloc.replace(".", "-"), path.rstrip("/").lstrip("/").replace("/", "-"))
             pollerdir = self.makePollerDir(name)
 

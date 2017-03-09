@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from urlparse import urlparse
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from future.moves.urllib.parse import urlparse
 
 from buildbot.plugins import changes, util
 from buildbot.steps.source.git import Git

@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 from buildbot.process.properties import Properties
 from buildbot.steps.trigger import Trigger
 from twisted.internet import defer
