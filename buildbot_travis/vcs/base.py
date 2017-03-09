@@ -19,7 +19,7 @@ from __future__ import print_function
 import os
 
 from twisted.python import log
-from zope.interface import implements
+from zope.interface import implementer
 
 from buildbot.interfaces import IPlugin
 from buildbot.plugins import schedulers, util
@@ -42,8 +42,8 @@ class IVCSManager(IPlugin):
         pass
 
 
+@implementer(IVCSManager)
 class VCSBase(object):
-    implements(IVCSManager)
     supportsTry = False  # supports try branches, and change filter
     scm_type = None
     subrepos = []
