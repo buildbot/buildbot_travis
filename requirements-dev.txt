@@ -1,5 +1,5 @@
-supervisor
-MySQL-python
+supervisor ; python_version < '3.0'
+mysqlclient
 docker-py
 requests
 buildbot_pkg
