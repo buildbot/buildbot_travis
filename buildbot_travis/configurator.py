@@ -4,6 +4,7 @@ from __future__ import print_function
 
 from future.moves.urllib.parse import urlparse
 from future.utils import string_types
+from builtins import range
 
 import os
 import traceback
@@ -279,7 +280,7 @@ class TravisConfigurator(object):
                 config_error("_worker type {} is not supported".format(_worker['type']))
                 continue
 
-            for i in xrange(_worker.get('number', 1)):
+            for i in range(_worker.get('number', 1)):
                 name = _worker['name']
                 if _worker.get('number', 1) != 1:
                     name = name + "_" + str(i + 1)  # count one based
@@ -328,7 +329,7 @@ class TravisConfigurator(object):
             """tags needs to be unique list, so we need to filter them into a set"""
             return list(set(tags))
 
-        tags = map(formatTag, tags)
+        tags = [formatTag(tag) for tag in tags]
         if 'username' not in kwargs and 'password' not in kwargs:
             p = urlparse(repository)
             k = (p.scheme, p.netloc)
