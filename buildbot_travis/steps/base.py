@@ -39,6 +39,7 @@ class ConfigurableStepMixin(CompositeStepMixin):
     """
     Base class for a step which can be tuned by changing settings in .travis.yml
     """
+    TRAVIS_FILENAMES = [".bbtravis.yml", ".travis.yml"]
 
     def getResultSummary(self):
         if self.descriptionDone is not None:
@@ -52,7 +53,7 @@ class ConfigurableStepMixin(CompositeStepMixin):
     @defer.inlineCallbacks
     def getStepConfig(self):
         travis_yml = None
-        for filename in [".bbtravis.yml", ".travis.yml"]:
+        for filename in self.TRAVIS_FILENAMES:
             try:
                 travis_yml = yield self.getFileContentFromWorker(filename, abandonOnFailure=True)
                 break
