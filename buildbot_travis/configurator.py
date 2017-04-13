@@ -1,15 +1,16 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
-from future.moves.urllib.parse import urlparse
-from future.utils import string_types
-from builtins import range
+from __future__ import absolute_import, division, print_function
 
 import os
 import traceback
 import uuid
+from builtins import range
 
+from future.moves.urllib.parse import urlparse
+from future.utils import string_types
+from twisted.internet import defer
+from yaml import safe_load
+
+import buildbot_travis
 from buildbot import getVersion
 from buildbot.config import error as config_error
 # TBD use plugins!
@@ -21,10 +22,6 @@ from buildbot.schedulers.forcesched import StringParameter
 from buildbot.schedulers.triggerable import Triggerable
 from buildbot.www.authz.endpointmatchers import EndpointMatcherBase, Match
 from buildbot.www.authz.roles import RolesFromBase
-from twisted.internet import defer
-from yaml import safe_load
-
-import buildbot_travis
 
 from .important import ImportantManager
 from .steps import TravisSetupSteps, TravisTrigger
@@ -108,7 +105,8 @@ class TravisConfigurator(object):
                                   change_hook_dialects=self.change_hook_dialects,
                                   plugins=dict(buildbot_travis={
                                       'supported_vcs': getSupportedVCSTypes(),
-                                      'cfg': self.getCleanConfig()}),
+                                      'cfg': self.getCleanConfig()},
+                                      console_view=True),
                                   versions=[('buildbot_travis', getVersion(__file__))])
         self.config.setdefault('protocols', {'pb': {'port': 9989}})
         self.createAuthConfig()
