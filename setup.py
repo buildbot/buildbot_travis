@@ -1,6 +1,6 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
+
+from setuptools import find_packages
 
 try:
     from buildbot_pkg import setup_www_plugin
@@ -8,7 +8,6 @@ except ImportError:
     import sys
     print("Please install buildbot_pkg module in order to install that package, or use the pre-build .whl modules available on pypi", file=sys.stderr)
     sys.exit(1)
-from setuptools import find_packages
 
 setup_www_plugin(
     name='buildbot_travis',
@@ -39,8 +38,10 @@ setup_www_plugin(
     },
     install_requires=[
         'setuptools',
-        'buildbot',
+        'buildbot>=0.9.6',  # for virtual builders features
         'buildbot-www',
+        'buildbot-console-view',
+        'buildbot-waterfall-view',
         'buildbot-worker',
         'klein',
         'urwid',

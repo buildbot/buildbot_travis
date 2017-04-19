@@ -106,7 +106,7 @@ class TravisConfigurator(object):
                                   plugins=dict(buildbot_travis={
                                       'supported_vcs': getSupportedVCSTypes(),
                                       'cfg': self.getCleanConfig()},
-                                      console_view=True),
+                                      console_view=True, waterfall_view=True),
                                   versions=[('buildbot_travis', getVersion(__file__))])
         self.config.setdefault('protocols', {'pb': {'port': 9989}})
         self.createAuthConfig()
