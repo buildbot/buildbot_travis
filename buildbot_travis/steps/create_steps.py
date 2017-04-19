@@ -12,9 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import os
 import re
@@ -45,9 +43,10 @@ class SetupVirtualEnv(ShellMixin, LoggingBuildStep):
         cmd = yield self.makeRemoteShellCommand(
             command=["bash", "-c", command])
         yield self.runCommand(cmd)
-        self.setProperty("PATH", os.path.join(
-            self.getProperty("builddir"), self.workdir, "sandbox/bin") + ":" +
-                         self.worker.worker_environ['PATH'])
+        self.setProperty(
+            "PATH", os.path.join(
+                self.getProperty("builddir"), self.workdir, "sandbox/bin") + ":" +
+            self.worker.worker_environ['PATH'])
         defer.returnValue(cmd.results())
 
     def buildCommand(self):
@@ -216,6 +215,7 @@ class TravisSetupSteps(ConfigurableStep):
     haltOnFailure = True
     flunkOnFailure = True
     MAX_NAME_LENGTH = 47
+    disable = False
 
     def addSetupVirtualEnv(self, python):
         step = SetupVirtualEnv(python)
@@ -251,13 +251,16 @@ class TravisSetupSteps(ConfigurableStep):
         if step is None:
             if command is None:
                 self.addCompleteLog("bbtravis.yml error",
-                    "Neither step nor cmd is defined: %r" %(original_command,))
+                                    "Neither step nor cmd is defined: %r" %
+                                    (original_command, ))
                 return
 
             if not isinstance(command, list):
                 command = [shell, '-c', command]
             step = ShellCommand(
                 name=name, description=command, command=command)
+        if self.disable:
+            step.run = lambda: defer.succeed(SUCCESS)
         self.build.addStepsAfterLastStep([step])
 
     def testCondition(self, condition):

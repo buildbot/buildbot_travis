@@ -23,8 +23,8 @@ import unittest
 from twisted.internet import defer
 
 import buildbot
-from buildbot.worker import Worker
 from buildbot.worker.local import LocalWorker
+from buildbot_travis.steps.create_steps import TravisSetupSteps
 
 try:
     from buildbot.test.util.integration import RunMasterBase
@@ -32,6 +32,11 @@ except ImportError:
     # if buildbot installed with wheel, it does not include the test util :-(
     RunMasterBase = object
 
+
+# this test is and easy way to create a master with lots of data in it
+# it runs the bbtravis of buildbot which is expected to be in development mode
+# and disable the setup steps to create build quickly
+# with it you can see how the dashboard behaves when buildbot is creating lots of stuff
 
 class TravisMaster(RunMasterBase):
     timeout = 30000
@@ -48,7 +53,7 @@ class TravisMaster(RunMasterBase):
     def test_debug_dashboards(self):
         raise unittest.SkipTest("test should only be enabled to debug dashboards with real'ish data")
         from git import Repo
-        import buildbot
+        self.patch(TravisSetupSteps, 'disable', True)
         yield self.setupConfig(masterConfig(), startWorker=False)
         repo = Repo(path_to_repo)
         for c in repo.iter_commits('HEAD', max_count=15):
@@ -63,6 +68,7 @@ class TravisMaster(RunMasterBase):
             yield self.doForceBuild(wantSteps=True, useChange=change, wantLogs=True)
         # wait forever
         yield defer.Deferred()
+
 
 # master configuration
 sample_yml = """
