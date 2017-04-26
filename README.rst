@@ -470,6 +470,30 @@ Here are the 5 steps to setup a Deployment dashboard in Buildbot Travis.
            ${stage} is the retrieved from the Deployment dashboard.
            ${version} is retrieved from the Deployment dashboard.
 
+Configuring Travis Defaults
+===========================
+
+The YAML file or Python dict passed to ``TravisConfigurator`` supports a few keys to set some environment defaults.
+
+Default Matrix
+--------------
+The ``default_matrix`` key contains the default values for any keys the repository's ``.travis.yml`` does not specify.
+
+Example::
+
+    default_matrix:
+      os: linux
+      dist: debian_7
+      language:
+        python: 2.7
+        c:
+          compiler: gcc
+        c++:
+          compiler: g++
+
+This example sets the default ``os`` to ``linux``, the default ``dist`` to ``debian_7``, and sets default values for three languages.
+If the ``.travis.yml`` has ``language: c``, then it will have ``compiler`` set to ``gcc``.
+
 How it works
 ============
 
