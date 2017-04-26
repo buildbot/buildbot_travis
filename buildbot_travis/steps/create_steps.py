@@ -33,9 +33,9 @@ class SetupVirtualEnv(ShellMixin, LoggingBuildStep):
     name = "setup virtualenv"
     sandboxname = "sandbox"
 
-    def __init__(self, python):
+    def __init__(self, python, **kwargs):
         self.python = python
-        super(SetupVirtualEnv, self).__init__(haltOnFailure=True)
+        super(SetupVirtualEnv, self).__init__(haltOnFailure=True, **kwargs)
 
     @defer.inlineCallbacks
     def run(self):
@@ -218,7 +218,7 @@ class TravisSetupSteps(ConfigurableStep):
     disable = False
 
     def addSetupVirtualEnv(self, python):
-        step = SetupVirtualEnv(python)
+        step = SetupVirtualEnv(python, doStepIf=not self.disable)
         self.build.addStepsAfterLastStep([step])
 
     def addBBTravisStep(self, command):
@@ -258,9 +258,7 @@ class TravisSetupSteps(ConfigurableStep):
             if not isinstance(command, list):
                 command = [shell, '-c', command]
             step = ShellCommand(
-                name=name, description=command, command=command)
-        if self.disable:
-            step.run = lambda: defer.succeed(SUCCESS)
+                name=name, description=command, command=command, doStepIf=not self.disable)
         self.build.addStepsAfterLastStep([step])
 
     def testCondition(self, condition):
