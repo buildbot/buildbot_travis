@@ -259,7 +259,8 @@ class TravisConfigurator(object):
 
     def createWorkerConfigDockerWorker(self, config, name):
         return worker.DockerLatentWorker(name, str(uuid.uuid4()),
-                                         docker_host=config['docker_host'], image=config['image'],
+                                         docker_host=config['docker_host'], 
+                                         image=util.Interpolate(config['image']),
                                          followStartupLogs=True)
 
     def createWorkerConfigHyperWorker(self, config, name):

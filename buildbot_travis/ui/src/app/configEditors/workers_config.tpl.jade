@@ -53,7 +53,7 @@ config-page
                     .form-group
                         label.col-sm-2.control-label image name:
                         .col-sm-10
-                            input.form-control(type="text", ng-model="worker.image", placeholder = "buildbot/worker-%{prop:language}")
+                            input.form-control(type="text", ng-model="worker.image", placeholder = "buildbot/worker-%(prop:language)s")
                     .alert.alert-info
                         b Note:&nbsp;
                         | image name is interpolated with buildrequest properties
