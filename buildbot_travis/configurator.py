@@ -16,6 +16,7 @@ from buildbot.config import error as config_error
 from buildbot.config import BuilderConfig
 from buildbot.interfaces import ILatentWorker
 from buildbot.plugins import util, worker
+from buildbot.plugins.db import get_plugins
 from buildbot.process import factory
 from buildbot.schedulers.forcesched import StringParameter
 from buildbot.schedulers.triggerable import Triggerable
@@ -110,6 +111,14 @@ class TravisConfigurator(object):
                                       'supported_vcs': getSupportedVCSTypes(),
                                       'cfg': self.getCleanConfig()}),
                                   versions=[('buildbot_travis', getVersion(__file__))])
+
+        # automatically enable installed plugins
+        apps = get_plugins('www', None, load_now=True)
+        for plugin_name in set(apps.names):
+            if plugin_name != 'base' and plugin_name not in self.config['www']['plugins']:
+                self.config['www']['plugins'][plugin_name] = True
+                self.config['www']['versions'].append(apps.info(plugin_name))
+
         self.config.setdefault('protocols', {'pb': {'port': 9989}})
         self.createAuthConfig()
 
