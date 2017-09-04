@@ -13,24 +13,22 @@
 #
 # Copyright Buildbot Team Members
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import os
 import shutil
 import tempfile
 
-from buildbot.worker import Worker
-from buildbot.worker.local import LocalWorker as RemoteLocalBuildSlave
 from twisted.internet import defer
+
+from buildbot.worker import Worker
 
 try:
     from buildbot.test.util.integration import RunMasterBase
 except ImportError:
     # if buildbot installed with wheel, it does not include the test util :-(
     RunMasterBase = object
-[RemoteLocalBuildSlave]
+
 
 # This integration test creates a master and slave environment,
 # with one builder and a custom step
@@ -111,20 +109,20 @@ class TravisMaster(RunMasterBase):
                       project="buildbot_travis"
                       )
         build = yield self.doForceBuild(wantSteps=True, useChange=change, wantLogs=True)
-
         self.assertEqual(build['steps'][0]['state_string'], 'update buildbot_travis')
         self.assertEqual(build['steps'][0]['name'], 'git-buildbot_travis')
         self.assertEqual(build['steps'][1]['state_string'], 'triggered ' +
                          ", ".join(["buildbot_travis-job"] * 6))
-        self.assertIn({u'url': u'http://localhost:8010/#builders/1/builds/3',
-                       u'name': u'success: buildbot_travis-job #3'},
-                      build['steps'][1]['urls'])
+        url_names = [url['name'] for url in build['steps'][1]['urls']]
+        url_urls = [url['url'] for url in build['steps'][1]['urls']]
+        self.assertIn(u'http://localhost:8010/#builders/3/builds/1', url_urls)
+        self.assertIn(u'success: buildbot_travis py:2.6 sqla:l sqlam:l tw:l #1', url_names)
         self.assertEqual(build['steps'][1]['logs'][0]['contents']['content'], travis_yml)
 
         builds = yield self.master.data.get(("builds",))
         self.assertEqual(len(builds), 7)
         props = {}
-        reasons = {}
+        buildernames = {}
         labels = {}
         for build in builds:
             build['properties'] = yield self.master.data.get(("builds", build['buildid'], 'properties'))
@@ -133,7 +131,7 @@ class TravisMaster(RunMasterBase):
                 for k, v in build['properties'].items()
                 if v[1] == '.travis.yml'
             }
-            reasons[build['buildid']] = build['properties'].get('reason')
+            buildernames[build['buildid']] = build['properties'].get('virtual_builder_name')
             labels[build['buildid']] = build['properties'].get('matrix_label')
         self.assertEqual(props, {
             1: {},
@@ -168,14 +166,14 @@ class TravisMaster(RunMasterBase):
                 u'CI': u'true',
                 u'python': u'2.7'}})
         # global env CI should not be there
-        self.assertEqual(reasons, {
+        self.assertEqual(buildernames, {
             1: None,
-            2: (u'SQLALCHEMY=latest | SQLALCHEMY_MIGRATE=0.7.1 | TWISTED=11.1.0 | python=2.6', u'spawner'),
-            3: (u'SQLALCHEMY=latest | SQLALCHEMY_MIGRATE=latest | TWISTED=latest | python=2.6', u'spawner'),
-            4: (u'SQLALCHEMY=latest | SQLALCHEMY_MIGRATE=0.7.1 | TWISTED=11.1.0 | python=2.7', u'spawner'),
-            5: (u'SQLALCHEMY=latest | SQLALCHEMY_MIGRATE=latest | TWISTED=latest | python=2.7', u'spawner'),
-            6: (u'SQLALCHEMY=0.6.0 | SQLALCHEMY_MIGRATE=0.7.1 | TWISTED=12.0.0 | python=2.7', u'spawner'),
-            7: (u'SQLALCHEMY=0.6.8 | SQLALCHEMY_MIGRATE=0.7.1 | TWISTED=12.0.0 | python=2.7', u'spawner')})
+            2: (u'buildbot_travis py:2.6 sqla:l sqlam:0.7.1 tw:11.1.0', u'spawner'),
+            3: (u'buildbot_travis py:2.6 sqla:l sqlam:l tw:l', u'spawner'),
+            4: (u'buildbot_travis py:2.7 sqla:l sqlam:0.7.1 tw:11.1.0', u'spawner'),
+            5: (u'buildbot_travis py:2.7 sqla:l sqlam:l tw:l', u'spawner'),
+            6: (u'buildbot_travis py:2.7 sqla:0.6.0 sqlam:0.7.1 tw:12.0.0', u'spawner'),
+            7: (u'buildbot_travis py:2.7 sqla:0.6.8 sqlam:0.7.1 tw:12.0.0', u'spawner')})
         self.assertEqual(labels, {
             1: None,
             2: (u'py:2.6/sqla:l/sqlam:0.7.1/tw:11.1.0', u'spawner'),
@@ -184,6 +182,7 @@ class TravisMaster(RunMasterBase):
             5: (u'py:2.7/sqla:l/sqlam:l/tw:l', u'spawner'),
             6: (u'py:2.7/sqla:0.6.0/sqlam:0.7.1/tw:12.0.0', u'spawner'),
             7: (u'py:2.7/sqla:0.6.8/sqlam:0.7.1/tw:12.0.0', u'spawner')})
+
 
 # master configuration
 sample_yml = """
