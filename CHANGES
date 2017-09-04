@@ -1,6 +1,13 @@
 Changelog
 =========
 
+0.6.0
+-----
+- Fixed possibility to use different docker image according to a property
+- Added support for virtual builders.
+- Fix build with node6.
+- Python3 compatibility fixes.
+
 0.5.0
 -----
 - Added possibility to use Buildbot steps directly in the .bbtravis.yml.
