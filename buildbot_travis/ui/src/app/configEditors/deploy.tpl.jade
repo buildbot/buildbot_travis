@@ -21,7 +21,7 @@
         th(ng-repeat='(stage_id, stage) in cfg.stages').text-center {{ stage }}
       tr(ng-repeat='project in projectsFiltered track by $index')
         td(style='width:200px')
-          {{ project.name }}
+          | {{ project.name }}
         td(style='width:200px').text-center {{ untaggedVersionsByProjectDict[project.name].versions[0] | limitTo:7 }}
           | &nbsp;
           .btn-group(uib-dropdown)
