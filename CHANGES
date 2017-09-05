@@ -4,6 +4,7 @@ Changelog
 0.6.1
 -----
 - publish universal wheels
+- Fixed possibility to use different docker image and container size according to a property for hyper.
 
 0.6.0
 -----
