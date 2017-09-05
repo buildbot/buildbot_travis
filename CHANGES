@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.6.1
+-----
+- publish universal wheels
+
 0.6.0
 -----
 - Fixed possibility to use different docker image according to a property
