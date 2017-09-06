@@ -51,7 +51,7 @@ config-page
                                 option(value="{{s}}" ng-repeat="s in 's1 s2 s3 s4 m1 m2 m3 l1 l2 l3'.split(' ')") {{s}}
                 div(ng-if="worker.type=='DockerWorker' || worker.type=='HyperWorker'")
                     .form-group
-                        label.col-sm-2.control-label image name:
+                        label.col-sm-2.control-label Image name:
                         .col-sm-10
                             input.form-control(type="text", ng-model="worker.image", placeholder = "buildbot/worker-%(prop:language)s")
                     .alert.alert-info
