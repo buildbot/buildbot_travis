@@ -63,6 +63,16 @@ config-page
                     .col-sm-10
                         input.form-control(type="text", ng-model="worker.docker_host", placeholder = "tcp://dockerhost:2375")
 
+                div(ng-if="worker.type=='DockerWorker'")
+                    .form-group
+                        label.col-sm-2.control-label Volumes:
+                        .col-sm-10
+                            input.form-control(type="text", ng-model="worker.volumes", placeholder = "/var/run/docker.sock:/var/run/docker.sock")
+
+                    .alert.alert-info
+                        b Note:&nbsp;
+                        | multiple volumes can be separated by a comma
+
     .row
         .col-sm-12
             .input-group.filelist
