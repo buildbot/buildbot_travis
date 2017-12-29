@@ -219,12 +219,16 @@ class TravisConfigurator(object):
             util.AnyEndpointMatcher(role=admin, defaultDeny=False)
             for admin in admins]
         epms += [
-            TravisEndpointMatcher(role=admin)
+            TravisEndpointMatcher(role=admin, defaultDeny=(admin==admins[-1]))
             for admin in admins]
-        return epms + [
+        epms += [
             util.StopBuildEndpointMatcher(role="owner"),
             util.RebuildBuildEndpointMatcher(role="owner"),
         ]
+        epms += [
+            util.AnyControlEndpointMatcher(role=admin, defaultDeny=(admin==admins[-1]))
+            for admin in admins]
+        return epms
 
     def createAuthzConfigAdmin(self, authcfg):
 
