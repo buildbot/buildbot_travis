@@ -56,7 +56,6 @@ label_mapping:
   python: py
 
 python:
-  - "2.6"
   - "2.7"
 env:
   global:
@@ -112,15 +111,15 @@ class TravisMaster(RunMasterBase):
         self.assertEqual(build['steps'][0]['state_string'], 'update buildbot_travis')
         self.assertEqual(build['steps'][0]['name'], 'git-buildbot_travis')
         self.assertEqual(build['steps'][1]['state_string'], 'triggered ' +
-                         ", ".join(["buildbot_travis-job"] * 6))
+                         ", ".join(["buildbot_travis-job"] * 4))
         url_names = [url['name'] for url in build['steps'][1]['urls']]
         url_urls = [url['url'] for url in build['steps'][1]['urls']]
         self.assertIn(u'http://localhost:8010/#builders/3/builds/1', url_urls)
-        self.assertIn(u'success: buildbot_travis py:2.6 sqla:l sqlam:l tw:l #1', url_names)
+        self.assertIn(u'success: buildbot_travis py:2.7 sqla:l sqlam:l tw:l #1', url_names)
         self.assertEqual(build['steps'][1]['logs'][0]['contents']['content'], travis_yml)
 
         builds = yield self.master.data.get(("builds",))
-        self.assertEqual(len(builds), 7)
+        self.assertEqual(len(builds), 5)
         props = {}
         buildernames = {}
         labels = {}
@@ -139,28 +138,18 @@ class TravisMaster(RunMasterBase):
                 u'SQLALCHEMY_MIGRATE': u'0.7.1',
                 u'TWISTED': u'11.1.0',
                 u'CI': u'true',
-                u'python': u'2.6'},
+                u'python': u'2.7'},
             3: {u'SQLALCHEMY': u'latest',
                 u'SQLALCHEMY_MIGRATE': u'latest',
                 u'TWISTED': u'latest',
                 u'CI': u'true',
-                u'python': u'2.6'},
-            4: {u'SQLALCHEMY': u'latest',
-                u'SQLALCHEMY_MIGRATE': u'0.7.1',
-                u'TWISTED': u'11.1.0',
-                u'CI': u'true',
                 u'python': u'2.7'},
-            5: {u'SQLALCHEMY': u'latest',
-                u'SQLALCHEMY_MIGRATE': u'latest',
-                u'TWISTED': u'latest',
-                u'CI': u'true',
-                u'python': u'2.7'},
-            6: {u'SQLALCHEMY': u'0.6.0',
+            4: {u'SQLALCHEMY': u'0.6.0',
                 u'SQLALCHEMY_MIGRATE': u'0.7.1',
                 u'TWISTED': u'12.0.0',
                 u'CI': u'true',
                 u'python': u'2.7'},
-            7: {u'SQLALCHEMY': u'0.6.8',
+            5: {u'SQLALCHEMY': u'0.6.8',
                 u'SQLALCHEMY_MIGRATE': u'0.7.1',
                 u'TWISTED': u'12.0.0',
                 u'CI': u'true',
@@ -168,20 +157,16 @@ class TravisMaster(RunMasterBase):
         # global env CI should not be there
         self.assertEqual(buildernames, {
             1: None,
-            2: (u'buildbot_travis py:2.6 sqla:l sqlam:0.7.1 tw:11.1.0', u'spawner'),
-            3: (u'buildbot_travis py:2.6 sqla:l sqlam:l tw:l', u'spawner'),
-            4: (u'buildbot_travis py:2.7 sqla:l sqlam:0.7.1 tw:11.1.0', u'spawner'),
-            5: (u'buildbot_travis py:2.7 sqla:l sqlam:l tw:l', u'spawner'),
-            6: (u'buildbot_travis py:2.7 sqla:0.6.0 sqlam:0.7.1 tw:12.0.0', u'spawner'),
-            7: (u'buildbot_travis py:2.7 sqla:0.6.8 sqlam:0.7.1 tw:12.0.0', u'spawner')})
+            2: (u'buildbot_travis py:2.7 sqla:l sqlam:0.7.1 tw:11.1.0', u'spawner'),
+            3: (u'buildbot_travis py:2.7 sqla:l sqlam:l tw:l', u'spawner'),
+            4: (u'buildbot_travis py:2.7 sqla:0.6.0 sqlam:0.7.1 tw:12.0.0', u'spawner'),
+            5: (u'buildbot_travis py:2.7 sqla:0.6.8 sqlam:0.7.1 tw:12.0.0', u'spawner')})
         self.assertEqual(labels, {
             1: None,
-            2: (u'py:2.6/sqla:l/sqlam:0.7.1/tw:11.1.0', u'spawner'),
-            3: (u'py:2.6/sqla:l/sqlam:l/tw:l', u'spawner'),
-            4: (u'py:2.7/sqla:l/sqlam:0.7.1/tw:11.1.0', u'spawner'),
-            5: (u'py:2.7/sqla:l/sqlam:l/tw:l', u'spawner'),
-            6: (u'py:2.7/sqla:0.6.0/sqlam:0.7.1/tw:12.0.0', u'spawner'),
-            7: (u'py:2.7/sqla:0.6.8/sqlam:0.7.1/tw:12.0.0', u'spawner')})
+            2: (u'py:2.7/sqla:l/sqlam:0.7.1/tw:11.1.0', u'spawner'),
+            3: (u'py:2.7/sqla:l/sqlam:l/tw:l', u'spawner'),
+            4: (u'py:2.7/sqla:0.6.0/sqlam:0.7.1/tw:12.0.0', u'spawner'),
+            5: (u'py:2.7/sqla:0.6.8/sqlam:0.7.1/tw:12.0.0', u'spawner')})
 
 
 # master configuration

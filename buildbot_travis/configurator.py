@@ -113,7 +113,7 @@ class TravisConfigurator(object):
         # automatically enable installed plugins
         apps = get_plugins('www', None, load_now=True)
         for plugin_name in set(apps.names):
-            if plugin_name != 'base' and plugin_name not in self.config['www']['plugins']:
+            if plugin_name not in ('base', 'wsgi_dashboards') and plugin_name not in self.config['www']['plugins']:
                 self.config['www']['plugins'][plugin_name] = True
                 self.config['www']['versions'].append(apps.info(plugin_name))
 
@@ -137,18 +137,18 @@ class TravisConfigurator(object):
         return not hasError
 
     def execCustomCode(self, code, required_variables):
-        l = {}
-        # execute the code with empty global, and a given local context (that we return)
+        loc = {}
+        # execute the code with empty glocobal, and a given local context (that we return)
         try:
-            exec(code, {}, l)
+            exec(code, {}, loc)
         except Exception:
             config_error("custom code generated an exception {}:".format(traceback.format_exc()))
             raise
         for n in required_variables:
-            if n not in l:
-                config_error("custom code does not generate variable {}: {} {}".format(n, code, l))
+            if n not in loc:
+                config_error("custom code does not generate variable {}: {} {}".format(n, code, loc))
 
-        return l
+        return loc
 
     def createAuthConfig(self):
         if 'auth' not in self.cfgdict:
@@ -219,14 +219,14 @@ class TravisConfigurator(object):
             util.AnyEndpointMatcher(role=admin, defaultDeny=False)
             for admin in admins]
         epms += [
-            TravisEndpointMatcher(role=admin, defaultDeny=(admin==admins[-1]))
+            TravisEndpointMatcher(role=admin, defaultDeny=(admin == admins[-1]))
             for admin in admins]
         epms += [
             util.StopBuildEndpointMatcher(role="owner"),
             util.RebuildBuildEndpointMatcher(role="owner"),
         ]
         epms += [
-            util.AnyControlEndpointMatcher(role=admin, defaultDeny=(admin==admins[-1]))
+            util.AnyControlEndpointMatcher(role=admin, defaultDeny=(admin == admins[-1]))
             for admin in admins]
         return epms
 
