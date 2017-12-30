@@ -30,6 +30,7 @@ QuickStart
 First you need to make sure you have the proper python 2.7 environment. On ubuntu 16.04, that would mean::
 
     sudo apt-get install build-essential python-dev libffi-dev libssl-dev python-pip
+    pip install virtualenv
 
 Then you create a virtualenv and install buildbot_travis via pip::
 
@@ -55,7 +56,7 @@ QuickStart With Docker
 
 ::
 
-    docker run -p 8010:8010 -p 9989:9989 buildbot/buildbot_travis
+    docker run -p 8010:8010 -p 9989:9989 buildbot/buildbot-travis
 
 
 QuickStart With Hyper

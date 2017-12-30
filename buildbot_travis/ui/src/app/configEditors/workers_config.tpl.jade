@@ -51,9 +51,9 @@ config-page
                                 option(value="{{s}}" ng-repeat="s in 's1 s2 s3 s4 m1 m2 m3 l1 l2 l3'.split(' ')") {{s}}
                 div(ng-if="worker.type=='DockerWorker' || worker.type=='HyperWorker'")
                     .form-group
-                        label.col-sm-2.control-label image name:
+                        label.col-sm-2.control-label Image name:
                         .col-sm-10
-                            input.form-control(type="text", ng-model="worker.image", placeholder = "buildbot/worker-%{prop:language}")
+                            input.form-control(type="text", ng-model="worker.image", placeholder = "buildbot/worker-%(prop:language)s")
                     .alert.alert-info
                         b Note:&nbsp;
                         | image name is interpolated with buildrequest properties
@@ -62,6 +62,16 @@ config-page
                     label.col-sm-2.control-label Docker Host Url:
                     .col-sm-10
                         input.form-control(type="text", ng-model="worker.docker_host", placeholder = "tcp://dockerhost:2375")
+
+                div(ng-if="worker.type=='DockerWorker'")
+                    .form-group
+                        label.col-sm-2.control-label Volumes:
+                        .col-sm-10
+                            input.form-control(type="text", ng-model="worker.volumes", placeholder = "/var/run/docker.sock:/var/run/docker.sock")
+
+                    .alert.alert-info
+                        b Note:&nbsp;
+                        | multiple volumes can be separated by a comma
 
     .row
         .col-sm-12

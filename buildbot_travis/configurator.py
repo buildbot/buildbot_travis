@@ -1,30 +1,28 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
-from future.moves.urllib.parse import urlparse
-from future.utils import string_types
-from builtins import range
+from __future__ import absolute_import, division, print_function
 
 import os
 import traceback
 import uuid
+from builtins import range
 
+from future.moves.urllib.parse import urlparse
+from future.utils import string_types
+from twisted.internet import defer
+from yaml import safe_load
+
+import buildbot_travis
 from buildbot import getVersion
 from buildbot.config import error as config_error
 # TBD use plugins!
 from buildbot.config import BuilderConfig
 from buildbot.interfaces import ILatentWorker
 from buildbot.plugins import util, worker
+from buildbot.plugins.db import get_plugins
 from buildbot.process import factory
 from buildbot.schedulers.forcesched import StringParameter
 from buildbot.schedulers.triggerable import Triggerable
 from buildbot.www.authz.endpointmatchers import EndpointMatcherBase, Match
 from buildbot.www.authz.roles import RolesFromBase
-from twisted.internet import defer
-from yaml import safe_load
-
-import buildbot_travis
 
 from .important import ImportantManager
 from .steps import TravisSetupSteps, TravisTrigger
@@ -108,8 +106,17 @@ class TravisConfigurator(object):
                                   change_hook_dialects=self.change_hook_dialects,
                                   plugins=dict(buildbot_travis={
                                       'supported_vcs': getSupportedVCSTypes(),
-                                      'cfg': self.getCleanConfig()}),
+                                      'cfg': self.getCleanConfig()},
+                                      console_view=True, waterfall_view=True),
                                   versions=[('buildbot_travis', getVersion(__file__))])
+
+        # automatically enable installed plugins
+        apps = get_plugins('www', None, load_now=True)
+        for plugin_name in set(apps.names):
+            if plugin_name not in ('base', 'wsgi_dashboards') and plugin_name not in self.config['www']['plugins']:
+                self.config['www']['plugins'][plugin_name] = True
+                self.config['www']['versions'].append(apps.info(plugin_name))
+
         self.config.setdefault('protocols', {'pb': {'port': 9989}})
         self.createAuthConfig()
 
@@ -130,18 +137,18 @@ class TravisConfigurator(object):
         return not hasError
 
     def execCustomCode(self, code, required_variables):
-        l = {}
-        # execute the code with empty global, and a given local context (that we return)
+        loc = {}
+        # execute the code with empty glocobal, and a given local context (that we return)
         try:
-            exec(code, {}, l)
+            exec(code, {}, loc)
         except Exception:
             config_error("custom code generated an exception {}:".format(traceback.format_exc()))
             raise
         for n in required_variables:
-            if n not in l:
-                config_error("custom code does not generate variable {}: {} {}".format(n, code, l))
+            if n not in loc:
+                config_error("custom code does not generate variable {}: {} {}".format(n, code, loc))
 
-        return l
+        return loc
 
     def createAuthConfig(self):
         if 'auth' not in self.cfgdict:
@@ -212,12 +219,16 @@ class TravisConfigurator(object):
             util.AnyEndpointMatcher(role=admin, defaultDeny=False)
             for admin in admins]
         epms += [
-            TravisEndpointMatcher(role=admin)
+            TravisEndpointMatcher(role=admin, defaultDeny=(admin == admins[-1]))
             for admin in admins]
-        return epms + [
+        epms += [
             util.StopBuildEndpointMatcher(role="owner"),
             util.RebuildBuildEndpointMatcher(role="owner"),
         ]
+        epms += [
+            util.AnyControlEndpointMatcher(role=admin, defaultDeny=(admin == admins[-1]))
+            for admin in admins]
+        return epms
 
     def createAuthzConfigAdmin(self, authcfg):
 
@@ -258,16 +269,19 @@ class TravisConfigurator(object):
         return worker.LocalWorker(name)
 
     def createWorkerConfigDockerWorker(self, config, name):
+        volumes = [v.strip() for v in config.get('volumes', '').split(',')]
         return worker.DockerLatentWorker(name, str(uuid.uuid4()),
-                                         docker_host=config['docker_host'], image=config['image'],
+                                         docker_host=config['docker_host'],
+                                         volumes=volumes,
+                                         image=util.Interpolate(config['image']),
                                          followStartupLogs=True)
 
     def createWorkerConfigHyperWorker(self, config, name):
         return worker.HyperLatentWorker(
             name, str(uuid.uuid4()),
-            hyper_host=config['hyper_host'], image=config['image'],
+            hyper_host=config['hyper_host'], image=util.Interpolate(config['image']),
             hyper_accesskey=config['hyper_accesskey'], hyper_secretkey=config['hyper_secretkey'],
-            masterFQDN=config.get('masterFQDN'), hyper_size=config.get('size'))
+            masterFQDN=config.get('masterFQDN'), hyper_size=util.Interpolate(config.get('size')))
 
     def createWorkerConfig(self):
         self.config.setdefault('workers', [])

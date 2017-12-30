@@ -18,6 +18,9 @@ from twisted.internet.threads import deferToThread
 
 from buildbot_travis.steps.create_steps import SetupVirtualEnv
 from buildbot_travis.travisyml import TRAVIS_HOOKS, TravisYml
+# Fix Python 2.x.
+try: input = raw_input
+except NameError: pass
 
 [readline]  # is imported for side effect (i.e get decent raw_input)
 
@@ -106,7 +109,7 @@ class MyTerminal(urwid.Terminal):
 
     def add_text(self, data):
         self.term.modes.lfnl = True
-        self.term.addstr(data)
+        self.term.addstr(data.encode("utf8"))
 
     def keypress(self, size, key):
         if key == 'esc':
@@ -224,7 +227,7 @@ def run(args):
     print("will run:\n" + all_configs)
     print(
         "Once running: Hit 'esc' to quit. Use mouse scroll wheel to scroll buffer. Use mouse click to zoom/unzoom")
-    res = raw_input("OK? [Y/n]")
+    res = input("OK? [Y/n]")
     if res.lower()[:1] == "n":
         return
     ui = Ui(len(config.matrix))

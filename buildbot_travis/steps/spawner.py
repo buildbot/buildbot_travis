@@ -12,25 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
+
+from twisted.internet import defer
 
 from buildbot.process.properties import Properties
 from buildbot.steps.trigger import Trigger
-from twisted.internet import defer
 
 from .base import ConfigurableStepMixin
 
 
 class TravisTrigger(Trigger, ConfigurableStepMixin):
-
     def __init__(self, scheduler, **kwargs):
         if "name" not in kwargs:
             kwargs['name'] = 'trigger'
         self.config = None
         Trigger.__init__(
-            self, waitForFinish=True, schedulerNames=[scheduler],
+            self,
+            waitForFinish=True,
+            schedulerNames=[scheduler],
             haltOnFailure=True,
             flunkOnFailure=True,
             sourceStamps=[],
@@ -66,22 +66,20 @@ class TravisTrigger(Trigger, ConfigurableStepMixin):
                 else:
                     props_to_set.setProperty(k, v, ".travis.yml")
                     flat_env[k] = v
-            props_to_set.setProperty(
-                "reason",
-                u" | ".join(
-                    sorted(str(k) + '=' + str(v)
-                           for k, v in flat_env.items()
-                           if k not in reason_excluded_env)),
-                "spawner")
-
-            props_to_set.setProperty(
-                "matrix_label",
-                u"/".join(
-                    sorted(str(self.config.label_mapping.get(k, k)) +
-                           ':' + str(self.config.label_mapping.get(v, v))
-                           for k, v in flat_env.items()
-                           if k not in reason_excluded_env)),
-                "spawner")
+            tags = self.build.builder.config.tags
+            for tag in ["trunk", "try"]:
+                if tag in tags:
+                    tags.remove(tag)
+            label_tags = sorted(
+                str(self.config.label_mapping.get(k, k)) + ':' +
+                str(self.config.label_mapping.get(v, v))
+                for k, v in flat_env.items() if k not in reason_excluded_env)
+            props_to_set.setProperty("virtual_builder_name", u" ".join(tags + label_tags),
+                                     "spawner")
+            props_to_set.setProperty("virtual_builder_tags", tags + label_tags,
+                                     "spawner")
+            props_to_set.setProperty("matrix_label", u"/".join(label_tags),
+                                     "spawner")
 
             triggered_schedulers.append((sch, props_to_set))
         return triggered_schedulers
