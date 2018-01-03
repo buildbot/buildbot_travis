@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.6.2
+-----
+- use AnyControlEndpointMatcher to protect control access for everything
+- Allow to specify volumes to mount in docker
+
 0.6.1
 -----
 - publish universal wheels
