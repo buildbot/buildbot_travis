@@ -1,6 +1,10 @@
 Changelog
 =========
 
+0.6.3
+-----
+- Fix admin panel for python3
+
 0.6.2
 -----
 - use AnyControlEndpointMatcher to protect control access for everything
