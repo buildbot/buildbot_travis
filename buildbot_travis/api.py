@@ -76,7 +76,7 @@ class Api(object):
     @defer.inlineCallbacks
     def assertAllowed(self, request):
         try:
-            yield self.ep.master.www.assertUserAllowed(request, tuple(request.path.strip("/").split("/")),
+            yield self.ep.master.www.assertUserAllowed(request, tuple(request.path.strip(b"/").split(b"/")),
                                                        request.method, {})
         except Forbidden:
             request.setResponseCode(401)
