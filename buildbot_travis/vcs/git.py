@@ -46,6 +46,7 @@ class GitBase(VCSBase):
     method = "clone"
     mode = "incremental"
     retryFetch = True
+    retry = (2, 10)  # default retry 10 times, with 2 seconds delay
 
     def addRepository(self, factory, project=None, repository=None, branches=None, **kwargs):
         kwargs.update(dict(
@@ -57,7 +58,8 @@ class GitBase(VCSBase):
             shallow=self.shallow,
             mode=self.mode,
             method=self.method,
-            retryFetch=self.retryFetch
+            retryFetch=self.retryFetch,
+            retry=self.retry
         ))
 
         factory.addStep(self.GitStep(**kwargs))
