@@ -21,6 +21,8 @@ import re
 
 import yaml
 from buildbot.plugins import util
+from buildbot.plugins import steps
+from buildbot.process.results import SKIPPED
 from buildbot.plugins.db import get_plugins
 
 TRAVIS_HOOKS = ("before_install", "install", "after_install", "before_script",
@@ -29,6 +31,17 @@ TRAVIS_HOOKS = ("before_install", "install", "after_install", "before_script",
 
 class TravisYmlInvalid(Exception):
     pass
+
+
+class StepDisabledWarning(steps.BuildStep):
+
+    def __init__(self, step_name, **kwargs):
+        steps.BuildStep.__init__(self, **kwargs)
+        self.step_name = step_name
+        self.descriptionDone = ["step {} is disabled in pull request mode".format(step_name)]
+
+    def run(self):
+        return SKIPPED
 
 
 def parse_env_string(env, global_env=None):
@@ -46,16 +59,38 @@ def parse_env_string(env, global_env=None):
     return props
 
 
+class InterpolateNoSecrets(util.Interpolate):
+    @staticmethod
+    def _parse_secret(arg):
+        try:
+            _, repl = arg.split(":", 1)
+        except ValueError:
+            repl = "-secrets are not accessible in pull request mode"
+        return {}, None, repl
+
+
 def interpolate_constructor(loader, node):
     value = loader.construct_scalar(node)
+    if loader.untrusted:
+        return InterpolateNoSecrets(value)
     return util.Interpolate(value)
 
 
 class TravisLoader(yaml.SafeLoader):
-    pass
+    untrusted = False
+
 
 TravisLoader.add_constructor(u'!Interpolate', interpolate_constructor)
 TravisLoader.add_constructor(u'!i', interpolate_constructor)
+
+UNTRUSTED_STEPS = [
+    # uploads/downloads can corrupt the master, or send secrets from master to worker
+    'FileUpload', 'DirectoryUpload', 'MultipleFileUpload', 'FileDownload',
+    # trigger could trigger a job without TRAVIS_PULL_REQUEST property
+    'Trigger',
+    # master shell command is basically remote code execution on the master
+    'MasterShellCommand'
+]
 
 
 def registerStepClass(name, step):
@@ -79,6 +114,10 @@ def registerStepClass(name, step):
         if len(exceptions) == 3:
             raise Exception("Could not parse steps arguments: {}".format(
                 " ".join([str(x) for x in exceptions])))
+
+        if loader.untrusted and name in UNTRUSTED_STEPS:
+            return StepDisabledWarning(name)
+
         return step(*args, **kwargs)
 
     TravisLoader.add_constructor(u'!' + name, step_constructor)
@@ -86,6 +125,10 @@ def registerStepClass(name, step):
 steps = get_plugins('steps', None, load_now=True)
 for step in steps.names:
     registerStepClass(step, steps.get(step))
+
+
+class TravisLoaderUntrusted(TravisLoader):
+    untrusted = True
 
 
 class TravisYml(object):
@@ -106,9 +149,12 @@ class TravisYml(object):
         self.irc = TravisYmlIrc()
         self.config = None
 
-    def parse(self, config_input):
+    def parse(self, config_input, untrusted=False):
+        loader = TravisLoader
+        if untrusted:
+            loader = TravisLoaderUntrusted
         try:
-            d = yaml.load(config_input, Loader=TravisLoader)
+            d = yaml.load(config_input, Loader=loader)
         except Exception as e:
             raise TravisYmlInvalid("Invalid YAML data\n" + str(e))
         self.parse_dict(d)

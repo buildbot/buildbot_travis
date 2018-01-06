@@ -16,7 +16,7 @@ from buildbot.config import error as config_error
 # TBD use plugins!
 from buildbot.config import BuilderConfig
 from buildbot.interfaces import ILatentWorker
-from buildbot.plugins import util, worker
+from buildbot.plugins import secrets, util, worker
 from buildbot.plugins.db import get_plugins
 from buildbot.process import factory
 from buildbot.schedulers.forcesched import StringParameter
@@ -51,6 +51,9 @@ class TravisConfigurator(object):
         self.cfgdict = {}
         self.importantManager = None
         self.change_hook_dialects = {}
+        self.secrets_dir = os.path.join(vardir, "secrets")
+        if not os.path.isdir(self.secrets_dir):
+            os.mkdir(self.secrets_dir, 0700)
         config.setdefault("builders", [])
         config.setdefault("schedulers", [])
         config.setdefault("change_source", [])
@@ -75,7 +78,9 @@ class TravisConfigurator(object):
         return self.fromDict(y)
 
     def fromDict(self, y):
-        buildbot_travis.api.setCfg(y)
+        secret_provider = secrets.SecretInAFile(dirname=self.secrets_dir)
+        y['secrets'] = secret_provider.loadSecrets(self.secrets_dir, [""], False)
+        buildbot_travis.api.setCfg(y, self.secrets_dir)
         self.cfgdict = y
         self.createWorkerConfig()
         self.importantManager = ImportantManager(
@@ -119,6 +124,8 @@ class TravisConfigurator(object):
 
         self.config.setdefault('protocols', {'pb': {'port': 9989}})
         self.createAuthConfig()
+        self.config.setdefault('secretsProviders', [])
+        self.config['secretsProviders'] = [secret_provider]
 
     def getCleanConfig(self):
         cleancfgdict = {}

@@ -55,12 +55,32 @@ class EnvConfig extends Controller
         @$scope.title = "Default Environment Variables"
         @$scope.new_env = {}
         @$scope.env_remove = (key) ->
-            delete $scope.cfg.env[key]
+            delete self.$scope.cfg.env[key]
 
         @$scope.env_add = ->
             self.$scope.cfg.env ?= {}
             self.$scope.cfg.env[self.$scope.new_env.key] = self.$scope.new_env.value
-            $scope.new_env = {}
+            self.$scope.new_env = {}
+
+class SecretsConfig extends Controller
+    self = null
+    constructor: (@$scope, config, $state, $timeout) ->
+        self = this
+        @$scope.title = "Secrets"
+        @$scope.new_secret = {}
+        @$scope.secrets_remove = (key) ->
+            delete self.$scope.cfg.secrets[key]
+
+        @$scope.secrets_edit = (key) ->
+            self.$scope.new_secret = {key:key, value: self.$scope.cfg.secrets[key]}
+            $timeout ->
+                console.log("focus")
+                angular.element("#new_value")[0].focus()
+
+        @$scope.secrets_add = ->
+            self.$scope.cfg.secrets ?= {}
+            self.$scope.cfg.secrets[self.$scope.new_secret.key] = self.$scope.new_secret.value
+            self.$scope.new_secret = {}
 
 class DeploymentConfig extends Controller
     self = null

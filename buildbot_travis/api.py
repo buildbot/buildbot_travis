@@ -23,6 +23,8 @@ from twisted.internet import defer
 from twisted.internet import threads
 import yaml
 import json
+import os
+import copy
 
 
 def getDbConfigObjectId(master, name="config"):
@@ -45,12 +47,34 @@ class Api(object):
     def useDbConfig(self):
         self._useDbConfig = True
 
-    def setCfg(self, cfg):
+    def setCfg(self, cfg, secrets_dir):
         self._cfg = cfg
         self._in_progress = False
+        self.secrets_dir = secrets_dir
 
     @defer.inlineCallbacks
     def saveCfg(self, cfg):
+        cfg = copy.copy(cfg)
+        # the yaml file does not contain the secret, so remove them
+        secrets = cfg['secrets']
+        del cfg['secrets']
+
+        # make sure the files are 600
+        oldmask = os.umask(0066)
+        try:
+            for k, v in secrets.items():
+                # we only write the value if it has been modified in the UI
+                if v is not None:
+                    with open(os.path.join(self.secrets_dir, k), "w") as f:
+                        f.write(v)
+        finally:
+            os.umask(oldmask)
+
+        # remove secrets that are no more in the config
+        for k in self._cfg['secrets']:
+            if k not in secrets:
+                os.remove(os.path.join(self.secrets_dir, k))
+
         if self._yamlPath is not None:
             cfg = yaml.safe_dump(cfg, default_flow_style=False, indent=4)
             with open(self._yamlPath, "w") as f:
@@ -89,7 +113,10 @@ class Api(object):
         if res:
             defer.returnValue(res)
         request.setHeader('Content-Type', 'application/json')
-        defer.returnValue(json.dumps(self._cfg))
+        cfg = copy.copy(self._cfg)
+        # remove the secrets values for UI
+        cfg['secrets'] = {k: None for k in cfg.get('secrets', {})}
+        defer.returnValue(json.dumps(cfg))
 
     @app.route("/config", methods=['PUT'])
     @defer.inlineCallbacks

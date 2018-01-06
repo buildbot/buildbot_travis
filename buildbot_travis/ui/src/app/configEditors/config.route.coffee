@@ -64,6 +64,16 @@ class State extends Config
 
         # Register new state
         $stateProvider.state
+            controller: "secretsConfigController"
+            templateUrl: "buildbot_travis/views/secrets.html"
+            name: "travis_config_secrets"
+            url: "/bbtravis/config/secrets"
+            data:
+                group: groupName
+                caption: 'Secrets'
+
+        # Register new state
+        $stateProvider.state
             controller: "notImportantFilesConfigController"
             templateUrl: "buildbot_travis/views/not_important_files.html"
             name: "not_important_files"
