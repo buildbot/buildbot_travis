@@ -17,10 +17,10 @@ from __future__ import division
 from __future__ import print_function
 from future.moves.urllib.parse import urlparse
 
-from buildbot.plugins import changes, util
+from buildbot.plugins import changes
 from buildbot.steps.source.git import Git
 
-from .base import PollerMixin, VCSBase, getCodebaseForRepository
+from .base import PollerMixin, VCSBase
 
 
 class ParsedGitUrl(object):

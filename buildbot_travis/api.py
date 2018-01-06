@@ -106,7 +106,7 @@ class Api(object):
         if cfg != self._cfg:
             try:
                 err = yield self.saveCfg(cfg)
-            except Exception as e: # noqa
+            except Exception as e:  # noqa
                 err = [repr(e)]
             if err is not None:
                 self._in_progress = False
