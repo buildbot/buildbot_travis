@@ -313,6 +313,32 @@ then in your yaml:
                 command: "true"
                 name: "always succeed"
 
+Secrets
+~~~~~~~
+Recent Buildbot have builtin support for secrets.
+Buildbot_travis takes advantage of this support, and adds a simple UI around it.
+You can use it for continuous delivery purpose.
+
+- Secret provider used in the SecretInFileProvider, within the master's basedir 'secrets' directory.
+  If you want to pre-populuate that directory using infrastructure as code, please make sure this directory and the files are 600.
+- You can configure additional secret provider in your master.cfg, after TravisConfigurator line.
+- You can create and delete secrets using the administration UI (only supports the default secret provider).
+- Once you have written a secret, it can't be read again in the UI, only overwritten.
+- Secrets are not available from builds triggered by pull request, because they could be used by an attacker to exfilter them while you sleep.
+
+- Secrets are available in bbtravis.yml via the interpolate construct. e.g:
+
+.. code-block:: yaml
+
+    - title: upload
+    condition: not TRAVIS_PULL_REQUEST
+    cmd: !i "upload_to_s3.py --token %(secret:S3_UPLOAD_TOKEN)s"
+
+    - title: upload
+    condition: not TRAVIS_PULL_REQUEST
+    secrets: ["/home/buildbot/.ssh/id_rsa", !i "%(secret:SSHKEY_TO_PROD)s"]
+    cmd:  "scp -r release.tgz prod:"
+
 Status context
 ~~~~~~~~~~~~~~
 
