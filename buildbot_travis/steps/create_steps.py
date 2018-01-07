@@ -27,6 +27,7 @@ from buildbot.steps import shell
 
 from ..travisyml import TRAVIS_HOOKS
 from .base import ConfigurableStep
+from ..safe_eval import safe_eval
 
 
 class SetupVirtualEnv(ShellMixin, LoggingBuildStep):
@@ -265,7 +266,7 @@ class TravisSetupSteps(ConfigurableStep):
         l = dict(
             (k, v)
             for k, (v, s) in self.build.getProperties().properties.items())
-        return eval(condition, l)
+        return safe_eval(condition, l)
 
     def truncateName(self, name):
         name = name.lstrip("#")
