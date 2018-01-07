@@ -232,13 +232,13 @@ class TravisSetupSteps(ConfigurableStep):
         secrets = None
         original_command = command
         if isinstance(command, dict):
+            if not self.untrusted:
+                secrets = command.get("secrets")
             name = command.get("title")
             shell = command.get("shell", shell)
             condition = command.get("condition")
             step = command.get("step")
             command = command.get("cmd")
-            if not self.untrusted:
-                secrets = command.get("secrets")
 
         if isinstance(command, BuildStep):
             step = command
