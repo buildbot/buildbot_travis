@@ -24,10 +24,12 @@ from twisted.internet import defer
 from buildbot.process.buildstep import (SUCCESS, BuildStep, LoggingBuildStep,
                                         ShellMixin)
 from buildbot.steps import shell
+from buildbot.steps.download_secret_to_worker import (DownloadSecretsToWorker,
+                                                      RemoveWorkerFileSecret)
 
+from ..safe_eval import safe_eval
 from ..travisyml import TRAVIS_HOOKS
 from .base import ConfigurableStep
-from ..safe_eval import safe_eval
 
 
 class SetupVirtualEnv(ShellMixin, LoggingBuildStep):
@@ -227,6 +229,7 @@ class TravisSetupSteps(ConfigurableStep):
         condition = None
         shell = "bash"
         step = None
+        secrets = None
         original_command = command
         if isinstance(command, dict):
             name = command.get("title")
@@ -234,6 +237,8 @@ class TravisSetupSteps(ConfigurableStep):
             condition = command.get("condition")
             step = command.get("step")
             command = command.get("cmd")
+            if not self.untrusted:
+                secrets = command.get("secrets")
 
         if isinstance(command, BuildStep):
             step = command
@@ -260,7 +265,11 @@ class TravisSetupSteps(ConfigurableStep):
                 command = [shell, '-c', command]
             step = ShellCommand(
                 name=name, description=command, command=command, doStepIf=not self.disable)
+        if secrets:
+            self.build.addStepsAfterLastStep([DownloadSecretsToWorker(secrets)])
         self.build.addStepsAfterLastStep([step])
+        if secrets:
+            self.build.addStepsAfterLastStep([RemoveWorkerFileSecret(secrets)])
 
     def testCondition(self, condition):
         l = dict(

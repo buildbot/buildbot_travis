@@ -52,6 +52,7 @@ class ConfigurableStepMixin(CompositeStepMixin):
 
     @defer.inlineCallbacks
     def getStepConfig(self):
+        self.untrusted = self.getPropery("TRAVIS_PULL_REQUEST", False)
         travis_yml = None
         for filename in self.TRAVIS_FILENAMES:
             try:
@@ -72,7 +73,7 @@ class ConfigurableStepMixin(CompositeStepMixin):
 
         config = TravisYml()
         try:
-            config.parse(travis_yml)
+            config.parse(travis_yml, untrusted=self.untrusted)
         except TravisYmlInvalid as e:
             self.descriptionDone = u"bad .travis.yml"
             self.addCompleteLog(
