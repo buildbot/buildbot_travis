@@ -237,8 +237,6 @@ class TravisSetupSteps(ConfigurableStep):
         if isinstance(command, BuildStep):
             step = command
 
-        if name is None:
-            name = self.truncateName(command)
         if condition is not None:
             try:
                 if not self.testCondition(condition):
@@ -254,6 +252,8 @@ class TravisSetupSteps(ConfigurableStep):
                                     "Neither step nor cmd is defined: %r" %
                                     (original_command, ))
                 return
+            if name is None:
+                name = self.truncateName(command)
 
             if not isinstance(command, list):
                 command = [shell, '-c', command]
