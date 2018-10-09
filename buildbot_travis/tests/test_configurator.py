@@ -225,6 +225,7 @@ class TravisConfiguratorTestCase(unittest.TestCase, config.ConfigErrorsMixin):
                 'number': 10,
                 'docker_host': 'tcp://foo:2193',
                 'volumes': '/foo:/foo, /bar:/bar',
+                'hostconfig': {'devices': 'foo:foo, bar:bar'},
                 'image': 'slave'
             }]
         }
@@ -235,3 +236,6 @@ class TravisConfiguratorTestCase(unittest.TestCase, config.ConfigErrorsMixin):
         self.assertEqual(
             self.c.config['workers'][0].getConfigDict()['kwargs']['volumes'],
             ['/foo:/foo', '/bar:/bar'])
+        self.assertEqual(
+            self.c.config['workers'][0].getConfigDict()['kwargs']['hostconfig'],
+            {'devices': 'foo:foo, bar:bar'})
