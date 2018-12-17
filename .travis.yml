@@ -8,8 +8,6 @@ env:
 matrix:
   include:
     - python: 2.7
-      env: TRAVIS_NODE_VERSION="4"
-    - python: 2.7
       env: TRAVIS_NODE_VERSION="6"
     - python: 3.5
       env: TRAVIS_NODE_VERSION="6"
