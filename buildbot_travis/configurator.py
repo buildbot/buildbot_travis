@@ -55,7 +55,6 @@ class TravisConfigurator(object):
         config.setdefault("schedulers", [])
         config.setdefault("change_source", [])
         config.setdefault("services", [])
-        config.setdefault("status", [])
         self.defaultEnv = {}
         self.defaultStages = []
         # we are not really multimaster, but this remove some checks
