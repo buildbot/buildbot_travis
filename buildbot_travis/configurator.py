@@ -35,7 +35,7 @@ class TravisEndpointMatcher(EndpointMatcherBase):
         EndpointMatcherBase.__init__(self, **kwargs)
 
     def match(self, ep, action="get", options=None):
-        if b"/".join(ep).startswith(b"buildbot_travis/api/config"):
+        if "/".join(ep).startswith("buildbot_travis/api/config"):
             return defer.succeed(Match(self.master))
         return defer.succeed(None)
 
@@ -55,7 +55,6 @@ class TravisConfigurator(object):
         config.setdefault("schedulers", [])
         config.setdefault("change_source", [])
         config.setdefault("services", [])
-        config.setdefault("status", [])
         self.defaultEnv = {}
         self.defaultStages = []
         # we are not really multimaster, but this remove some checks
