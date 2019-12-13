@@ -38,9 +38,16 @@ def parse_env_string(env, global_env=None):
     if not env.strip():
         return props
 
-    _vars = env.split(" ")
-    for v in _vars:
-        k, v = v.split("=", 1)
+    # group 1 is variable name, one of group 2, 3 or 4 is the value,
+    # depending on the quote style
+    _var_re = re.compile(r'''^\s*(\w+)=(?:"((?:\\.|.)*?)"|'(.*?)'|(\S*))''')
+    _empty_re = re.compile(r'''^\s*$''')
+    while not _empty_re.match(env):
+        m = _var_re.match(env)
+        env = env[m.end():]
+        k = m.group(1)
+        v = next(filter(lambda e: e is not None,
+                        (m.group(2), m.group(3), m.group(4))))
         props[k] = v
 
     return props
