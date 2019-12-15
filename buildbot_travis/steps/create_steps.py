@@ -224,7 +224,7 @@ class TravisSetupSteps(ConfigurableStep):
     def addBBTravisStep(self, command):
         name = None
         condition = None
-        shell = "bash"
+        shell = None
         step = None
         original_command = command
         if isinstance(command, dict):
@@ -255,8 +255,14 @@ class TravisSetupSteps(ConfigurableStep):
                                     (original_command, ))
                 return
 
-            if not isinstance(command, list):
-                command = [shell, '-c', command]
+            if shell is not None:
+                # The following is dicy, as it assumes that all shells use
+                # -c to take a command string.  This is not always the case,
+                # such as for Windows cmd, and in that case, a command list
+                # is needed.
+                if not isinstance(shell, list):
+                    shell = [ shell, '-c' ]
+                command = list(shell) + list(command)
             step = ShellCommand(
                 name=name, description=command, command=command, doStepIf=not self.disable)
         self.build.addStepsAfterLastStep([step])
