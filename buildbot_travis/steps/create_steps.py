@@ -125,7 +125,7 @@ class ShellCommand(shell.ShellCommand):
 
         if not hastests:
             outputs = re.findall(
-                "Ran (?P<count>[\d]+) tests with (?P<fail>[\d]+) failures and (?P<error>[\d]+) errors",
+                r"Ran (?P<count>[\d]+) tests with (?P<fail>[\d]+) failures and (?P<error>[\d]+) errors",
                 stdio)
             for output in outputs:
                 total += int(output[0])
