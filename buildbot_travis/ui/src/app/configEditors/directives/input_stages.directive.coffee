@@ -1,4 +1,4 @@
-class InputStages extends Directive
+class InputStages
     constructor: ->
         return {
             replace: false
@@ -10,7 +10,7 @@ class InputStages extends Directive
         }
 
 
-class _InputStages extends Controller
+class _InputStages
     self = null
     constructor: ($scope) ->
         self = this
@@ -27,3 +27,8 @@ class _InputStages extends Controller
                 $scope.stages_model.push(t.text)
         updateStages()
         $scope.$watch("stages_model", updateStages, true)
+
+
+angular.module('app')
+.directive('inputStages', [InputStages])
+.controller('_InputStagesController', ['$scope', _InputStages])

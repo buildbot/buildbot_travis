@@ -1,4 +1,4 @@
-class deployDialog extends Controller
+class deployDialog
     constructor: ($scope, modal, tag, project, stage, forcesched, buildername) ->
         $scope.tag = tag
         $scope.project = project
@@ -44,3 +44,7 @@ class deployDialog extends Controller
 
         $scope.cancel = ->
             modal.modal.dismiss()
+
+
+angular.module('app')
+.controller('deployDialogController', ['$scope', 'modal', 'tag', 'project', 'stage', 'forcesched', 'buildername', deployDialog])

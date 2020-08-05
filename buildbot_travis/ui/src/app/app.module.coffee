@@ -1,8 +1,11 @@
 # Register new module
-class BuildbotTravis extends App
+class BuildbotTravis
     constructor: -> return [
         'common',
         'ui.bootstrap.showErrors',
         'ngTagsInput',
         'bbData'
     ]
+
+
+angular.module('app', new BuildbotTravis())

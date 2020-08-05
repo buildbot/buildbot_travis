@@ -1,4 +1,4 @@
-class ProjectsConfig extends Controller
+class ProjectsConfig
     self = null
     constructor: ($scope, config, $state) ->
         self = this
@@ -48,7 +48,7 @@ class ProjectsConfig extends Controller
                             ret.push(b)
             return ret
 
-class EnvConfig extends Controller
+class EnvConfig
     self = null
     constructor: (@$scope, config, $state) ->
         self = this
@@ -62,7 +62,7 @@ class EnvConfig extends Controller
             self.$scope.cfg.env[self.$scope.new_env.key] = self.$scope.new_env.value
             $scope.new_env = {}
 
-class DeploymentConfig extends Controller
+class DeploymentConfig
     self = null
     constructor: (@$scope, config, $state) ->
         self = this
@@ -79,7 +79,7 @@ class DeploymentConfig extends Controller
                 self.$scope.cfg.stages.push(stage)
                 stage = ""
 
-class NotImportantFilesConfig extends Controller
+class NotImportantFilesConfig
     self = null
     constructor: (@$scope, config, $state) ->
         self = this
@@ -96,7 +96,7 @@ class NotImportantFilesConfig extends Controller
 
 
 
-class WorkerConfig extends Controller
+class WorkerConfig
     self = null
     constructor: (@$scope, config, $state) ->
         self = this
@@ -145,7 +145,7 @@ roleMatchers=[
     util.RolesFromEmails(admins=["my@email.com"])
 ]
 """
-class AuthConfig extends Controller
+class AuthConfig
     self = null
     constructor: (@$scope, config, $state) ->
         self = this
@@ -174,3 +174,12 @@ class AuthConfig extends Controller
                 GitHub: "https://developer.github.com/v3/oauth/"
                 Bitbucket: "https://confluence.atlassian.com/bitbucket/oauth-on-bitbucket-cloud-238027431.html"
             }[type]
+
+
+angular.module('app')
+.controller('projectsConfigController', ['$scope', 'config', '$state', ProjectsConfig])
+.controller('envConfigController', ['$scope', 'config', '$state', EnvConfig])
+.controller('deploymentConfigController', ['$scope', 'config', '$state', DeploymentConfig])
+.controller('notImportantFilesConfigController', ['$scope', 'config', '$state', NotImportantFilesConfig])
+.controller('workerConfigController', ['$scope', 'config', '$state', WorkerConfig])
+.controller('authConfigController', ['$scope', 'config', '$state', AuthConfig])

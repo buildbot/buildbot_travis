@@ -1,4 +1,4 @@
-class InputTags extends Directive
+class InputTags
     constructor: ->
         return {
             replace: false
@@ -10,7 +10,7 @@ class InputTags extends Directive
         }
 
 
-class _InputTags extends Controller
+class _InputTags
     self = null
     constructor: ($scope) ->
         self = this
@@ -28,3 +28,8 @@ class _InputTags extends Controller
                 $scope.tags.push(t.text)
         updateTags()
         $scope.$watch("tags_model", updateTags, true)
+
+
+angular.module('app')
+.directive('inputTags', [InputTags])
+.controller('_InputTagsController', ['$scope', _InputTags])

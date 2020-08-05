@@ -1,5 +1,5 @@
 # Register new state
-class State extends Config
+class State
     constructor: ($stateProvider, glMenuServiceProvider) ->
 
 
@@ -91,3 +91,7 @@ class State extends Config
             data:
                 group: groupName
                 caption: 'Authentication'
+
+
+angular.module('app')
+.config(['$stateProvider', 'glMenuServiceProvider', State])

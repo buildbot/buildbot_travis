@@ -6,7 +6,7 @@
 
 ace_injected = false
 
-class CodeEditor extends Directive
+class CodeEditor
     constructor: ->
         return {
             replace: false
@@ -16,7 +16,7 @@ class CodeEditor extends Directive
             templateUrl: 'buildbot_travis/views/codeeditor.html'
             controller: '_CodeEditorController'
         }
-class _CodeEditor extends Controller
+class _CodeEditor
     self = null
     constructor: ($scope) ->
         self = this
@@ -38,3 +38,8 @@ class _CodeEditor extends Controller
                 , 200
             $scope.$on "$destroy", ->
                 editor.destroy()
+
+
+angular.module('app')
+.directive('codeEditor', [CodeEditor])
+.controller('_CodeEditorController', ['$scope', _CodeEditor])

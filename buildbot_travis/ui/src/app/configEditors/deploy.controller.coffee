@@ -1,4 +1,4 @@
-class Deploy extends Controller
+class Deploy
     self = null
     constructor: ($scope, $state, $uibModal, config, dataService) ->
         self = this
@@ -243,3 +243,7 @@ class Deploy extends Controller
 
 
 
+
+
+angular.module('app')
+.controller('deployController', ['$scope', '$state', '$uibModal', 'config', 'dataService', Deploy])

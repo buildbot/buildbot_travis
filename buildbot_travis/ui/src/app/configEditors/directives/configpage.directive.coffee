@@ -1,4 +1,4 @@
-class ConfigPage extends Directive
+class ConfigPage
     constructor: ->
         return {
             replace: true
@@ -9,7 +9,7 @@ class ConfigPage extends Directive
         }
 
 
-class _ConfigPage extends Controller
+class _ConfigPage
     self = null
     constructor: (@$scope, config, $state, $http) ->
         self = this
@@ -58,3 +58,8 @@ class _ConfigPage extends Controller
                 return false
             ret = hasInvalidInScope(self.$scope)
             return ret
+
+
+angular.module('app')
+.directive('configPage', [ConfigPage])
+.controller('_ConfigPageController', ['$scope', 'config', '$state', '$http', _ConfigPage])

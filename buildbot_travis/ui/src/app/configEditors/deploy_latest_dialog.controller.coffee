@@ -1,4 +1,4 @@
-class deployLatestDialog extends Controller
+class deployLatestDialog
     constructor: ($scope, modal, commit, project, forcesched, buildername, config, $location) ->
         self = this
         self.$scope = $scope
@@ -55,3 +55,7 @@ class deployLatestDialog extends Controller
 
         $scope.cancel = ->
             modal.modal.dismiss()
+
+
+angular.module('app')
+.controller('deployLatestDialogController', ['$scope', 'modal', 'commit', 'project', 'forcesched', 'buildername', 'config', '$location', deployLatestDialog])
