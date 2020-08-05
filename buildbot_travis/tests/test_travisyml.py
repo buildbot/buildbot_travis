@@ -80,7 +80,7 @@ class TestYamlParsing(TravisYmlTestCase):
         self.assertRaises(TravisYmlInvalid, self.t.parse, """
         language: python
         script:
-            - !CMake [ tar:get ]
+            - !CMake [ "target ]
         """)
 
     def test_yaml_not_polluted(self):
