@@ -14,7 +14,7 @@ class InputStages {
             transclude: false,
             restrict: 'E', // E: Element
             scope: {allStages: '=', stages: '=', placeholder:"@"},
-            templateUrl: 'buildbot_travis/views/input_stages.html',
+            template: require('./input_stages.tpl.jade'),
             controller: '_InputStagesController'
         };
     }

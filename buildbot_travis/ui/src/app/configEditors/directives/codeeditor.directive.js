@@ -20,7 +20,7 @@ class CodeEditor {
             transclude: false,
             restrict: 'E',
             scope: {code: '='},
-            templateUrl: 'buildbot_travis/views/codeeditor.html',
+            template: require("./codeeditor.tpl.jade"),
             controller: '_CodeEditorController'
         };
     }

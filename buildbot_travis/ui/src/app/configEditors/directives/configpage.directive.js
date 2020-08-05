@@ -13,7 +13,7 @@ class ConfigPage {
             replace: true,
             transclude: true,
             restrict: 'E', // E: Element
-            templateUrl: 'buildbot_travis/views/config_page.html',
+            template: require('./config_page.tpl.jade'),
             controller: '_ConfigPageController'
         };
     }

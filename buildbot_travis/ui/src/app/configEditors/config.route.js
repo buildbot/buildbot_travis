@@ -17,7 +17,7 @@ class State {
         // Register new state
         $stateProvider.state({
             controller: "deployController",
-            templateUrl: "buildbot_travis/views/deploy.html",
+            template: require("./deploy.tpl.jade"),
             name: "travis_deploy",
             url: "/bbtravis/deploy",
             data: {
@@ -39,7 +39,7 @@ class State {
         // Register new state for Deployment settings section
         $stateProvider.state({
             controller: "deploymentConfigController",
-            templateUrl: "buildbot_travis/views/deployment.html",
+            template: require("./deployment.tpl.jade"),
             name: "travis_config_deployment",
             url: "/bbtravis/config/deployment",
             data: {
@@ -51,7 +51,7 @@ class State {
         // Register new state
         $stateProvider.state({
             controller: "projectsConfigController",
-            templateUrl: "buildbot_travis/views/projects.html",
+            template: require("./projects.tpl.jade"),
             name: "travis_config_projects",
             url: "/bbtravis/config/projects",
             data: {
@@ -63,7 +63,7 @@ class State {
         // Register new state
         $stateProvider.state({
             controller: "envConfigController",
-            templateUrl: "buildbot_travis/views/env.html",
+            template: require("./env.tpl.jade"),
             name: "travis_config_env",
             url: "/bbtravis/config/env",
             data: {
@@ -75,7 +75,7 @@ class State {
         // Register new state
         $stateProvider.state({
             controller: "notImportantFilesConfigController",
-            templateUrl: "buildbot_travis/views/not_important_files.html",
+            template: require("./not_important_files.tpl.jade"),
             name: "not_important_files",
             url: "/bbtravis/config/not_important_files",
             data: {
@@ -87,7 +87,7 @@ class State {
         // Register new state
         $stateProvider.state({
             controller: "workerConfigController",
-            templateUrl: "buildbot_travis/views/workers_config.html",
+            template: require("./workers_config.tpl.jade"),
             name: "workers_config",
             url: "/bbtravis/config/workers",
             data: {
@@ -99,7 +99,7 @@ class State {
         // Register new state
         $stateProvider.state({
             controller: "authConfigController",
-            templateUrl: "buildbot_travis/views/auth.html",
+            template: require("./auth.tpl.jade"),
             name: "auth_config",
             url: "/bbtravis/config/auth",
             data: {

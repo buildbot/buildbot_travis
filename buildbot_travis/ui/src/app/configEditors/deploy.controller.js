@@ -303,7 +303,7 @@
             $scope.builderName = project + '-deploy';
             modal = {};
             return modal.modal = $uibModal.open({
-              templateUrl: 'buildbot_travis/views/deploydialog.html',
+              template: require("./deploydialog.tpl.jade"),
               controller: 'deployDialogController',
               resolve: {
                 modal() {
@@ -345,7 +345,7 @@
             $scope.builderName = project + '-deploy';
             modal = {};
             return modal.modal = $uibModal.open({
-              templateUrl: 'buildbot_travis/views/deploy_latest_dialog.html',
+              template: require("./deploy_latest_dialog.tpl.jade"),
               controller: 'deployLatestDialogController',
               size: 'lg',
               resolve: {

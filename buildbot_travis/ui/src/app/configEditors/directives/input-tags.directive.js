@@ -14,7 +14,7 @@ class InputTags {
             transclude: false,
             restrict: 'E', // E: Element
             scope: {allTags: '=?', tags: '=', placeholder:"@"},
-            templateUrl: 'buildbot_travis/views/input_tags.html',
+            template: require('./input_tags.tpl.jade'),
             controller: '_InputTagsController'
         };
     }
