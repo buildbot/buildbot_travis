@@ -21,6 +21,7 @@
         "@uirouter/angularjs": "^1.0.15",
         "angular": "^1.8.0",
         "angular-animate": "^1.7.9",
+        "angular-bootstrap-show-errors": "^2.3.0",
         "buildbot-data-js": "^3.0.1",
         "d3": "^3.5.17",
         "guanlecoja-ui": "^2.0.0",

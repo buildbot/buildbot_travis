@@ -1136,6 +1136,11 @@ angular-animate@^1.7.9:
   resolved "https://registry.yarnpkg.com/angular-animate/-/angular-animate-1.8.0.tgz#fc6333a5a052129dc5fa0b02cd676304d2b99e9d"
   integrity sha512-ROFK3UIn1MSVpqAlay15ZxjPmVbvwaO3Zn/2vhmQdYeqxSbUVuOckcvtDLBpHPGPtOAreu35qfV7NQ7u2EgDcA==
 
+angular-bootstrap-show-errors@^2.3.0:
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/angular-bootstrap-show-errors/-/angular-bootstrap-show-errors-2.3.0.tgz#b152f63047fa8f97287f07ea022c00dbddd4ef7d"
+  integrity sha1-sVL2MEf6j5cofwfqAiwA293U730=
+
 angular-mocks@^1.7.9:
   version "1.8.0"
   resolved "https://registry.yarnpkg.com/angular-mocks/-/angular-mocks-1.8.0.tgz#9d161fe2102e47e46ff78a4226e4dfec27c060c4"

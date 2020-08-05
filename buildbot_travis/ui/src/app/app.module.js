@@ -9,7 +9,7 @@ class BuildbotTravis {
 }
 
 
-angular.module('app', new BuildbotTravis());
+angular.module('buildbot_travis', new BuildbotTravis());
 
 require("./configEditors/directives/input-tags.directive.js");
 require("./configEditors/directives/input_stages.directive.js");
@@ -20,3 +20,5 @@ require("./configEditors/deploy_latest_dialog.controller.js");
 require("./configEditors/deploy.controller.js");
 require("./configEditors/bbtravis_config.controller.js");
 require("./configEditors/config.route.js");
+require("angular-bootstrap-show-errors/src/showErrors.js");
+require("ng-tags-input/build/ng-tags-input.js");
