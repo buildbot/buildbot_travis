@@ -125,7 +125,7 @@ class ShellCommand(shell.ShellCommand):
 
         if not hastests:
             outputs = re.findall(
-                "Ran (?P<count>[\d]+) tests with (?P<fail>[\d]+) failures and (?P<error>[\d]+) errors",
+                r"Ran (?P<count>[\d]+) tests with (?P<fail>[\d]+) failures and (?P<error>[\d]+) errors",
                 stdio)
             for output in outputs:
                 total += int(output[0])
@@ -154,7 +154,7 @@ class ShellCommand(shell.ShellCommand):
                     if "successes" not in data:
                         total = 0
                         for number in re.findall(
-                                "Ran (?P<count>[\d]+) tests in ", stdio):
+                                r"Ran (?P<count>[\d]+) tests in ", stdio):
                             total += int(number)
                         data["successes"] = total - sum(data.values())
 
@@ -171,7 +171,7 @@ class ShellCommand(shell.ShellCommand):
                 re.findall(
                     '======================================================================\nERROR:',
                     stdio))
-            for number in re.findall("Ran (?P<count>[\d]+)", stdio):
+            for number in re.findall(r"Ran (?P<count>[\d]+)", stdio):
                 total += int(number)
                 hastests = True
 

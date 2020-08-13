@@ -1,0 +1,19 @@
+language: python
+python:
+  - "3.5"
+  - "3.6"
+  - "3.7"
+  - "3.8"
+
+install:
+  - title: install
+    cmd: |
+      pip install --no-binary :all: buildbot # need no-binary to get the test framework
+      pip install -r example/requirements.txt
+      pip install -e .
+      pip install mock
+
+script:
+  - title: tests
+    cmd: |
+      trial buildbot_travis.tests
