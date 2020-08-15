@@ -80,12 +80,12 @@ class TestYamlParsing(TravisYmlTestCase):
         self.assertRaises(TravisYmlInvalid, self.t.parse, """
         language: python
         script:
-            - !CMake [ tar:get ]
+            - !CMake [ "target ]
         """)
 
     def test_yaml_not_polluted(self):
         """yaml.load should not recognise Interpolate contruct"""
-        self.assertRaises(yaml.constructor.ConstructorError, yaml.load, """
+        self.assertRaises(yaml.constructor.ConstructorError, yaml.safe_load, """
             - !i foo
             """)
 
