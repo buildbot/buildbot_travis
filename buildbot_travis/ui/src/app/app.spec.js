@@ -1,0 +1,10 @@
+/*
+ * decaffeinate suggestions:
+ * DS102: Remove unnecessary code created because of implicit returns
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+describe('app', function() {
+    beforeEach(module('buildbot_travis'));
+
+    return it('should load app without error', () => null);
+});
