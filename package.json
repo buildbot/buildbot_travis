@@ -1,9 +1,31 @@
 {
-   "version" : "0.1.0",
-   "devDependencies" : {
-      "guanlecoja" : "~0.8.0",
-      "gulp": "~3.9.0"
-   },
-   "name" : "buildbot_travis",
-   "dependencies" : {}
+    "name": "buildbot-travis",
+    "plugin_name": "buildbot_travis",
+    "private": true,
+    "main": "src/data.module.js",
+    "scripts": {
+        "build": "rimraf buildbot_travis/static && webpack --bail --progress --profile --env prod",
+        "build-dev": "rimraf buildbot_travis/static && webpack --bail --progress --profile --env dev",
+        "dev": "webpack --bail --progress --profile --watch --env dev",
+        "test": "karma start",
+        "test-watch": "karma start --auto-watch --no-single-run"
+    },
+    "devDependencies": {
+        "angular-mocks": "^1.7.9",
+        "angular-ui-bootstrap": "^2.5.6",
+        "buildbot-build-common": "~1.0.0",
+        "lodash": "^4.17.19",
+        "rimraf": "^2.6.3"
+    },
+    "dependencies": {
+        "@uirouter/angularjs": "^1.0.15",
+        "angular": "^1.8.0",
+        "angular-animate": "^1.7.9",
+        "angular-bootstrap-show-errors": "^2.3.0",
+        "buildbot-data-js": "^3.0.1",
+        "d3": "^3.5.17",
+        "guanlecoja-ui": "^2.0.0",
+        "jquery": "^3.5.0",
+        "ng-tags-input": "*"
+    }
 }

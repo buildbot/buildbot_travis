@@ -125,7 +125,7 @@ class ShellCommand(shell.ShellCommand):
 
         if not hastests:
             outputs = re.findall(
-                "Ran (?P<count>[\d]+) tests with (?P<fail>[\d]+) failures and (?P<error>[\d]+) errors",
+                r"Ran (?P<count>[\d]+) tests with (?P<fail>[\d]+) failures and (?P<error>[\d]+) errors",
                 stdio)
             for output in outputs:
                 total += int(output[0])
@@ -154,7 +154,7 @@ class ShellCommand(shell.ShellCommand):
                     if "successes" not in data:
                         total = 0
                         for number in re.findall(
-                                "Ran (?P<count>[\d]+) tests in ", stdio):
+                                r"Ran (?P<count>[\d]+) tests in ", stdio):
                             total += int(number)
                         data["successes"] = total - sum(data.values())
 
@@ -171,7 +171,7 @@ class ShellCommand(shell.ShellCommand):
                 re.findall(
                     '======================================================================\nERROR:',
                     stdio))
-            for number in re.findall("Ran (?P<count>[\d]+)", stdio):
+            for number in re.findall(r"Ran (?P<count>[\d]+)", stdio):
                 total += int(number)
                 hastests = True
 
@@ -224,7 +224,7 @@ class TravisSetupSteps(ConfigurableStep):
     def addBBTravisStep(self, command):
         name = None
         condition = None
-        shell = "bash"
+        shell = None
         step = None
         original_command = command
         if isinstance(command, dict):
@@ -255,8 +255,14 @@ class TravisSetupSteps(ConfigurableStep):
             if name is None:
                 name = self.truncateName(command)
 
-            if not isinstance(command, list):
-                command = [shell, '-c', command]
+            if shell is not None:
+                # The following is dicy, as it assumes that all shells use
+                # -c to take a command string.  This is not always the case,
+                # such as for Windows cmd, and in that case, a command list
+                # is needed.
+                if not isinstance(shell, list):
+                    shell = [ shell, '-c' ]
+                command = list(shell) + list(command)
             step = ShellCommand(
                 name=name, description=command, command=command, doStepIf=not self.disable)
         self.build.addStepsAfterLastStep([step])

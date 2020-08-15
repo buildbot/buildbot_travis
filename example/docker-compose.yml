@@ -11,7 +11,7 @@ services:
     buildbot:
     # switch between local build and dockerhub image
     #    build: ../
-        image: "buildbot/buildbot_travis"
+        image: "buildbot/buildbot-travis"
         env_file: db.env
         ports:
             - "8010:8010"

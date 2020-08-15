@@ -11,6 +11,7 @@ from twisted.internet import defer
 from yaml import safe_load
 
 import buildbot_travis
+from buildbot_travis import ep
 from buildbot import getVersion
 from buildbot.config import error as config_error
 # TBD use plugins!
@@ -35,7 +36,7 @@ class TravisEndpointMatcher(EndpointMatcherBase):
         EndpointMatcherBase.__init__(self, **kwargs)
 
     def match(self, ep, action="get", options=None):
-        if b"/".join(ep).startswith(b"buildbot_travis/api/config"):
+        if "/".join(ep).startswith("buildbot_travis/api/config"):
             return defer.succeed(Match(self.master))
         return defer.succeed(None)
 
@@ -55,7 +56,6 @@ class TravisConfigurator(object):
         config.setdefault("schedulers", [])
         config.setdefault("change_source", [])
         config.setdefault("services", [])
-        config.setdefault("status", [])
         self.defaultEnv = {}
         self.defaultStages = []
         # we are not really multimaster, but this remove some checks
@@ -68,14 +68,14 @@ class TravisConfigurator(object):
         self.passwords[(scheme, netloc)] = (username, password)
 
     def fromYaml(self, path):
-        buildbot_travis.api.setYamlPath(path)
+        ep.api.setYamlPath(path)
         with open(path) as f:
             y = safe_load(f)
 
         return self.fromDict(y)
 
     def fromDict(self, y):
-        buildbot_travis.api.setCfg(y)
+        ep.api.setCfg(y)
         self.cfgdict = y
         self.createWorkerConfig()
         self.importantManager = ImportantManager(
@@ -301,7 +301,7 @@ class TravisConfigurator(object):
                 self.config['workers'].append(getattr(self, createWorkerConfigMethod)(_worker, name))
 
     def fromDb(self):
-        buildbot_travis.api.useDbConfig()
+        ep.api.useDbConfig()
         dbConfig = util.DbConfig(self.config, self.vardir)
         return self.fromDict(dbConfig.get("travis", {}))
 
