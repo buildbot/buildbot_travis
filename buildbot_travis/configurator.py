@@ -270,8 +270,10 @@ class TravisConfigurator(object):
 
     def createWorkerConfigDockerWorker(self, config, name):
         volumes = [v.strip() for v in config.get('volumes', '').split(',')]
+        hostconfig = config.get('hostconfig', None)
         return worker.DockerLatentWorker(name, str(uuid.uuid4()),
                                          docker_host=config['docker_host'],
+                                         hostconfig=hostconfig,
                                          volumes=volumes,
                                          image=util.Interpolate(config['image']),
                                          followStartupLogs=True)
