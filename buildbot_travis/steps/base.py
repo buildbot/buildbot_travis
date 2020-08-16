@@ -53,18 +53,22 @@ class ConfigurableStepMixin(CompositeStepMixin):
     @defer.inlineCallbacks
     def getStepConfig(self):
         travis_yml = None
+        error = None
         for filename in self.TRAVIS_FILENAMES:
             try:
                 travis_yml = yield self.getFileContentFromWorker(filename, abandonOnFailure=True)
                 break
             except buildstep.BuildStepFailed as e:
+                # exception variable is unset when we leave except block,
+                # we should save it explicitly
+                error = e
                 continue
 
         if travis_yml is None:
             self.descriptionDone = u"unable to fetch .travis.yml"
             self.addCompleteLog(
                 "error",
-                "Please put a file named .travis.yml at the root of your repository:\n{0}".format(e))
+                "Please put a file named .travis.yml at the root of your repository:\n{0}".format(error))
             self.addHelpLog()
             raise
 
