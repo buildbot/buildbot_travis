@@ -80,12 +80,12 @@ class TestYamlParsing(TravisYmlTestCase):
         self.assertRaises(TravisYmlInvalid, self.t.parse, """
         language: python
         script:
-            - !CMake [ tar:get ]
+            - !CMake [ "target ]
         """)
 
     def test_yaml_not_polluted(self):
         """yaml.load should not recognise Interpolate contruct"""
-        self.assertRaises(yaml.constructor.ConstructorError, yaml.load, """
+        self.assertRaises(yaml.constructor.ConstructorError, yaml.safe_load, """
             - !i foo
             """)
 
@@ -103,6 +103,24 @@ class TestEnv(TravisYmlTestCase):
         self.t.parse_matrix()
         self.assertEqual(
             self.t.matrix, [dict(python="python2.6", env=dict(FOO='1', BAR='2')), ])
+
+    def test_singlestringvalueenv(self):
+        self.t.config["env"] = "FOO=1 BAR='2' COOKIE=\"3\""
+        self.t.parse_envs()
+        self.assertEqual(self.t.environments, [dict(FOO='1', BAR='2', COOKIE='3')])
+
+        self.t.parse_matrix()
+        self.assertEqual(
+            self.t.matrix, [dict(python="python2.6", env=dict(FOO='1', BAR='2', COOKIE='3')), ])
+
+    def test_singlespacevalueenv(self):
+        self.t.config["env"] = "FOO=1 BAR='2 3'"
+        self.t.parse_envs()
+        self.assertEqual(self.t.environments, [dict(FOO='1', BAR='2 3')])
+
+        self.t.parse_matrix()
+        self.assertEqual(
+            self.t.matrix, [dict(python="python2.6", env=dict(FOO='1', BAR='2 3')), ])
 
     def test_multienv(self):
         self.t.config["env"] = ["FOO=1 BAR=2", "FOO=2 BAR=1"]

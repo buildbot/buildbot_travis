@@ -30,7 +30,7 @@ setup_www_plugin(
             # untested 'svn+poller = buildbot_travis.vcs.svn:SVNPoller',
             ],
         'buildbot.www': [
-            'buildbot_travis = buildbot_travis:ep'
+            'buildbot_travis = buildbot_travis.ep:ep'
         ],
         'console_scripts': [
             'bbtravis=buildbot_travis.cmdline:bbtravis',
