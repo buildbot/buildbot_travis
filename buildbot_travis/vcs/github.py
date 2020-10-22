@@ -70,7 +70,7 @@ class GitHub(GitBase):
                 with open(token.split(":", 2)[1]) as f:
                     token = f.read().strip()
             if token.startswith("env:"):
-                token = os.environ[token.split(":", 2)[1]]
+                token = os.environ.get(token.split(":", 2)[1])
             if not self.reporter_context:
                 self.reporter_context = self.default_reporter_context
             _reporters.append(
