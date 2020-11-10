@@ -217,6 +217,10 @@ class TravisSetupSteps(ConfigurableStep):
     MAX_NAME_LENGTH = 47
     disable = False
 
+    def __init__(self, cfgdict, **kwargs):
+        self.cfgdict = cfgdict
+        ConfigurableStep.__init__(self, **kwargs)
+
     def addSetupVirtualEnv(self, python):
         step = SetupVirtualEnv(python, doStepIf=not self.disable)
         self.build.addStepsAfterLastStep([step])

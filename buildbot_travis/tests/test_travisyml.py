@@ -27,7 +27,9 @@ class TravisYmlTestCase(unittest.TestCase):
 
     def setUp(self):
         self.t = TravisYml()
-        self.t.config = {}
+        self.t.config = {'language': 'python'}
+        self.t.load_cfgdict_options()
+        self.t.parse_language()
 
 
 class TestYamlParsing(TravisYmlTestCase):
@@ -102,7 +104,8 @@ class TestEnv(TravisYmlTestCase):
 
         self.t.parse_matrix()
         self.assertEqual(
-            self.t.matrix, [dict(python="python2.6", env=dict(FOO='1', BAR='2')), ])
+            self.t.matrix, [dict(python="2.7", env=dict(FOO='1', BAR='2'),
+                                 os='linux', dist='precise', language='python'), ])
 
     def test_singlestringvalueenv(self):
         self.t.config["env"] = "FOO=1 BAR='2' COOKIE=\"3\""
@@ -130,8 +133,10 @@ class TestEnv(TravisYmlTestCase):
 
         self.t.parse_matrix()
         self.assertEqual(self.t.matrix, [
-            dict(python="python2.6", env=dict(FOO='1', BAR='2')),
-            dict(python="python2.6", env=dict(FOO='2', BAR='1')),
+            dict(python="2.7", env=dict(FOO='1', BAR='2'), os='linux',
+                 dist='precise', language='python'),
+            dict(python="2.7", env=dict(FOO='2', BAR='1'), os='linux',
+                 dist='precise', language='python'),
         ])
 
     def test_globalenv(self):
@@ -142,8 +147,10 @@ class TestEnv(TravisYmlTestCase):
 
         self.t.parse_matrix()
         self.assertEqual(self.t.matrix, [
-            dict(python="python2.6", env=dict(FOOBAR='0', FOO='1', BAR='2')),
-            dict(python="python2.6", env=dict(FOOBAR='0', FOO='2', BAR='1')),
+            dict(python="2.7", env=dict(FOOBAR='0', FOO='1', BAR='2'),
+                 os='linux', dist='precise', language='python'),
+            dict(python="2.7", env=dict(FOOBAR='0', FOO='2', BAR='1'),
+                 os='linux', dist='precise', language='python'),
         ])
 
     def test_emptymatrixlenv(self):
@@ -154,7 +161,132 @@ class TestEnv(TravisYmlTestCase):
 
         self.t.parse_matrix()
         self.assertEqual(self.t.matrix, [
-            dict(python="python2.6", env=dict(FOOBAR='0')),
+            dict(python="2.7", env=dict(FOOBAR='0'), os='linux',
+                 dist='precise', language='python'),
+        ])
+
+
+class TestBuildMatrix(TravisYmlTestCase):
+
+    def test_default_language(self):
+        matrix = self.t._build_matrix()
+
+        self.failUnlessEqual(matrix, [
+            dict(language='python', python="2.7"),
+        ])
+
+    def test_default_multiple_options(self):
+        self.t.config["python"] = ['2.7', '3.5']
+        matrix = self.t._build_matrix()
+
+        self.failUnlessEqual(matrix, [
+            dict(language='python', python="2.7"),
+            dict(language='python', python="3.5"),
+        ])
+
+    def test_language_with_dict(self):
+        self.t.default_matrix = {
+            'language': {
+                'c': {'compiler': 'gcc'}
+            }
+        }
+        self.t.language = "c"
+        self.t.config["language"] = "c"
+
+        matrix = self.t._build_matrix()
+
+        self.failUnlessEqual(matrix, [
+            dict(compiler='gcc', language='c'),
+        ])
+
+        # Now try again with multiple compilers to use.
+        self.t.config["compiler"] = ["gcc", "clang", "cc"]
+
+        matrix = self.t._build_matrix()
+
+        self.failUnlessEqual(matrix, [
+            dict(compiler='gcc', language='c'),
+            dict(compiler='clang', language='c'),
+            dict(compiler='cc', language='c'),
+        ])
+
+    def test_language_multiple_options(self):
+        self.t.default_matrix = {
+            'language': {
+                'ruby': {
+                    'gemfile': 'Gemfile',
+                    'jdk': 'openjdk7',
+                    'rvm': '2.2',
+                }
+            }
+        }
+        self.t.language = "ruby"
+        self.t.config["language"] = "ruby"
+
+        matrix = self.t._build_matrix()
+
+        self.failUnlessEqual(matrix, [
+            dict(gemfile='Gemfile', jdk='openjdk7', rvm='2.2', language='ruby'),
+        ])
+
+        # Start exploding the matrix
+        self.t.config["gemfile"] = ['Gemfile', 'gemfiles/a']
+
+        matrix = self.t._build_matrix()
+
+        self.failUnlessEqual(matrix, [
+            dict(gemfile='Gemfile', jdk='openjdk7', rvm='2.2', language='ruby'),
+            dict(gemfile='gemfiles/a', jdk='openjdk7', rvm='2.2', language='ruby'),
+        ])
+
+        self.t.config["rvm"] = ['2.2', 'jruby']
+
+        matrix = self.t._build_matrix()
+
+        self.failUnlessEqual(matrix, [
+            dict(gemfile='Gemfile', jdk='openjdk7', rvm='2.2', language='ruby'),
+            dict(gemfile='Gemfile', jdk='openjdk7', rvm='jruby', language='ruby'),
+            dict(gemfile='gemfiles/a', jdk='openjdk7', rvm='2.2', language='ruby'),
+            dict(gemfile='gemfiles/a', jdk='openjdk7', rvm='jruby', language='ruby'),
+        ])
+
+        self.t.config["jdk"] = ['openjdk7', 'oraclejdk7']
+
+        matrix = self.t._build_matrix()
+
+        self.failUnlessEqual(matrix, [
+            dict(gemfile='Gemfile', jdk='openjdk7', rvm='2.2', language='ruby'),
+            dict(gemfile='Gemfile', jdk='openjdk7', rvm='jruby', language='ruby'),
+            dict(gemfile='Gemfile', jdk='oraclejdk7', rvm='2.2', language='ruby'),
+            dict(gemfile='Gemfile', jdk='oraclejdk7', rvm='jruby', language='ruby'),
+            dict(gemfile='gemfiles/a', jdk='openjdk7', rvm='2.2', language='ruby'),
+            dict(gemfile='gemfiles/a', jdk='openjdk7', rvm='jruby', language='ruby'),
+            dict(gemfile='gemfiles/a', jdk='oraclejdk7', rvm='2.2', language='ruby'),
+            dict(gemfile='gemfiles/a', jdk='oraclejdk7', rvm='jruby', language='ruby'),
+        ])
+
+
+class TestOsMatrix(TravisYmlTestCase):
+
+    def test_os_matrix(self):
+        build_matrix = [dict(language='python', python='2.7')]
+
+        matrix = self.t._os_matrix(build_matrix)
+
+        self.failUnlessEqual(matrix, [
+            dict(os='linux', dist='precise', language='python', python='2.7')
+        ])
+
+    def test_multiple_dists(self):
+        build_matrix = [dict(language='python', python='2.7')]
+        self.t.config["dist"] = ["precise", "trusty", "xenial"]
+
+        matrix = self.t._os_matrix(build_matrix)
+
+        self.failUnlessEqual(matrix, [
+            dict(os='linux', dist='precise', language='python', python='2.7'),
+            dict(os='linux', dist='trusty', language='python', python='2.7'),
+            dict(os='linux', dist='xenial', language='python', python='2.7'),
         ])
 
 
@@ -163,66 +295,74 @@ class TestMatrix(TravisYmlTestCase):
     def test_exclude_match(self):
         self.t.config["env"] = ["FOO=1 BAR=2", "FOO=2 BAR=1"]
         m = self.t.config["matrix"] = {}
-        m['exclude'] = [dict(python="python2.6", env="FOO=2 BAR=1")]
+        m['exclude'] = [dict(python="2.7", env="FOO=2 BAR=1")]
 
         self.t.parse_envs()
         self.t.parse_matrix()
 
         self.assertEqual(self.t.matrix, [
-            dict(python="python2.6", env=dict(FOO='1', BAR='2')),
+            dict(python="2.7", env=dict(FOO='1', BAR='2'), os='linux',
+                 dist='precise', language='python'),
         ])
 
     def test_exclude_subset_match(self):
         self.t.config["env"] = ["FOO=1 BAR=2", "FOO=2 BAR=1 SPAM=3"]
         m = self.t.config["matrix"] = {}
-        m['exclude'] = [dict(python="python2.6", env="FOO=2 BAR=1")]
+        m['exclude'] = [dict(python="2.7", env="FOO=2 BAR=1")]
 
         self.t.parse_envs()
         self.t.parse_matrix()
 
         self.assertEqual(self.t.matrix, [
-            dict(python="python2.6", env=dict(FOO='1', BAR='2')),
+            dict(python="2.7", env=dict(FOO='1', BAR='2'), os='linux',
+                 dist='precise', language='python'),
         ])
 
     def test_exclude_nomatch(self):
         self.t.config["env"] = ["FOO=1 BAR=2", "FOO=2 BAR=1"]
         m = self.t.config["matrix"] = {}
-        m['exclude'] = [dict(python="python2.6", env="FOO=2 BAR=3")]
+        m['exclude'] = [dict(python="2.7", env="FOO=2 BAR=3")]
 
         self.t.parse_envs()
         self.t.parse_matrix()
 
         self.assertEqual(self.t.matrix, [
-            dict(python="python2.6", env=dict(FOO='1', BAR='2')),
-            dict(python="python2.6", env=dict(FOO='2', BAR='1')),
+            dict(python="2.7", env=dict(FOO='1', BAR='2'), os='linux',
+                 dist='precise', language='python'),
+            dict(python="2.7", env=dict(FOO='2', BAR='1'), os='linux',
+                 dist='precise', language='python'),
         ])
 
     def test_include(self):
         self.t.config["env"] = ["FOO=1 BAR=2", "FOO=2 BAR=1"]
         m = self.t.config["matrix"] = {}
-        m['include'] = [dict(python="python2.6", env="FOO=2 BAR=3")]
+        m['include'] = [dict(python="2.7", env="FOO=2 BAR=3")]
 
         self.t.parse_envs()
         self.t.parse_matrix()
 
         self.assertEqual(self.t.matrix, [
-            dict(python="python2.6", env=dict(FOO='1', BAR='2')),
-            dict(python="python2.6", env=dict(FOO='2', BAR='1')),
-            dict(python="python2.6", env=dict(FOO='2', BAR='3')),
+            dict(python="2.7", env=dict(FOO='1', BAR='2'), os='linux',
+                 dist='precise', language='python'),
+            dict(python="2.7", env=dict(FOO='2', BAR='1'), os='linux',
+                 dist='precise', language='python'),
+            dict(python="2.7", env=dict(FOO='2', BAR='3')),
         ])
 
     def test_include_with_global(self):
         self.t.config["env"] = {'global': "CI=true", 'matrix': ["FOO=1 BAR=2", "FOO=2 BAR=1"]}
         m = self.t.config["matrix"] = {}
-        m['include'] = [dict(python="python2.6", env="FOO=2 BAR=3")]
+        m['include'] = [dict(python="2.7", env="FOO=2 BAR=3")]
 
         self.t.parse_envs()
         self.t.parse_matrix()
 
         self.assertEqual(self.t.matrix, [
-            dict(python="python2.6", env=dict(FOO='1', BAR='2', CI='true')),
-            dict(python="python2.6", env=dict(FOO='2', BAR='1', CI='true')),
-            dict(python="python2.6", env=dict(FOO='2', BAR='3', CI='true')),
+            dict(python="2.7", env=dict(FOO='1', BAR='2', CI='true'),
+                 os='linux', dist='precise', language='python'),
+            dict(python="2.7", env=dict(FOO='2', BAR='1', CI='true'),
+                 os='linux', dist='precise', language='python'),
+            dict(python="2.7", env=dict(FOO='2', BAR='3', CI='true')),
         ])
 
 

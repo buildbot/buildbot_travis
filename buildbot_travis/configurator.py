@@ -364,7 +364,7 @@ class TravisConfigurator(object):
         # Define the builder for the main job
         f = factory.BuildFactory()
         vcsManager.addSourceSteps(f)
-        f.addStep(TravisSetupSteps())
+        f.addStep(TravisSetupSteps(cfgdict=self.cfgdict))
 
         self.config['builders'].append(BuilderConfig(
             name=job_name,
@@ -387,6 +387,7 @@ class TravisConfigurator(object):
         vcsManager.addSourceSteps(f)
         f.addStep(TravisTrigger(
             scheduler=job_name,
+            cfgdict=self.cfgdict,
         ))
         properties = dict(TRAVIS_PULL_REQUEST=False)
         properties.update(self.properties)
@@ -439,6 +440,7 @@ class TravisConfigurator(object):
             vcsManager.addSourceSteps(f)
             f.addStep(TravisTrigger(
                 scheduler=job_name,
+                cfgdict=self.cfgdict,
             ))
 
             self.config['builders'].append(BuilderConfig(
