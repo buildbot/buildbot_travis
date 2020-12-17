@@ -226,7 +226,7 @@ class TravisConfiguratorTestCase(unittest.TestCase, config.ConfigErrorsMixin):
                 'docker_host': 'tcp://foo:2193',
                 'volumes': '/foo:/foo, /bar:/bar',
                 'hostconfig': {'devices': 'foo:foo, bar:bar'},
-                'image': 'slave'
+                'image': 'worker'
             }]
         }
         self.c.createWorkerConfig()

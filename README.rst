@@ -484,7 +484,7 @@ The basic behaviour is:
    ``/change_hook/poller?poller=pollername`` web hook
 
  * Build is scheduled on a 'spawner' builder - this is a builder configured to
-   use an ordinary slave
+   use an ordinary worker
 
  * Checkout occurs - for the purposes of acquiring the ``.travis.yml`` rather
    than for actually performing a build
@@ -492,7 +492,7 @@ The basic behaviour is:
  * 'spawner' triggers a build on a 'job' builder for each environment in the
    build matrix defined in ``.travis.yml``
 
- * 'job' builder does a single build in a clean latent buildslave (VM or docker)
+ * 'job' builder does a single build in a clean latent worker (VM or docker)
 
  * ``setup-steps`` step dynamically appends ShellCommand steps based on
    contents of ``.travis.yml``
@@ -538,7 +538,7 @@ Compared to previous version following features are not yet available
 * mergerequest should be adapted to the new collapseRequest api
 * SVN shall be validated (only git has been tested so far)
 * metrics facility is not really specific to travis, and should be available in buildbot master directly
-* nextBuild feature shall be reimplemented: allowed to avoid running a spawner when no '-job' slave is available
+* nextBuild feature shall be reimplemented: allowed to avoid running a spawner when no '-job' worker is available
 
 Compared to original Travis format, here is a non-exaustive list of features known not to be supported
 

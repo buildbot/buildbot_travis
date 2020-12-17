@@ -15,7 +15,7 @@ VERSION
 sandbox
 wheelhouse
 dist
-slave/
+worker/
 buildbot.tac
 run.sh
 *.log

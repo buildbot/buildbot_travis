@@ -57,7 +57,7 @@ class SetupVirtualEnv(ShellMixin, LoggingBuildStep):
         VEPYTHON='{sandboxname}/bin/python'
 
         # first, set up the virtualenv if it hasn't already been done, or if it's
-        # broken (as sometimes happens when a slave's Python is updated)
+        # broken (as sometimes happens when a worker's Python is updated)
         if ! test -f "$VE/bin/pip" || ! test -d "$VE/lib/$PYTHON" || ! "$VE/bin/python" -c 'import math'; then
             echo "Setting up virtualenv $VE";
             rm -rf "$VE";

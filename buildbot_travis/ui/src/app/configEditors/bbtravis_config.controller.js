@@ -186,7 +186,7 @@ var WorkerConfig = (function() {
             this.$scope.worker_add = function() {
                 if (self.$scope.new_worker.type) {
                     if (self.$scope.cfg.workers == null) { self.$scope.cfg.workers = []; }
-                    const name = "myslave" + (self.$scope.cfg.workers.length + 1).toString();
+                    const name = "myworker" + (self.$scope.cfg.workers.length + 1).toString();
                     const id = _.random(Math.pow(2, 32));
                     self.$scope.shows[name] = true;
                     self.$scope.cfg.workers.push({

@@ -30,7 +30,7 @@ except ImportError:
     RunMasterBase = object
 
 
-# This integration test creates a master and slave environment,
+# This integration test creates a master and worker environment,
 # with one builder and a custom step
 # It uses a git bundle to store sample git repository for the integration test
 # inside the git is present the following '.travis.yml' file
