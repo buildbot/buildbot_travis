@@ -108,12 +108,12 @@ class TravisMaster(RunMasterBase):
                       project="buildbot_travis"
                       )
         build = yield self.doForceBuild(wantSteps=True, useChange=change, wantLogs=True)
-        if 'worker ready' in build['steps'][0]['state_string']:
+        if 'worker local1 ready' in build['steps'][0]['state_string']:
           build['steps'] = build['steps'][1:]
         self.assertEqual(build['steps'][0]['state_string'], 'update buildbot_travis')
         self.assertEqual(build['steps'][0]['name'], 'git-buildbot_travis')
         self.assertEqual(build['steps'][1]['state_string'], 'triggered ' +
-                         ", ".join(["buildbot_travis-job"] * 4))
+                         ", ".join(["buildbot_travis-job"] * 4) + ', 4 successes')
         url_names = [url['name'] for url in build['steps'][1]['urls']]
         url_urls = [url['url'] for url in build['steps'][1]['urls']]
         self.assertIn(u'http://localhost:8010/#builders/3/builds/1', url_urls)
