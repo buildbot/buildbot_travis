@@ -21,15 +21,15 @@ import traceback
 
 from twisted.internet import defer
 
-from buildbot.process.buildstep import (SUCCESS, BuildStep, LoggingBuildStep,
-                                        ShellMixin)
+from buildbot.process.buildstep import SUCCESS, BuildStep, ShellMixin
+from buildbot.process import logobserver
 from buildbot.steps import shell
 
 from ..travisyml import TRAVIS_HOOKS
 from .base import ConfigurableStep
 
 
-class SetupVirtualEnv(ShellMixin, LoggingBuildStep):
+class SetupVirtualEnv(ShellMixin, BuildStep):
     name = "setup virtualenv"
     sandboxname = "sandbox"
 
@@ -81,118 +81,95 @@ class ShellCommand(shell.ShellCommand):
     haltOnFailure = True
     warnOnWarnings = True
 
-    def setupEnvironment(self, cmd):
-        """ Turn all build properties into environment variables """
-        shell.ShellCommand.setupEnvironment(self, cmd)
-        env = {}
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.addLogObserver('stdio', logobserver.LineConsumerLogObserver(self.log_line_consumer))
+        self.total_count = 0
+        self.skipped_count = 0
+        self.fails_count = 0
+        self.errors_count = 0
+        self.has_tests = False
+
+    @defer.inlineCallbacks
+    def run(self):
+        env = getattr(self, 'env', {})
         for k, v in self.build.getProperties().properties.items():
             env[str(k)] = str(v[0])
-        if cmd.args['env'] is None:
-            cmd.args['env'] = {}
-        cmd.args['env'].update(env)
+        self.env = env
 
-    def createSummary(self, stdio):
-        self.updateStats(stdio)
+        cmd = yield self.makeRemoteShellCommand()
+        yield self.runCommand(cmd)
 
-    def setStatistics(self, key, value):
-        pass
+        if self.total_count > 0:
+            # We work out passed at the end because most test runners dont tell us
+            # and we can't distinguish between different test systems easily so we
+            # might double count.
+            passed = self.total_count - (self.skipped_count + self.fails_count + self.errors_count)
 
-    def getStatistics(self, key, default):
-        pass
-
-    def updateStats(self, log):
-        """
-        Parse test results out of common test harnesses.
-
-        Currently supported are:
-
-         * Plone
-         * Nose
-         * Trial
-         * Something mitchell wrote in Java
-        """
-        stdio = log.getText()
-
-        total = passed = skipped = fails = warnings = errors = 0
-        hastests = False
-
-        # Plone? That has lines starting "Ran" and "Total". Total is missing if there is only a single layer.
-        # For this reason, we total ourselves which lets us work even if someone runes 2 batches of plone tests
-        # from a single target
-
-        # Example::
-        #     Ran 24 tests with 0 failures and 0 errors in 0.009 seconds
-
-        if not hastests:
-            outputs = re.findall(
-                r"Ran (?P<count>[\d]+) tests with (?P<fail>[\d]+) failures and (?P<error>[\d]+) errors",
-                stdio)
-            for output in outputs:
-                total += int(output[0])
-                fails += int(output[1])
-                errors += int(output[2])
-                hastests = True
-
-        # Twisted
-
-        # Example::
-        #    FAILED (errors=5, successes=11)
-        #    PASSED (successes=16)
-        if not hastests:
-            for line in stdio.split("\n"):
-                if line.startswith("FAILED (") or line.startswith("PASSED ("):
-                    hastests = True
-
-                    line = line[8:][:-1]
-                    stats = line.split(", ")
-                    data = {}
-
-                    for stat in stats:
-                        k, v = stat.split("=")
-                        data[k] = int(v)
-
-                    if "successes" not in data:
-                        total = 0
-                        for number in re.findall(
-                                r"Ran (?P<count>[\d]+) tests in ", stdio):
-                            total += int(number)
-                        data["successes"] = total - sum(data.values())
-
-        # This matches Nose and Django output
-
-        # Example::
-        #     Ran 424 tests in 152.927s
-        #     FAILED (failures=1)
-        #     FAILED (errors=3)
-
-        if not hastests:
-            fails += len(re.findall('FAIL:', stdio))
-            errors += len(
-                re.findall(
-                    '======================================================================\nERROR:',
-                    stdio))
-            for number in re.findall(r"Ran (?P<count>[\d]+)", stdio):
-                total += int(number)
-                hastests = True
-
-        # We work out passed at the end because most test runners dont tell us
-        # and we can't distinguish between different test systems easily so we
-        # might double count.
-        passed = total - (skipped + fails + errors + warnings)
-
-        # Update the step statistics with out shiny new totals
-        if hastests:
-            self.setStatistic('total', total)
-            self.setStatistic('fails', fails)
-            self.setStatistic('errors', errors)
-            self.setStatistic('warnings', warnings)
-            self.setStatistic('skipped', skipped)
+            self.setStatistic('total', self.total_count)
+            self.setStatistic('fails', self.fails_count)
+            self.setStatistic('errors', self.errors_count)
+            self.setStatistic('skipped', self.skipped_count)
             self.setStatistic('passed', passed)
 
-    def describe(self, done=False):
-        description = shell.ShellCommand.describe(self, done)
+        return cmd.results()
 
-        if done and self.hasStatistic('total'):
+    def log_line_consumer(self):
+        while True:
+            stream, line = yield
+            if stream not in 'oe':
+                continue
+
+            outputs = re.findall(
+                r"Ran (?P<count>[\d]+) tests with (?P<fail>[\d]+) failures and (?P<error>[\d]+) errors",
+                line)
+            for output in outputs:
+                self.total_count += int(output[0])
+                self.fails_count += int(output[1])
+                self.errors_count += int(output[2])
+
+            # Twisted
+            # Example::
+            #    FAILED (errors=5, successes=11)
+            #    PASSED (successes=16)
+            if line.startswith("FAILED (") or line.startswith("PASSED ("):
+                line = line[8:][:-1]
+                stats = line.split(", ")
+
+                for stat in stats:
+                    k, v = stat.split("=")
+                    try:
+                        v = int(v)
+                        if k == 'successes':
+                            self.total_count += v
+                        elif k == 'failures':
+                            self.total_count += v
+                            self.fails_count += v
+                        elif k == 'errors':
+                            self.total_count += v
+                            self.errors_count += v
+                        elif k == 'skips':
+                            self.total_count += v
+                            self.skipped_count += v
+                    except ValueError:
+                        pass
+
+            # This matches Nose and Django output
+            # Example::
+            #     Ran 424 tests in 152.927s
+            #     FAILED (failures=1)
+            #     FAILED (errors=3)
+            if 'FAIL:' in line:
+                self.fails_count += 1
+            if 'ERROR:' in line:
+                self.errors_count += 1
+            for number in re.findall(r"Ran (?P<count>[\d]+)", line):
+                self.total_count += int(number)
+
+    def getResultSummary(self):
+        description = super().getResultSummary()
+
+        if self.hasStatistic('total'):
 
             def append(stat, fmtstring):
                 val = self.getStatistic(stat, 0)
@@ -202,7 +179,6 @@ class ShellCommand(shell.ShellCommand):
             append("total", "%d tests")
             append("fails", "%d fails")
             append("errors", "%d errors")
-            append("warnings", "%d warnings")
             append("skipped", "%d skipped")
             append("passed", "%d passed")
 

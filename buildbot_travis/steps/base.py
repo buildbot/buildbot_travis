@@ -87,5 +87,5 @@ class ConfigurableStepMixin(CompositeStepMixin):
         defer.returnValue(config)
 
 
-class ConfigurableStep(buildstep.LoggingBuildStep, ConfigurableStepMixin):
+class ConfigurableStep(buildstep.BuildStep, ConfigurableStepMixin):
     pass

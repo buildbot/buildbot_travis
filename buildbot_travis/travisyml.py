@@ -18,6 +18,7 @@ from __future__ import print_function
 from future.utils import string_types
 
 import re
+import warnings
 
 import yaml
 from buildbot.plugins import util
@@ -65,7 +66,7 @@ TravisLoader.add_constructor(u'!Interpolate', interpolate_constructor)
 TravisLoader.add_constructor(u'!i', interpolate_constructor)
 
 
-def registerStepClass(name, step):
+def registerStepClass(name, step_class, step_warnings):
     def step_constructor(loader, node):
         args = []
         kwargs = {}
@@ -86,13 +87,25 @@ def registerStepClass(name, step):
         if len(exceptions) == 3:
             raise Exception("Could not parse steps arguments: {}".format(
                 " ".join([str(x) for x in exceptions])))
-        return step(*args, **kwargs)
+
+        # Re-raise all warnings that occurred when accessing step class. We only want them to be
+        # logged if the configuration actually uses the step class.
+        for w in step_warnings:
+            warnings.warn_explicit(w.message, w.category, w.filename, w.lineno)
+
+        return step_class(*args, **kwargs)
 
     TravisLoader.add_constructor(u'!' + name, step_constructor)
 
 steps = get_plugins('steps', None, load_now=True)
-for step in steps.names:
-    registerStepClass(step, steps.get(step))
+for step_name in steps.names:
+    # Accessing a step from the plugin DB may raise warrings (e.g. deprecation). We don't want
+    # them logged until the step is actually used.
+    with warnings.catch_warnings(record=True) as all_warnings:
+        warnings.simplefilter("always")
+        step_class = steps.get(step_name)
+        step_warnings = list(all_warnings)
+    registerStepClass(step_name, step_class, step_warnings)
 
 
 class TravisYml(object):
