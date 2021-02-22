@@ -23,7 +23,6 @@ from twisted.internet import defer
 
 from buildbot.process.buildstep import SUCCESS, BuildStep, ShellMixin
 from buildbot.process import logobserver
-from buildbot.steps import shell
 
 from ..travisyml import TRAVIS_HOOKS
 from .base import ConfigurableStep
@@ -75,14 +74,15 @@ class SetupVirtualEnv(ShellMixin, BuildStep):
         return command
 
 
-class ShellCommand(shell.ShellCommand):
+class ShellCommand(ShellMixin, BuildStep):
 
     flunkOnFailure = True
     haltOnFailure = True
     warnOnWarnings = True
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, **kwargs):
+        kwargs = self.setupShellMixin(kwargs)
+        super().__init__(**kwargs)
         self.addLogObserver('stdio', logobserver.LineConsumerLogObserver(self.log_line_consumer))
         self.total_count = 0
         self.skipped_count = 0
@@ -124,9 +124,12 @@ class ShellCommand(shell.ShellCommand):
                 r"Ran (?P<count>[\d]+) tests with (?P<fail>[\d]+) failures and (?P<error>[\d]+) errors",
                 line)
             for output in outputs:
-                self.total_count += int(output[0])
-                self.fails_count += int(output[1])
-                self.errors_count += int(output[2])
+                try:
+                    self.total_count += int(output[0])
+                    self.fails_count += int(output[1])
+                    self.errors_count += int(output[2])
+                except ValueError:
+                    pass
 
             # Twisted
             # Example::
@@ -164,7 +167,10 @@ class ShellCommand(shell.ShellCommand):
             if 'ERROR:' in line:
                 self.errors_count += 1
             for number in re.findall(r"Ran (?P<count>[\d]+)", line):
-                self.total_count += int(number)
+                try:
+                    self.total_count += int(number)
+                except ValueError:
+                    pass
 
     def getResultSummary(self):
         description = super().getResultSummary()
