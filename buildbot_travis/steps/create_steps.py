@@ -124,9 +124,12 @@ class ShellCommand(shell.ShellCommand):
                 r"Ran (?P<count>[\d]+) tests with (?P<fail>[\d]+) failures and (?P<error>[\d]+) errors",
                 line)
             for output in outputs:
-                self.total_count += int(output[0])
-                self.fails_count += int(output[1])
-                self.errors_count += int(output[2])
+                try:
+                    self.total_count += int(output[0])
+                    self.fails_count += int(output[1])
+                    self.errors_count += int(output[2])
+                except ValueError:
+                    pass
 
             # Twisted
             # Example::
@@ -164,7 +167,10 @@ class ShellCommand(shell.ShellCommand):
             if 'ERROR:' in line:
                 self.errors_count += 1
             for number in re.findall(r"Ran (?P<count>[\d]+)", line):
-                self.total_count += int(number)
+                try:
+                    self.total_count += int(number)
+                except ValueError:
+                    pass
 
     def getResultSummary(self):
         description = super().getResultSummary()
