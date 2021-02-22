@@ -23,7 +23,6 @@ from twisted.internet import defer
 
 from buildbot.process.buildstep import SUCCESS, BuildStep, ShellMixin
 from buildbot.process import logobserver
-from buildbot.steps import shell
 
 from ..travisyml import TRAVIS_HOOKS
 from .base import ConfigurableStep
@@ -75,14 +74,15 @@ class SetupVirtualEnv(ShellMixin, BuildStep):
         return command
 
 
-class ShellCommand(shell.ShellCommand):
+class ShellCommand(ShellMixin, BuildStep):
 
     flunkOnFailure = True
     haltOnFailure = True
     warnOnWarnings = True
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, **kwargs):
+        kwargs = self.setupShellMixin(kwargs)
+        super().__init__(**kwargs)
         self.addLogObserver('stdio', logobserver.LineConsumerLogObserver(self.log_line_consumer))
         self.total_count = 0
         self.skipped_count = 0
