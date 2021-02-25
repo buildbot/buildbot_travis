@@ -173,14 +173,18 @@ class ShellCommand(ShellMixin, BuildStep):
                     pass
 
     def getResultSummary(self):
-        description = super().getResultSummary()
+        summary = super().getResultSummary()
 
         if self.hasStatistic('total'):
 
             def append(stat, fmtstring):
                 val = self.getStatistic(stat, 0)
                 if val:
-                    description.append(fmtstring % val)
+                    formatted = fmtstring % val
+                    if 'step' not in summary:
+                        summary['step'] = formatted
+                    else:
+                        summary['step'] += ' ' + formatted
 
             append("total", "%d tests")
             append("fails", "%d fails")
@@ -188,7 +192,7 @@ class ShellCommand(ShellMixin, BuildStep):
             append("skipped", "%d skipped")
             append("passed", "%d passed")
 
-        return description
+        return summary
 
 
 class TravisSetupSteps(ConfigurableStep):

@@ -78,6 +78,7 @@ install:
   - echo doing install
 script:
   - echo doing scripts
+  - echo Ran 10 tests with 0 failures and 0 errors
 after_success:
   - echo doing after success
 notifications:
