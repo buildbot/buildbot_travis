@@ -66,6 +66,35 @@ class VCSBase(object):
         else:
             self.branch = None
 
+    def getSpecialValue(self, key):
+        # edge cases
+        if key is None:
+            return key
+        key_parts = key.split(':', 1)
+        if len(key_parts) == 1:
+            return key
+
+        # Check if we have a special value.
+        value_type, value_key = key_parts
+        value_type = value_type.lower()
+
+        # read a file
+        if value_type == 'file':
+            with open(value_key) as f:
+                val = f.read().strip()
+            return val
+
+        # load a value from the environment
+        if value_type == 'env':
+            return os.environ.get(value_key)
+
+        # load a buildbot secret
+        if value_type == 'secret':
+            return util.Secret(value_key)
+
+        # Return the plain value if it wasn't special
+        return key
+
     def addRepository(self, factory, name, repository, branches=None):
         raise NotImplementedError()
 

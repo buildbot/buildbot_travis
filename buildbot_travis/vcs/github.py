@@ -24,10 +24,6 @@ from .base import getCodebaseForRepository
 from .git import GitBase
 
 
-def getCodebaseForGitHubChange(payload):
-    return getCodebaseForRepository(payload['repository']['html_url'])
-
-
 @util.renderer
 def makeContext(props):
     if "reason" not in props:
@@ -46,31 +42,39 @@ class GitHub(GitBase):
     if hasattr(steps, "GitHub"):
         GitStep = steps.GitHub
 
+    def getChangeFilterRepo(self):
+        if not self.repository.startswith('git@github.com:'):
+            return self.repository
+        _, path = self.repository.split('git@github.com:', 1)
+        path = path.replace('.git', '')
+        return 'https://github.com/{}'.format(path)
+
     def getPushChangeFilter(self):
-        filt = dict(repository=self.repository)
+        filt = dict(repository=self.getChangeFilterRepo())
         filt['category'] = None
         if self.branch is not None:
             filt['branch'] = self.branch
         return util.ChangeFilter(**filt)
 
     def getTryChangeFilter(self):
-        filt = dict(repository=self.repository)
+        filt = dict(repository=self.getChangeFilterRepo())
         filt['category'] = 'pull'
         return util.ChangeFilter(**filt)
 
+    def getCodebaseForGitHubChange(self, payload):
+        url = payload['repository']['html_url']
+        if self.repository.startswith('git@github.com:'):
+            url = payload['repository']['ssh_url']
+        return getCodebaseForRepository(url)
+
     def setupChangeSource(self, changeSources):
-        return {'github': {'codebase': getCodebaseForGitHubChange}}
+        return {'github': {'codebase': self.getCodebaseForGitHubChange}}
 
     def setupReporters(self, _reporters, spawner_name, try_name, codebases):
         name = "GitHubStatusPush"
         reportersByName = dict([(r.name, r) for r in _reporters])
         if name not in reportersByName and self.github_token:
-            token = self.github_token
-            if token.startswith("file:"):
-                with open(token.split(":", 2)[1]) as f:
-                    token = f.read().strip()
-            if token.startswith("env:"):
-                token = os.environ.get(token.split(":", 2)[1])
+            token = self.getSpecialValue(self.github_token)
             if not self.reporter_context:
                 self.reporter_context = self.default_reporter_context
             _reporters.append(

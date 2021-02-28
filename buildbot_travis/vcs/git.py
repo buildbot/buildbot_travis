@@ -45,6 +45,8 @@ class GitBase(VCSBase):
     shallow = False
     method = "clone"
     mode = "incremental"
+    ssh_private_key = None
+    ssh_known_hosts_file = None
     retryFetch = True
     retry = (2, 10)  # default retry 10 times, with 2 seconds delay
 
@@ -61,6 +63,12 @@ class GitBase(VCSBase):
             retryFetch=self.retryFetch,
             retry=self.retry
         ))
+
+        if self.ssh_private_key:
+            kwargs['sshPrivateKey'] = self.getSpecialValue(self.ssh_private_key)
+
+        if self.ssh_known_hosts:
+            kwargs['sshKnownHosts'] = self.getSpecialValue(self.ssh_known_hosts)
 
         factory.addStep(self.GitStep(**kwargs))
 
