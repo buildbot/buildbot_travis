@@ -74,6 +74,8 @@ class GitBase(VCSBase):
 
 
 class GitPoller(GitBase, PollerMixin):
+    ssh_private_key = None
+    ssh_known_hosts_file = None
     description = "Source code hosted on git, with detection of changes using poll method"
 
     def setupChangeSource(self, changeSources):
