@@ -64,18 +64,17 @@ class GitBase(VCSBase):
             retry=self.retry
         ))
 
-        if self.ssh_private_key:
+        ssh_private_key = getattr(self, 'ssh_private_key', None)
+        if ssh_private_key:
             kwargs['sshPrivateKey'] = self.getSpecialValue(self.ssh_private_key)
-
-        if self.ssh_known_hosts:
+        ssh_known_hosts = getattr(self, 'ssh_known_hosts', None)
+        if ssh_known_hosts:
             kwargs['sshKnownHosts'] = self.getSpecialValue(self.ssh_known_hosts)
 
         factory.addStep(self.GitStep(**kwargs))
 
 
 class GitPoller(GitBase, PollerMixin):
-    ssh_private_key = None
-    ssh_known_hosts_file = None
     description = "Source code hosted on git, with detection of changes using poll method"
 
     def setupChangeSource(self, changeSources):
